@@ -3,7 +3,42 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PuzzleX by Carlos Sivila</title>
+
+  <!-- SEO básico -->
+  <title>PuzzleX by Carlos Sivila — Juegos de Puzzle Online</title>
+  <meta name="description" content="PuzzleX es una colección de juegos de puzzle online creados por Carlos Sivila. Jugá BallSort, Bejeweled, Blocks, Colors, Pairs y más, directo desde el navegador." />
+  <meta name="keywords" content="puzzle, juegos puzzle, ball sort, bejeweled, rompecabezas, juegos online, Carlos Sivila, PuzzleX" />
+  <meta name="author" content="Carlos Sivila" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://carlossivila.github.io/puzzlex/" />
+
+  <!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="PuzzleX by Carlos Sivila — Juegos de Puzzle Online" />
+  <meta property="og:description" content="Colección de juegos de puzzle online: BallSort, Bejeweled, Blocks, Colors, Pairs y más. Jugá gratis desde el navegador." />
+  <meta property="og:url" content="https://carlossivila.github.io/puzzlex/" />
+  <meta property="og:locale" content="es_AR" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="PuzzleX by Carlos Sivila — Juegos de Puzzle Online" />
+  <meta name="twitter:description" content="Colección de juegos de puzzle online: BallSort, Bejeweled, Blocks, Colors, Pairs y más." />
+  <meta name="twitter:creator" content="@carlossivila" />
+
+  <!-- Schema.org JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "PuzzleX",
+    "url": "https://carlossivila.github.io/puzzlex/",
+    "description": "Colección de juegos de puzzle online creados por Carlos Sivila.",
+    "author": {
+      "@type": "Person",
+      "name": "Carlos Sivila"
+    }
+  }
+  </script>
   <style>
     @font-face {
       font-family: 'font';
@@ -75,6 +110,10 @@
       line-height: 1.1;
     }
 
+    .title-group {
+      display: inline-block;
+    }
+
     .subtitle {
       font-family: Arial, sans-serif;
       font-size: clamp(1.05rem, 2.5vw, 1.25rem);
@@ -83,8 +122,7 @@
       text-shadow:
         0 0 6px var(--neon-cyan),
         0 0 16px var(--neon-cyan);
-      margin-top: 10px;
-      margin-left: 60px;
+      margin-top: 4px;
     }
 
     .clock-wrap {
@@ -175,7 +213,7 @@
       text-transform: none;
       letter-spacing: 0.05em;
       width: 100%;
-      padding-left: 65px;
+      padding-left: 75px;
     }
 
     .symbols-row {
@@ -222,34 +260,38 @@
 <body>
 
   <div id="menu-screen">
-    <div class="header-block">
-      <h1>🧩 PuzzleX</h1>
-      <div class="subtitle">by Carlos Sivila</div>
+    <header class="header-block">
+      <div class="title-group">
+        <h1>🧩 PuzzleX</h1>
+        <p class="subtitle">by Carlos Sivila</p>
+      </div>
       <div class="clock-wrap">
         <span class="main_time" id="time"></span>
         <span class="main_date" id="date"></span>
       </div>
-      <div class="symbols-row">
+      <div class="symbols-row" aria-hidden="true">
         <span>🧩</span>
         <span style="animation-delay:2.5s">♞</span>
         <span style="animation-delay:5s">♠</span>
         <span style="animation-delay:7.5s">🎲</span>
       </div>
-    </div>
-    <div class="divider"></div>
+    </header>
+    <div class="divider" aria-hidden="true"></div>
 
-    <ul class="game-list">
-      <li><a href="ballsort.html">BallSort <span class="game-hint">(BallSort, bolitas de colores)</span></a></li>
-      <li><a href="bejeweled.html">Bejeweled <span class="game-hint">(Bejeweled, joyas)</span></a></li>
-      <li><a href="blocks.html">Blocks <span class="game-hint">(Blocks, bloques)</span></a></li>
-      <li><a href="blocks-v2.html">Blocks-v2 <span class="game-hint">(Blocks-v2, bloques-v2)</span></a></li>
-      <li><a href="colors.html">Colors <span class="game-hint">(Colors, colores)</span></a></li>
-      <li><a href="colors-v2.html">Colors-v2 <span class="game-hint">(Colors-v2, colores-v2)</span></a></li>
-      <li><a href="pairs.html">Pairs <span class="game-hint">(Pairs, parejas)</span></a></li>
-      <li><a href="puzzle.html">Puzzle <span class="game-hint">(Puzzle, rompecabezas)</span></a></li>
-      <li><a href="puzzle-v2.html">Puzzle-v2 <span class="game-hint">(Puzzle-v2, rompecabezas-v2)</span></a></li>
-      <li><a href="puzzle-v3.html">Puzzle-v3 <span class="game-hint">(Puzzle-v3, rompecabezas-v3)</span></a></li>
-    </ul>
+    <nav aria-label="Índice de juegos">
+      <ul class="game-list">
+        <li><a href="ballsort.html">BallSort <span class="game-hint">Ordena bolitas de colores</span></a></li>
+        <li><a href="bejeweled.html">Bejeweled <span class="game-hint">Combina joyas</span></a></li>
+        <li><a href="blocks.html">Blocks <span class="game-hint">Encaja bloques</span></a></li>
+        <li><a href="blocks-v2.html">Blocks v2 <span class="game-hint">Bloques tetris flotante</span></a></li>
+        <li><a href="colors.html">Colors <span class="game-hint">Sudoku 4x4 de colores</span></a></li>
+        <li><a href="colors-v2.html">Colors v2 <span class="game-hint">Combina colores</span></a></li>
+        <li><a href="pairs.html">Pairs <span class="game-hint">Encuentra las parejas</span></a></li>
+        <li><a href="puzzle.html">Puzzle <span class="game-hint">Rompecabezas deslizante</span></a></li>
+        <li><a href="puzzle-v2.html">Puzzle v2 <span class="game-hint">Rompecabezas intercambiable</span></a></li>
+        <li><a href="puzzle-v3.html">Puzzle v3 <span class="game-hint">Rompecabezas con ratación</span></a></li>
+      </ul>
+    </nav>
   </div>
 
   <audio id="bgAudio" loop>
@@ -277,6 +319,18 @@
         audio.play().catch(() => {});
       }
     });
+
+    // Alinear subtitle con el texto del h1 (después del emoji)
+    (function alignSubtitle() {
+      const h1 = document.querySelector('h1');
+      const subtitle = document.querySelector('.subtitle');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const style = window.getComputedStyle(h1);
+      ctx.font = style.fontSize + ' ' + style.fontFamily;
+      const emojiWidth = ctx.measureText('🧩 ').width;
+      subtitle.style.paddingLeft = emojiWidth + 'px';
+    })();
 
     // Reloj
     const dayNames = ['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
