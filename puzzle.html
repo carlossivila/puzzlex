@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PuzzleX - Rompecabezas</title>
+    <style>
+        body { background-color: #111; }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+            padding: 5px;
+        }
+         .puzzle-board {
+             position: relative;
+             display: inline-grid;
+             gap: 1px;
+             background-color: #000;
+             border: 2px solid cyan;
+             box-shadow: 2px 2px 30px rgba(0, 255, 255, 0.9);
+}
+
+        .tile {
+            background-size: cover;
+            border: 1px solid #666;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .tile:hover {
+            transform: scale(0.98);
+        }
+        .empty {
+            background: radial-gradient(#999, #333) !important;
+        }
+        .button-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 5px;
+            padding: 5px 10px;
+            font-size: 14px;
+            background-color: #003300;
+            color: lime;
+            border: 1px solid gray;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .preview-button {
+            width: 25px;
+            height: 25px;
+            padding: 0;
+            position: relative;
+        }
+        .preview-button:hover::after {
+            content: '';
+            position: absolute;
+            width: 250px;
+            height: 250px;
+            background-image: var(--current-image);
+            background-size: cover;
+            top: -290px;
+            left: 5px;
+            transform: translateX(-75%);
+            border: 2px solid #666;
+            box-shadow: 0 0 15px rgba(0,255,0,0.5);
+        }
+        button:hover {
+            background-color: #009900;
+            color: cyan;
+            border: 1px solid cyan;
+            text-shadow: 0 0 5px blue, 0 0 10px cyan;
+            box-shadow: 0 0 15px cyan, 0 0 30px aqua;
+        }
+        .info {
+            font-size: 18px;
+            font-family: monospace;
+            color: red;
+            padding: 2px;
+            margin: 2px;
+        }
+        a:link,a:visited {
+            text-decoration: none;
+            color: lime;
+        }
+        a:hover {
+            text-decoration: none;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<h3 style="color: lime;">PuzzleX by Carlos Sivila</h3>
+
+<div class="container">
+    <div class="puzzle-board" id="board"></div>
+    <div class="button-container">
+        <button onclick="changeImage()">Cambiar imagen</button>
+        <button onclick="toggleSize()" id="sizeBtn">Cambiar a 4x4</button>
+        <button class="preview-button" id="previewBtn"></button>
+    </div>
+    <div class="info">
+        Movimientos: <span id="moves">0</span>
+        | Tiempo: <span id="timer">09:59</span>
+    </div>
+</div>
+
+<script>
+const images = [
+'https://thumbs.dreamstime.com/z/bot%C3%B3n-determinado-del-n%C3%BAmero-n%C3%BAmeros-103101130.jpg?ct=jpeg',
+'https://i.discogs.com/YOGZe043GsAPj4N7NOJLh1DKrBHxo6wrGWXYEREdbrM/rs:fit/g:sm/q:40/h:300/w:300/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI5MTEy/OTMtMTU5NDI0NTgx/Mi03OTMxLmpwZWc.jpeg',
+'https://www.shutterstock.com/image-photo/nuremberg-germany-august-9-2024-260nw-2516622489.jpg',
+'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Albert_Einstein_Head_cleaned.jpg/500px-Albert_Einstein_Head_cleaned.jpg',
+'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbELh4JZozSYNgqD2ShfgtS3TK_qDLxfAI5w&s',
+'https://www.clarin.com/img/2019/10/30/NXk__gtU_1200x0__1.jpg',
+'https://i.pinimg.com/originals/77/d4/78/77d47823126562484a88fc51e1adb760.jpg',
+'https://i.pinimg.com/474x/11/83/b3/1183b381d5d75af0cefa50253b874a31.jpg',
+'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Maradona-Mundial_86_con_la_copa.JPG/960px-Maradona-Mundial_86_con_la_copa.JPG',
+'https://static.dw.com/image/61527609_804.jpg',
+'https://static.dw.com/image/19306161_604.jpg',
+'https://www.clarin.com/2021/01/08/pDBQXz6Ht_360x240__1.jpg',
+'https://cdn.nba.com/headshots/nba/latest/1040x760/893.png',
+'https://theartofjoshnelson.com/cdn/shop/products/il_794xN.3092575748_c5dm.jpg?v=1624471280',
+'https://static.wikia.nocookie.net/simpsons-2013/images/2/26/Bart_Simpson.PNG/revision/latest?cb=20130602191223&path-prefix=es',
+'https://cdn.forbes.co/2020/07/Bugs-Bunny-1280x720-1.jpg',
+'https://e7.pngegg.com/pngimages/303/900/png-clipart-mickey-mouse-in-wizard-suit-illustration-mickey-mouse-minnie-mouse-epic-mickey-sorcerer-s-hat-psychedelic-game-heroes.png',
+'https://autopiccolo.es/wp-content/uploads/2024/09/IMG-20200605-WA0008.jpg',
+'https://static.wikia.nocookie.net/cartoon-characters8569/images/d/d6/Betty-boop.jpg/revision/latest?cb=20170103113524',
+'https://static.wikia.nocookie.net/tkoc/images/a/ab/Felix_the_Cat.jpg/revision/latest/scale-to-width-down/250?cb=20170108143822&path-prefix=pt-br',
+'https://vignette.wikia.nocookie.net/chroniclesofillusion/images/7/7c/MightyMouse.png/revision/latest?cb=20170125162746',
+'https://media-front.elmostrador.cl/2014/08/superheroes.jpg',
+'https://static.wikia.nocookie.net/superman/images/c/ce/Action_Comics_1.png/revision/latest?cb=20150623162141&path-prefix=es'
+];
+
+let currentSize = 3;
+let currentImage = "";
+let moves = 0;
+let timeLeft = 599;
+let timerInterval;
+let emptyTileIndex;
+let currentTileOrder = [];
+
+function updatePreviewButton() {
+    document.documentElement.style.setProperty('--current-image', `url(${currentImage})`);
+    document.getElementById('previewBtn').style.backgroundImage = `url(${currentImage})`;
+    document.getElementById('previewBtn').style.backgroundSize = 'cover';
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function isSolvable(puzzle) {
+    let inversions = 0;
+    const puzzleWithoutEmpty = puzzle.filter(x => x !== currentSize * currentSize - 1);
+    
+    for (let i = 0; i < puzzleWithoutEmpty.length - 1; i++) {
+        for (let j = i + 1; j < puzzleWithoutEmpty.length; j++) {
+            if (puzzleWithoutEmpty[i] > puzzleWithoutEmpty[j]) {
+                inversions++;
+            }
+        }
+    }
+    
+    if (currentSize % 2 === 1) {
+        return inversions % 2 === 0;
+    } else {
+        const emptyRowFromBottom = currentSize - Math.floor(puzzle.indexOf(currentSize * currentSize - 1) / currentSize);
+        return (emptyRowFromBottom % 2 === 0) === (inversions % 2 === 0);
+    }
+}
+
+function generateValidPuzzle() {
+    let puzzle = Array.from({length: currentSize * currentSize}, (_, i) => i);
+    do {
+        shuffleArray(puzzle);
+    } while (!isSolvable(puzzle));
+    return puzzle;
+}
+
+function checkWin() {
+    const totalTiles = currentSize * currentSize;
+    for (let i = 0; i < totalTiles; i++) {
+        if (currentTileOrder[i] !== i) return false;
+    }
+    return true;
+}
+
+function initGame() {
+    clearInterval(timerInterval);
+    moves = 0;
+    timeLeft = 599;
+    document.getElementById('moves').textContent = moves;
+    updateTimer();
+    startTimer();
+    currentImage = images[Math.floor(Math.random() * images.length)];
+    updatePreviewButton();
+    currentTileOrder = generateValidPuzzle();
+    createBoard();
+}
+
+function createBoard() {
+    const board = document.getElementById('board');
+    board.style.gridTemplateColumns = `repeat(${currentSize}, 90px)`;
+    board.innerHTML = '';
+    
+    const totalTiles = currentSize * currentSize;
+    emptyTileIndex = currentTileOrder.indexOf(totalTiles - 1);
+
+    for(let i = 0; i < totalTiles; i++) {
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.style.width = '90px';
+        tile.style.height = '90px';
+        
+        const currentPos = currentTileOrder[i];
+        
+        if(currentPos !== totalTiles - 1) {
+            const bgPosX = -(currentPos % currentSize) * 90;
+            const bgPosY = -Math.floor(currentPos / currentSize) * 90;
+            tile.style.backgroundImage = `url(${currentImage})`;
+            tile.style.backgroundPosition = `${bgPosX}px ${bgPosY}px`;
+            const totalWidth = currentSize * 90;
+            tile.style.backgroundSize = `${totalWidth}px ${totalWidth}px`;
+        } else {
+            tile.classList.add('empty');
+        }
+
+        tile.addEventListener('click', () => moveTile(i));
+        board.appendChild(tile);
+    }
+}
+
+function moveTile(index) {
+    const tiles = document.querySelectorAll('.tile');
+    if(isAdjacent(index, emptyTileIndex, currentSize)) {
+        const tempStyle = tiles[index].style.cssText;
+        const tempClass = tiles[index].className;
+        
+        tiles[index].style.cssText = tiles[emptyTileIndex].style.cssText;
+        tiles[index].className = tiles[emptyTileIndex].className;
+        
+        tiles[emptyTileIndex].style.cssText = tempStyle;
+        tiles[emptyTileIndex].className = tempClass;
+        
+        [currentTileOrder[index], currentTileOrder[emptyTileIndex]] = 
+        [currentTileOrder[emptyTileIndex], currentTileOrder[index]];
+        
+        emptyTileIndex = index;
+        moves++;
+        document.getElementById('moves').textContent = moves;
+        
+        if(checkWin()) {
+            setTimeout(() => {
+                alert("¡Ganaste!");
+                initGame();
+            }, 1000);
+        } else if(moves >= 999) {
+            alert("Perdiste, demasiados movimientos");
+            initGame();
+        }
+    }
+}
+
+function isAdjacent(index1, index2, size) {
+    const row1 = Math.floor(index1 / size);
+    const col1 = index1 % size;
+    const row2 = Math.floor(index2 / size);
+    const col2 = index2 % size;
+    
+    return (Math.abs(row1 - row2) === 1 && col1 === col2) ||
+           (Math.abs(col1 - col2) === 1 && row1 === row2);
+}
+
+function changeImage() {
+    const newImage = images[Math.floor(Math.random() * images.length)];
+    currentImage = newImage;
+    updatePreviewButton();
+    currentTileOrder = generateValidPuzzle();
+    createBoard();
+
+    moves = 0;
+    timeLeft = 599;
+    document.getElementById('moves').textContent = moves;
+    updateTimer();
+    startTimer();
+}
+
+function toggleSize() {
+    currentSize = currentSize === 3 ? 4 : 3;
+    document.getElementById('sizeBtn').textContent = 
+        currentSize === 3 ? 'Cambiar a 4x4' : 'Cambiar a 3x3';
+    currentTileOrder = generateValidPuzzle();
+    createBoard();
+
+    moves = 0;
+    timeLeft = 599;
+    document.getElementById('moves').textContent = moves;
+    updateTimer();
+    startTimer();
+}
+
+function updateTimer() {
+    const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+    const seconds = (timeLeft % 60).toString().padStart(2, '0');
+    document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+}
+
+function startTimer() {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimer();
+        if(timeLeft <= 0) {
+            alert("Perdiste, se te acabó el tiempo");
+            clearInterval(timerInterval);
+            initGame();
+        }
+    }, 1000);
+}
+
+initGame();
+</script>
+
+<script>
+document.addEventListener('contextmenu', function(e) {
+e.preventDefault();
+});
+</script>
+
+</body>
+</html>

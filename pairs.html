@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PuzzleX - parejas</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: left;
+            font-family: Arial, sans-serif;
+            background-color: #111;
+            color: white;
+            padding: 2px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 2px;
+            margin: 2px 0;
+            transition: all 0.3s ease;
+        }
+
+        .grid-4x4 {
+            grid-template-columns: repeat(4, 60px);
+            grid-template-rows: repeat(4, 60px);
+        }
+
+        .grid-6x6 {
+            grid-template-columns: repeat(6, 50px);
+            grid-template-rows: repeat(6, 50px);
+        }
+
+        .box {
+            background-color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: transparent;
+            cursor: pointer;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .grid-4x4 .box {
+            width: 60px;
+            height: 60px;
+            font-size: 45px;
+            border: 1px solid cyan;
+        }
+
+        .grid-6x6 .box {
+            width: 50px;
+            height: 50px;
+            font-size: 35px;
+            border: 1px solid cyan;
+        }
+
+        .revealed {
+            background-color: #fff !important;
+        }
+
+        .box.color-red { color: red !important; }
+        .box.color-orange { color: orange !important; }
+        .box.color-green { color: green !important; }
+        .box.color-lime { color: lime !important; }
+        .box.color-blue { color: blue !important; }
+        .box.color-skyblue { color: skyblue !important; }
+        .box.color-purple { color: purple !important; }
+        .box.color-yellow { color: yellow !important; }
+        .box.color-pink { color: pink !important; }
+        .box.color-cyan { color: cyan !important; }
+        .box.color-magenta { color: magenta !important; }
+        .box.color-gold { color: gold !important; }
+        .box.color-darkred { color: darkred !important; }
+        .box.color-darkgreen { color: darkgreen !important; }
+        .box.color-darkblue { color: darkblue !important; }
+        .box.color-darkorange { color: darkorange !important; }
+        .box.color-silver { color: silver !important; }
+        .box.color-coral { color: coral !important; }
+
+        .counters {
+            color: white;
+            margin: 5px 0;
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        .highlight {
+            color: red;
+            font-weight: bold;
+        }
+
+        #toggle {
+            background-color: black;
+            color: lime;
+            border: 1px solid cyan;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            margin: 5px;
+        }
+
+        #toggle:hover {
+            background-color: #050505;
+            color: red;
+            border: 1px solid gray;
+        }
+
+        #toggle:active {
+            background-color: #33F033;
+            color: red;
+            border: 1px solid black;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .matched {
+            background-color: black !important;
+            opacity: 0.7;
+        }
+
+@media (max-width: 600px) {
+  body {
+    font-size: 20px;
+    transform: scale(1.0);
+    transform-origin: top left;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<h4 style="color: lime;">PuzzleX by Carlos Sivila</h4>
+<div class="grid grid-4x4" id="grid"></div>
+<div class="counters">
+    <div id="pairs-counter">Encontraste <span class="highlight">0</span> parejas de <span class="highlight">8</span>.<br>Te faltan <span class="highlight">8</span> parejas.</div>
+    <div id="attempts-counter">Hiciste <span class="highlight">0</span> intentos.<br>Tienes <span class="highlight">0</span> fallos de <span class="highlight">25</span> fallos.</div>
+    <div id="timer-counter">Han transcurrido <span class="highlight">00:00</span> de <span class="highlight">09:59</span>.<br>Te quedan <span class="highlight">09:59</span>.</div>
+</div>
+<div class="buttons">
+    <button id="toggle">4X4 / 6X6</button>
+</div>
+
+<script>
+    const grid = document.getElementById('grid');
+    const toggleButton = document.getElementById('toggle');
+    const pairsCounter = document.getElementById('pairs-counter');
+    const attemptsCounter = document.getElementById('attempts-counter');
+    const timerCounter = document.getElementById('timer-counter');
+    
+    let is4x4 = true;
+    let gridSize = 4;
+    let totalPairs = 8;
+    let maxFailures = 25;
+    let gameTime = 599; // 9:59 en segundos
+
+    const symbols4x4 = [
+        { symbol: '■', color: 'red', id: 1 },
+        { symbol: '■', color: 'orange', id: 2 },
+        { symbol: '■', color: 'green', id: 3 },
+        { symbol: '■', color: 'lime', id: 4 },
+        { symbol: '♦', color: 'blue', id: 5 },
+        { symbol: '♦', color: 'skyblue', id: 6 },
+        { symbol: '♦', color: 'purple', id: 7 },
+        { symbol: '♦', color: 'yellow', id: 8 }
+    ];
+
+    const symbols6x6 = [
+        { symbol: '■', color: 'red', id: 1 },
+        { symbol: '■', color: 'orange', id: 2 },
+        { symbol: '■', color: 'green', id: 3 },
+        { symbol: '■', color: 'lime', id: 4 },
+        { symbol: '♦', color: 'blue', id: 5 },
+        { symbol: '♦', color: 'skyblue', id: 6 },
+        { symbol: '♦', color: 'purple', id: 7 },
+        { symbol: '♦', color: 'yellow', id: 8 },
+        { symbol: '●', color: 'pink', id: 9 },
+        { symbol: '●', color: 'cyan', id: 10 },
+        { symbol: '●', color: 'magenta', id: 11 },
+        { symbol: '●', color: 'gold', id: 12 },
+        { symbol: '▲', color: 'darkred', id: 13 },
+        { symbol: '▲', color: 'darkgreen', id: 14 },
+        { symbol: '▲', color: 'darkblue', id: 15 },
+        { symbol: '▲', color: 'darkorange', id: 16 },
+        { symbol: '★', color: 'silver', id: 17 },
+        { symbol: '★', color: 'coral', id: 18 }
+    ];
+
+    let gameBoard = [];
+    let firstSelection = null;
+    let secondSelection = null;
+    let pairsFound = 0;
+    let attempts = 0;
+    let failures = 0;
+    let elapsedTime = 0;
+    let timer;
+    let matchedPairs = new Set();
+    let gameEnded = false; // Variable para controlar si el juego terminó
+
+    function initializeGame() {
+        if (is4x4) {
+            gridSize = 4;
+            totalPairs = 8;
+            maxFailures = 25;
+            gameTime = 599; // 9:59
+            gameBoard = [];
+            symbols4x4.forEach(symbol => {
+                gameBoard.push({...symbol});
+                gameBoard.push({...symbol});
+            });
+            grid.className = 'grid grid-4x4';
+        } else {
+            gridSize = 6;
+            totalPairs = 18;
+            maxFailures = 45;
+            gameTime = 599;
+            gameBoard = [];
+            symbols6x6.forEach(symbol => {
+                gameBoard.push({...symbol});
+                gameBoard.push({...symbol});
+            });
+            grid.className = 'grid grid-6x6';
+        }
+
+        gameBoard = gameBoard.sort(() => Math.random() - 0.5);
+
+        pairsFound = 0;
+        attempts = 0;
+        failures = 0;
+        elapsedTime = 0;
+        firstSelection = null;
+        secondSelection = null;
+        matchedPairs.clear();
+        gameEnded = false; // Reiniciar estado del juego
+
+        if (timer) clearInterval(timer);
+        
+        updateCounters();
+    }
+
+    function createGrid() {
+        grid.innerHTML = '';
+        gameBoard.forEach((_, index) => createBox(index));
+    }
+
+    function createBox(index) {
+        const box = document.createElement('div');
+        box.classList.add('box');
+        box.dataset.index = index;
+        box.addEventListener('click', () => handleClick(box, index));
+        grid.appendChild(box);
+    }
+
+    function handleClick(box, index) {
+        if (gameEnded || // No permitir clicks si el juego terminó
+            box.classList.contains('revealed') || 
+            box.classList.contains('matched') || 
+            secondSelection || 
+            matchedPairs.has(index)) return;
+
+        const { symbol, color, id } = gameBoard[index];
+        box.textContent = symbol;
+        box.classList.add('revealed');
+        box.classList.add('color-' + color);
+
+        if (!firstSelection) {
+            firstSelection = { box, symbol, color, id, index };
+        } else {
+            secondSelection = { box, symbol, color, id, index };
+            attempts++;
+            updateCounters();
+            checkMatch();
+        }
+    }
+
+    function checkMatch() {
+        const isMatch = firstSelection.id === secondSelection.id;
+
+        if (isMatch) {
+            // Marcar como emparejadas
+            firstSelection.box.classList.add('matched');
+            secondSelection.box.classList.add('matched');
+            matchedPairs.add(firstSelection.index);
+            matchedPairs.add(secondSelection.index);
+            
+            pairsFound++;
+            updateCounters();
+            resetSelection();
+            
+            if (pairsFound === totalPairs) {
+                gameEnded = true; // Marcar juego como terminado
+                clearInterval(timer);
+                setTimeout(() => {
+                    alert("Ganaste");
+                }, 2000); // Cambiado a 2 segundos
+            }
+        } else {
+            failures++;
+            updateCounters();
+            
+            setTimeout(() => {
+                firstSelection.box.textContent = '';
+                secondSelection.box.textContent = '';
+                firstSelection.box.classList.remove('revealed');
+                secondSelection.box.classList.remove('revealed');
+                // Remover clases de color
+                firstSelection.box.className = firstSelection.box.className.replace(/color-\w+/g, '').trim();
+                secondSelection.box.className = secondSelection.box.className.replace(/color-\w+/g, '').trim();
+                if (!firstSelection.box.className) firstSelection.box.className = 'box';
+                if (!secondSelection.box.className) secondSelection.box.className = 'box';
+                resetSelection();
+            }, 1000);
+            
+            if (failures >= maxFailures) {
+                gameEnded = true; // Marcar juego como terminado
+                clearInterval(timer);
+                setTimeout(() => {
+                    alert("Perdiste, demasiados fallos.");
+                }, 2000); // Cambiado a 2 segundos
+            }
+        }
+    }
+
+    function resetSelection() {
+        firstSelection = null;
+        secondSelection = null;
+    }
+
+    function updateCounters() {
+        const remainingPairs = totalPairs - pairsFound;
+        pairsCounter.innerHTML = `Encontraste <span class="highlight">${pairsFound}</span> parejas de <span class="highlight">${totalPairs}</span>.<br>Te faltan <span class="highlight">${remainingPairs}</span> parejas.`;
+
+        attemptsCounter.innerHTML = `Hiciste <span class="highlight">${attempts}</span> intentos.<br>Tienes <span class="highlight">${failures}</span> fallos de <span class="highlight">${maxFailures}</span> fallos.`;
+    }
+
+    function updateTimer() {
+        if (gameEnded) return; // No actualizar timer si el juego terminó
+        
+        elapsedTime++;
+
+        const timeLeft = gameTime - elapsedTime;
+
+        // Si se acaba el tiempo, terminar el juego inmediatamente
+        if (timeLeft <= 0) {
+            gameEnded = true; // Marcar juego como terminado
+            clearInterval(timer);
+            
+            // Mostrar tiempo final como 00:00
+            timerCounter.innerHTML = `Han transcurrido <span class="highlight">09:59</span> de <span class="highlight">09:59</span>.<br>Te quedan <span class="highlight">00:00</span>.`;
+            
+            setTimeout(() => {
+                alert("Perdiste, se te acabó el tiempo.");
+            }, 2000); // Cambiado a 2 segundos
+            return;
+        }
+
+        const totalMinutes = Math.floor(gameTime / 60);
+        const totalSeconds = gameTime % 60;
+        const elapsedMinutes = Math.floor(elapsedTime / 60);
+        const elapsedSecondsFormatted = elapsedTime % 60;
+        const remainingMinutes = Math.floor(timeLeft / 60);
+        const remainingSeconds = timeLeft % 60;
+
+        timerCounter.innerHTML = `Han transcurrido <span class="highlight">${String(elapsedMinutes).padStart(2, '0')}:${String(elapsedSecondsFormatted).padStart(2, '0')}</span> de <span class="highlight">${String(totalMinutes).padStart(2, '0')}:${String(totalSeconds).padStart(2, '0')}</span>.<br>Te quedan <span class="highlight">${String(remainingMinutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}</span>.`;
+    }
+
+    function startTimer() {
+        timer = setInterval(updateTimer, 1000);
+        updateTimer();
+    }
+
+    function revealAll() {
+        const boxes = document.querySelectorAll('.box');
+        boxes.forEach((box, index) => {
+            const { symbol, color } = gameBoard[index];
+            box.textContent = symbol;
+            box.classList.add('revealed');
+            box.classList.add('color-' + color);
+        });
+
+        setTimeout(() => {
+            boxes.forEach(box => {
+                if (!box.classList.contains('matched')) {
+                    box.textContent = '';
+                    box.classList.remove('revealed');
+                    // Remover todas las clases de color
+                    box.className = box.className.replace(/color-\w+/g, '').trim();
+                    if (!box.className) box.className = 'box';
+                }
+            });
+            startTimer();
+        }, 3000);
+    }
+
+    function toggleGridSize() {
+        is4x4 = !is4x4;
+        toggleButton.textContent = is4x4 ? '4X4 / 6X6' : '6X6 / 4X4';
+        initializeNewGame();
+    }
+
+    function initializeNewGame() {
+        if (timer) clearInterval(timer);
+        initializeGame();
+        createGrid();
+        revealAll();
+    }
+
+toggleButton.addEventListener('click', toggleGridSize);
+
+initializeGame();
+createGrid();
+revealAll();
+</script>
+
+<script>
+document.addEventListener('contextmenu', function(e) {
+e.preventDefault();
+});
+</script>
+
+</body>
+</html>

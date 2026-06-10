@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PuzzleX by Carlos Sivila</title>
+  <style>
+    @font-face {
+      font-family: 'font';
+      src: url('font.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    :root {
+      --neon-cyan:    #00fff7;
+      --neon-lime:    #00ff00;
+      --neon-pink:    #ff00cc;
+      --neon-yellow:  #ffe600;
+      --neon-green:   #39ff14;
+      --bg:           #000000;
+      --font-main:    'font', Arial, monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      font-family: var(--font-main);
+      color: #fff;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 3px,
+        rgba(0,0,0,0.18) 3px,
+        rgba(0,0,0,0.18) 4px
+      );
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    #coin-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      z-index: 10;
+      background: #000;
+      padding: 10px;
+    }
+
+    #coin-screen .brand {
+      font-size: clamp(2.4rem, 12vw, 5rem);
+      letter-spacing: 0.12em;
+      color: var(--neon-lime);
+      text-shadow:
+        0 0 8px  var(--neon-lime),
+        0 0 24px var(--neon-lime),
+        0 0 60px var(--neon-lime);
+      animation: flicker 4s infinite;
+    }
+
+    #coin-screen .insert-coin {
+      font-size: clamp(1rem, 4.5vw, 1.8rem);
+      letter-spacing: 0.3em;
+      color: var(--neon-yellow);
+      text-shadow:
+        0 0 6px  var(--neon-yellow),
+        0 0 18px var(--neon-yellow);
+      animation: blink 2.2s step-start infinite;
+      cursor: pointer;
+      border: 2px solid var(--neon-yellow);
+      padding: 14px 32px;
+      background: transparent;
+      font-family: var(--font-main);
+      text-transform: uppercase;
+      transition: background 0.15s;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    #coin-screen .insert-coin:hover,
+    #coin-screen .insert-coin:active {
+      background: rgba(255,230,0,0.08);
+    }
+
+    #coin-screen .credits {
+      font-size: clamp(0.55rem, 2vw, 0.75rem);
+      letter-spacing: 0.2em;
+      color: #444;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    #menu-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 28px 16px 24px;
+      overflow-y: auto;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+
+    #menu-screen.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .header-block {
+      text-align: center;
+      margin-bottom: 5px;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 10vw, 3.8rem);
+      letter-spacing: 0.1em;
+      color: var(--neon-lime);
+      text-shadow:
+        0 0 8px  var(--neon-lime),
+        0 0 28px var(--neon-lime),
+        0 0 70px var(--neon-lime);
+      animation: flicker 5s infinite;
+      line-height: 1.1;
+    }
+
+    .subtitle {
+      font-size: clamp(0.65rem, 2.5vw, 0.85rem);
+      letter-spacing: 0.35em;
+      color: var(--neon-cyan);
+      text-shadow:
+        0 0 6px var(--neon-cyan),
+        0 0 16px var(--neon-cyan);
+      margin-top: 10px;
+      margin-left: 60px;
+    }
+
+    .divider {
+      width: min(460px, 92vw);
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--neon-pink), transparent);
+      margin-bottom: 4px;
+    }
+
+    .game-list {
+      list-style: none;
+      width: min(460px, 92vw);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .game-list a {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 8px 18px;
+      text-decoration: none;
+      color: var(--neon-green);
+      font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      border: 1px solid #1a1a1a;
+      border-left: 3px solid var(--neon-green);
+      transition: all 0.18s ease;
+      position: relative;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+
+    .game-list a::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--neon-green);
+      opacity: 0;
+      transition: opacity 0.18s;
+    }
+
+    .game-list a:hover::before,
+    .game-list a:active::before { opacity: 0.07; }
+
+    .game-list a:hover,
+    .game-list a:active {
+      color: #fff;
+      border-left-color: var(--neon-cyan);
+      border-color: #333;
+      text-shadow:
+        0 0 6px var(--neon-cyan),
+        0 0 16px var(--neon-cyan);
+      box-shadow: 0 0 14px rgba(0,255,247,0.15);
+    }
+
+    .game-num {
+      color: #444;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      min-width: 22px;
+    }
+
+    .game-hint {
+      font-family: 'Monotype Corsiva', 'Corsiva', cursive;
+      text-transform: none;
+      letter-spacing: 0.05em;
+    }
+
+    @keyframes blink {
+      0%, 88%   { opacity: 1; }
+      89%, 100% { opacity: 0; }
+    }
+
+    @keyframes flicker {
+      0%, 95%, 100% { opacity: 1; }
+      96%           { opacity: 0.85; }
+      97%           { opacity: 1; }
+      98%           { opacity: 0.7; }
+      99%           { opacity: 1; }
+    }
+
+    @font-face {
+      font-family: "font";
+      src: url("font.ttf") format('truetype');
+    }
+
+    .clock-wrap {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: lime;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .clock-wrap .main_time {
+      font-family: "font";
+      color: #000;
+      font-size: 2rem;
+      text-align: center;
+      text-shadow:
+        0 0 2.5px var(--neon-cyan),
+        0 0 5px var(--neon-cyan),
+        0 0 7.5px var(--neon-cyan),
+        0 0 10px var(--neon-cyan),
+        0 0 17.5px var(--neon-cyan),
+        0 0 20px var(--neon-cyan),
+        0 0 25px var(--neon-cyan),
+        0 0 37.5px var(--neon-cyan);
+    }
+
+    .clock-wrap .sep {
+      font-family: "font";
+      color: #000;
+      font-size: 2rem;
+    }
+
+    .clock-wrap .main_date {
+      font-family: "font";
+      color: #000;
+      font-size: 2rem;
+      text-align: center;
+      text-shadow:
+        0 0 2.5px var(--neon-cyan),
+        0 0 5px var(--neon-cyan),
+        0 0 7.5px var(--neon-cyan),
+        0 0 10px var(--neon-cyan),
+        0 0 17.5px var(--neon-cyan),
+        0 0 20px var(--neon-cyan);
+    }
+
+    @media (max-width: 600px) {
+      .clock-wrap .main_time {
+        font-size: 2rem;
+        color: rgb(250, 250, 250);
+        text-shadow:
+          0 0 2.5px #ffffff,
+          0 0 5px #ffffff,
+          0 0 7.5px #ffffff,
+          0 0 10px #ffffff,
+          0 0 17.5px #ffffff;
+      }
+      .clock-wrap .sep {
+        color: rgb(250, 250, 250);
+        font-size: 2rem;
+      }
+      .clock-wrap .main_date {
+        font-size: 2rem;
+        color: rgb(250, 250, 250);
+        text-shadow:
+          0 0 2.5px #ffffff,
+          0 0 5px #ffffff,
+          0 0 7.5px #ffffff,
+          0 0 10px #ffffff;
+      }
+    }
+
+    .symbols-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 48px;
+    }
+
+    .sym {
+      font-size: 3rem;
+      display: inline-block;
+      animation: spin3d 14s linear infinite;
+    }
+
+    .sym-red  { color: #000; filter: drop-shadow(0 0 4px #ff0000) drop-shadow(0 0 10px #ff0000) drop-shadow(0 0 22px #ff0000) drop-shadow(0 0 40px #ff0000); }
+    .sym-lime { color: #000; filter: drop-shadow(0 0 4px #00ff00) drop-shadow(0 0 10px #00ff00) drop-shadow(0 0 22px #00ff00) drop-shadow(0 0 40px #00ff00); }
+    .sym-cyan { filter: drop-shadow(0 0 4px #00fff7) drop-shadow(0 0 10px #00fff7) drop-shadow(0 0 22px #00fff7) drop-shadow(0 0 40px #00fff7); }
+
+    @keyframes spin3d {
+      0%   { transform: rotateY(0deg); }
+      100% { transform: rotateY(360deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+
+    @media (max-width: 480px) {
+      #menu-screen {
+        padding: 20px 12px 20px;
+      }
+      .header-block {
+        margin-bottom: 12px;
+      }
+      .divider {
+        margin-bottom: 10px;
+      }
+      .game-list {
+        gap: 6px;
+      }
+      .game-list a {
+        padding: 12px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="coin-screen">
+  <div class="brand"><span>🧩</span><span style="margin-left: -0.05em">PuzzleX</span></div>
+    <button class="insert-coin" id="startBtn" onclick="startGame()">► Insert Coin ◄</button>
+    <div class="clock-wrap">
+      <span class="main_time" id="time"></span>
+      <span class="sep">-</span>
+      <span class="main_date" id="date"></span>
+    </div>
+    <div class="symbols-row">
+      <span class="sym sym-red">♞</span>
+      <span class="sym sym-lime" style="animation-delay: 0.4s">♠</span>
+      <span class="sym sym-cyan" style="animation-delay: 0.8s">🎲</span>
+    </div>
+  </div>
+
+  <div id="menu-screen">
+    <div class="header-block">
+      <h1>🧩 PuzzleX</h1>
+      <div class="subtitle">by Carlos Sivila</div>
+    </div>
+    <div class="divider"></div>
+
+    <ul class="game-list">
+      <li><a href="ballsort.html">BallSort <span class="game-hint">(BallSort, bolitas de colores)</span></a></li>
+      <li><a href="bejeweled.html">Bejeweled <span class="game-hint">(Bejeweled, joyas)</span></a></li>
+      <li><a href="blocks.html">Blocks <span class="game-hint">(Blocks, bloques)</span></a></li>
+      <li><a href="blocks-v2.html">Blocks-v2 <span class="game-hint">(Blocks-v2, bloques-v2)</span></a></li>
+      <li><a href="colors.html">Colors <span class="game-hint">(Colors, colores)</span></a></li>
+      <li><a href="colors-v2.html">Colors-v2 <span class="game-hint">(Colors-v2, colores-v2)</span></a></li>
+      <li><a href="pairs.html">Pairs <span class="game-hint">(Pairs, parejas)</span></a></li>
+      <li><a href="puzzle.html">Puzzle <span class="game-hint">(Puzzle, rompecabezas)</span></a></li>
+      <li><a href="puzzle-v2.html">Puzzle-v2 <span class="game-hint">(Puzzle-v2, rompecabezas-v2)</span></a></li>
+      <li><a href="puzzle-v3.html">Puzzle-v3 <span class="game-hint">(Puzzle-v3, rompecabezas-v3)</span></a></li>
+    </ul>
+  </div>
+
+
+
+  <audio id="bgAudio" loop>
+    <source src="sound.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const coinScreen = document.getElementById('coin-screen');
+    const menuScreen = document.getElementById('menu-screen');
+    const audio      = document.getElementById('bgAudio');
+
+    // Auto-numbering
+    const items = document.querySelectorAll('.game-list li a');
+    const total = String(items.length).padStart(2, '0');
+    items.forEach((a, i) => {
+      const num = String(i + 1).padStart(2, '0');
+      const span = document.createElement('span');
+      span.className = 'game-num';
+      span.textContent = num + ' de ' + total;
+      a.prepend(span);
+    });
+
+    function startGame() {
+      audio.volume = 0.45;
+      audio.play().catch(() => {});
+      coinScreen.style.transition = 'opacity 0.6s ease';
+      coinScreen.style.opacity = '0';
+      setTimeout(() => {
+        coinScreen.style.display = 'none';
+        menuScreen.classList.add('visible');
+      }, 600);
+    }
+  </script>
+  <script>
+    const dayNames = ['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
+    function pad(n) { return String(n).padStart(2,'0'); }
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('time').textContent =
+        `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      document.getElementById('date').textContent =
+        `${dayNames[now.getDay()]}, ${pad(now.getDate())} / ${pad(now.getMonth()+1)} / ${now.getFullYear()}`;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script>
+</body>
+</html>
