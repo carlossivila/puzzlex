@@ -75,9 +75,56 @@ canvas {
     height: 100%;
 }
 
+@font-face {
+  font-family: 'font';
+  src: url('font.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+#nivel-info {
+  font-family: 'font', monospace;
+  color: lime;
+  font-size: 18px;
+  margin-left: 16px;
+  vertical-align: middle;
+}
+
+/* D-pad para celular */
+#dpad {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+}
+#dpad .dpad-row {
+  display: flex;
+  flex-direction: row;
+}
+#dpad button {
+  width: 60px;
+  height: 60px;
+  font-size: 22px;
+  margin: 3px;
+  padding: 0;
+  background-color: lime;
+  color: blue;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+#dpad button:hover {
+  border: solid cyan 1px;
+  background-color: darkgreen;
+}
+
 @media (max-width: 600px) {
   body {
     font-size: 20px;
+  }
+  #dpad {
+    display: flex;
   }
 }
 </style>
@@ -91,6 +138,19 @@ canvas {
     <div id="vectrex-container"></div>
     <div class="toggle-container">
         <button id="toggle-btn" class="toggle-btn">fácil / difícil</button>
+        <span id="nivel-info">Nivel: <span id="nivel-actual">1</span> de <span id="nivel-total">1</span></span>
+    </div>
+
+    <!-- D-pad para celular -->
+    <div id="dpad">
+      <div class="dpad-row">
+        <button id="btn-up">▲</button>
+      </div>
+      <div class="dpad-row">
+        <button id="btn-left">◀</button>
+        <button id="btn-down">▼</button>
+        <button id="btn-right">▶</button>
+      </div>
     </div>
 
 <script>
@@ -394,6 +454,11 @@ class Vectrex {
         this.shapePlacement = this.dicts.shapePlacements.up;
         
         this.state = this.dicts.states.inProgress;
+
+        const nivelActualEl = document.getElementById('nivel-actual');
+        const nivelTotalEl = document.getElementById('nivel-total');
+        if (nivelActualEl) nivelActualEl.textContent = levelIndex + 1;
+        if (nivelTotalEl) nivelTotalEl.textContent = levels.length;
         
         this.render();
     }
@@ -880,6 +945,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const toggleBtn = document.getElementById('toggle-btn');
     const modeText = document.getElementById('mode-text');
     
+    // D-pad para celular
+    function addDpadListener(id, dir) {
+      ['click', 'touchstart'].forEach(evt => {
+        document.getElementById(id).addEventListener(evt, (e) => {
+          e.preventDefault();
+          if (vectrex) vectrex.moveShape(vectrex.dicts.stepDirections[dir]);
+        });
+      });
+    }
+    addDpadListener('btn-up',    'top');
+    addDpadListener('btn-down',  'bottom');
+    addDpadListener('btn-left',  'left');
+    addDpadListener('btn-right', 'right');
+
     toggleBtn.addEventListener('click', () => {
         const isEasyMode = vectrex.toggleMode();
         
