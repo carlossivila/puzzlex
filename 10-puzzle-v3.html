@@ -30,11 +30,11 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 1.5vmin;
+        gap: 1vmin;
       }
 
       #board {
-        border: 1.5vmin solid hsl(0, 0%, 25%);
+        border: 1.2vmin solid hsl(0, 0%, 25%);
         background-color: hsl(0, 0%, 90%);
         box-shadow: 0 0 2vmin hsla(0, 0%, 0%, 0.5) inset;
         display: flex;
@@ -93,7 +93,7 @@
       .card[data-rotation="4"] .imageFragment { transform: rotate(360deg); }
 
       #counter {
-        font-size: 2.8vmin !important;
+        font-size: 3.8vmin !important;
         color: hsl(180, 100%, 70%);
         letter-spacing: 0.08em;
         font-family: monospace;
@@ -103,8 +103,8 @@
       }
 
       #sizeToggle {
-        font-size: 2.8vmin;
-        padding: 0.8vmin 2.8vmin;
+        font-size: 3.8vmin;
+        padding: 1.2vmin 3.2vmin;
         border: 0.25vmin solid hsl(180, 100%, 60%);
         border-radius: 999px;
         background-color: transparent;
@@ -141,7 +141,7 @@
       }
 
       #titulo {
-        font-size: 3vmin;
+        font-size: 4vmin;
         font-weight: bold;
         color: hsl(180, 100%, 70%);
         font-family: monospace;
@@ -276,7 +276,7 @@
           <button
             class="card"
             data-rotation="${getRandomRotation()}"
-            style="width:${80 / size}vmin; height:${80 / size}vmin;"
+            style="width:${68 / size}vmin; height:${68 / size}vmin;"
           >
             <div
               class="imageFragment"
