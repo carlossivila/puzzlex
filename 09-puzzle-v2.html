@@ -20,7 +20,17 @@ td.pieza{
   background-size: 300px 300px;
 }
 div.posic{display:none;}
-div#titulo{color:#FFF; font-size:24px; font-weight:bold; text-shadow:1px 1px 8px #00e800, -1px -1px 8px #00e800, 1px -1px 8px #00e800, -1px 1px 8px #00e800;}
+div#titulo{color:#FFF; font-size:22px; font-weight:bold; text-shadow:1px 1px 8px #00e800, -1px -1px 8px #00e800, 1px -1px 8px #00e800, -1px 1px 8px #00e800;}
+
+#counter {
+  font-size: 3.8vmin;
+  color: lime;
+  letter-spacing: 0.08em;
+  font-family: monospace;
+  text-shadow:
+    0 0 0.6vmin lime,
+    0 0 1.5vmin lime;
+}
 
 button {
 font-size: 18px;
@@ -67,8 +77,8 @@ color: red;
 
 <body>
 <div id='content' align='left'>
-<div id="titulo">PuzzleX<br>
-by Carlos Sivila</div><br>
+<div id="titulo">PuzzleX by Carlos Sivila</div><br>
+<div id="counter">Aciertos: 0 de 24</div><br>
 <div id='conf'>
 <span>Nro de piezas:</span>
 <select id='piezas'>
@@ -79,8 +89,6 @@ by Carlos Sivila</div><br>
 <button id='barajar'>Barajar</button>
 </div>
 </div>
-<button id="refresh">Cambiar imagen</button>
-
 <script>
 var select = false;
 var c = "inc";
@@ -114,7 +122,26 @@ var imagenes = [
 'https://static.wikia.nocookie.net/superman/images/c/ce/Action_Comics_1.png/revision/latest?cb=20150623162141&path-prefix=es'
 ];
 
-var imagenActual = imagenes[Math.floor(Math.random() * imagenes.length)];
+var TOTAL = imagenes.length;
+var aciertos = 0;
+var queue = [];
+
+function buildQueue(){
+  var arr = [];
+  for(var i = 0; i < TOTAL; i++){ arr.push(i); }
+  for(var i = arr.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+  }
+  return arr;
+}
+
+function updateCounter(){
+  document.getElementById('counter').textContent = 'Aciertos: ' + aciertos + ' de ' + TOTAL;
+}
+
+queue = buildQueue();
+var imagenActual = imagenes[queue.shift()];
 
 var rompecabezas = {
   _arr_pos_r : new Array(),
@@ -249,8 +276,24 @@ var rompecabezas = {
 		
     setTimeout(function(){
       if(fin){
-			  alert("Ganaste")
-		  }
+        aciertos++;
+        updateCounter();
+
+        setTimeout(function(){
+          if(aciertos >= TOTAL){
+            alert("¡Ganaste!");
+            aciertos = 0;
+            queue = buildQueue();
+            updateCounter();
+          }
+          if(queue.length === 0){
+            queue = buildQueue();
+          }
+          imagenActual = imagenes[queue.shift()];
+          rompecabezas._mostrar();
+          rompecabezas._barajar();
+        }, 2000);
+      }
     },600);
 	},
 	
@@ -261,8 +304,8 @@ var rompecabezas = {
 
 
 window.onload = function(){
+	updateCounter();
 	rompecabezas._mostrar();
-  rompecabezas._barajar();
   rompecabezas._get("piezas").onchange = function(){
     rompecabezas._mostrar();
   }
@@ -270,12 +313,6 @@ window.onload = function(){
       rompecabezas._barajar();
     }
 }
-</script>
-
-<script>
-document.getElementById("refresh").addEventListener("click", function() {
-    location.reload();
-});
 </script>
 
 </body>
