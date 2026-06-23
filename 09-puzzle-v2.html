@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PuzzleX - Rompecabezasv-2</title>
 <style>
-body{background:#222; margin: 5px; padding:5px; font-family: monospace;}
+body{background:#222; margin: 5px; padding:5px; font-family: monospace; display:flex; flex-direction:column;}
 span{ color:#FFF; font-size: 18px; }
 #piezas { font-size: 20px; }
-div#content{margin-top:10px;}
+div#content{margin-top:10px; order:1;}
 div#conf{padding-bottom:10px;}
 table{border:2px solid green; box-shadow:1px 1px 8px #00e800,-1px -1px 8px #00e800, 1px -1px 8px #00e800, -1px 1px 8px #00e800; -webkit-box-shadow:1px 1px 8px #00e800,-1px -1px 8px #00e800, 1px -1px 8px #00e800, -1px 1px 8px #00e800; border-collapse:collapse;}
 td.pieza{
@@ -23,6 +23,8 @@ div.posic{display:none;}
 div#titulo{color:#FFF; font-size:22px; font-weight:bold; text-shadow:1px 1px 8px #00e800, -1px -1px 8px #00e800, 1px -1px 8px #00e800, -1px 1px 8px #00e800;}
 
 #counter {
+  order: 3;
+  margin-top: 20px;
   font-size: 3.8vmin;
   color: lime;
   letter-spacing: 0.08em;
@@ -78,9 +80,8 @@ color: red;
 <body>
 <div id='content' align='left'>
 <div id="titulo">PuzzleX by Carlos Sivila</div><br>
-<div id="counter">Aciertos: 0 de 24</div><br>
 <div id='conf'>
-<span>Nro de piezas:</span>
+<span>piezas:</span>
 <select id='piezas'>
 <option value='9'>9</option>
 <option value='16'>16</option>
@@ -89,6 +90,9 @@ color: red;
 <button id='barajar'>Barajar</button>
 </div>
 </div>
+
+<div id="counter">Aciertos: 0 de 24</div>
+
 <script>
 var select = false;
 var c = "inc";
@@ -190,6 +194,7 @@ var rompecabezas = {
 		if(!rompecabezas._get("div_content")){
 			var cont = document.createElement('div');
 			cont.id = 'div_content';
+			cont.style.order = '2';
 			cont.appendChild(tb);
 			cont.appendChild(dp);
 			document.body.appendChild(cont);
