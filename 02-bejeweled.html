@@ -5,17 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PuzzleX - joyas</title>
 <style>
-body {
+html, body {
 background-color: #111;
 margin: 0;
 padding: 0;
+overflow-x: hidden;
+overscroll-behavior: none;
+}
+
+#viewport {
+    touch-action: none;
+    display: block;
+}
+
+#controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 10px 0 0 20px;
 }
 
 #hint {
     font-size: 20px;
-    position: absolute;
-    top: 440px;
-    left: 40px;
     background-color: black;
     color: lime;
     border: 1px solid cyan;
@@ -28,9 +39,6 @@ padding: 0;
 #score {
     font-size: 20px;
     font-weight: bold;
-    position: absolute;
-    top: 450px;
-    left: 150px;
     color: red;
 }
 
@@ -76,10 +84,12 @@ color: red;
 </head>
 
 <body>
-<h4 style="color: lime;">PuzzleX by Carlos Sivila</h4>
-<canvas id="viewport" width="640" height="480"></canvas>
-<br><br><button id="hint">Pista</button>
-<span id="score">0 aciertos de 49</span>
+<h4 style="color: lime; margin: 10px 0 5px 20px;">PuzzleX by Carlos Sivila</h4>
+<canvas id="viewport" width="360" height="350"></canvas>
+<div id="controls">
+    <button id="hint">Pista</button>
+    <span id="score">0 aciertos de 49</span>
+</div>
 
 <script>
 function playSound(frequencies, duration = 150) {
