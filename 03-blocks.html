@@ -978,5 +978,20 @@ window.addEventListener("resize", () => {
 });
 </script>
 
+<audio id="audio" src="sound.mp3" preload="auto" loop></audio>
+
+<script>
+        const audio = document.getElementById("audio");
+        document.body.addEventListener("click", function() {
+            audio.play();
+        });
+</script>
+
+<script>
+document.addEventListener('contextmenu', function(e) {
+e.preventDefault();
+});
+</script>
+
 </body>
 </html>

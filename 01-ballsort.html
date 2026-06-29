@@ -332,9 +332,20 @@ function playwin() {
         osc.stop(startTime + 0.2);
     });
 }
+</script>
 
+<audio id="audio" src="snd.mp3" preload="auto" loop></audio>
+
+<script>
+        const audio = document.getElementById("audio");
+        document.body.addEventListener("click", function() {
+            audio.play();
+        });
+</script>
+
+<script>
 document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
+e.preventDefault();
 });
 </script>
 
