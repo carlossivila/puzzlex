@@ -335,12 +335,19 @@ function playwin() {
 </script>
 
 <audio id="audio" src="snd.mp3" preload="auto" loop></audio>
-
+<button style="float: left;" id="snd">🔊</button>
 <script>
-        const audio = document.getElementById("audio");
-        document.body.addEventListener("click", function() {
+    const audio = document.getElementById("audio");
+    const snd = document.getElementById("snd");
+    snd.addEventListener("click", function() {
+        if (audio.paused) {
             audio.play();
-        });
+            snd.textContent = "🔊";
+        } else {
+            audio.pause();
+            snd.textContent = "🔇";
+        }
+    });
 </script>
 
 <script>

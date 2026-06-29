@@ -130,27 +130,45 @@ canvas {
 </head>
 
 <body>
-    <div class="header">
-        <h4 style="color: lime;">PuzzleX by Carlos Sivila</h4>
-        <h4 id="mode-text" style="color: cyan;">versión modificada 50% de tolerancia</h4>
-    </div>
-    <div id="vectrex-container"></div>
-    <div class="toggle-container">
-        <button id="toggle-btn" class="toggle-btn">fácil / difícil</button>
-        <span id="nivel-info">Nivel: <span id="nivel-actual">1</span> de <span id="nivel-total">1</span></span>
-    </div>
+<div class="header">
+ <h4 style="color: lime;">PuzzleX by Carlos Sivila</h4>
+ <h4 id="mode-text" style="color: cyan;">versión modificada 50% de tolerancia</h4>
+</div>
 
-    <!-- D-pad para celular -->
-    <div id="dpad">
-      <div class="dpad-row">
-        <button id="btn-up">▲</button>
-      </div>
-      <div class="dpad-row">
-        <button id="btn-left">◀</button>
-        <button id="btn-down">▼</button>
-        <button id="btn-right">▶</button>
-      </div>
-    </div>
+<div id="vectrex-container"></div>
+
+ <div class="toggle-container">
+  <button id="toggle-btn" class="toggle-btn">fácil / difícil</button>
+
+  <audio id="audio" src="sound.mp3" preload="auto" loop></audio>
+   <button style="float: left;" id="sound">🔊</button>
+<script>
+    const audio = document.getElementById("audio");
+    const snd = document.getElementById("sound");
+    sound.addEventListener("click", function() {
+        if (audio.paused) {
+            audio.play();
+            sound.textContent = "🔊";
+        } else {
+            audio.pause();
+            sound.textContent = "🔇";
+        }
+    });
+</script>
+
+  <span id="nivel-info">Nivel: <span id="nivel-actual">1</span> de <span id="nivel-total">1</span></span>
+ </div>
+
+<div id="dpad">
+<div class="dpad-row">
+<button id="btn-up">▲</button>
+</div>
+<div class="dpad-row">
+<button id="btn-left">◀</button>
+<button id="btn-down">▼</button>
+<button id="btn-right">▶</button>
+</div>
+</div>
 
 <script>
 const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -976,15 +994,6 @@ document.addEventListener("DOMContentLoaded", () => {
 window.addEventListener("resize", () => {
     if (vectrex != null) vectrex.resize();
 });
-</script>
-
-<audio id="audio" src="sound.mp3" preload="auto" loop></audio>
-
-<script>
-        const audio = document.getElementById("audio");
-        document.body.addEventListener("click", function() {
-            audio.play();
-        });
 </script>
 
 <script>
