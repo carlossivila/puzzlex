@@ -171,6 +171,19 @@ p {
     font-size: 20px;
 }
 
+.bt {
+  display: inline-block;
+  font-size: 18px;
+  background-color: #009900;
+  border: 1px solid gray;
+  border-radius: 5px;
+  transition: box-shadow 0.3s ease;
+}
+
+.bt:hover {
+  box-shadow: 0 0 15px cyan, 0 0 30px aqua;
+}
+
         a:link, a:visited { text-decoration: none; color: #00ff00; }
         a:hover { color: #ff0000; }
     </style>
@@ -182,10 +195,10 @@ p {
 <div class="board" id="board"></div>
 
 <div class="color-selector" id="colorSelector">
-    <div class="color-option" style="background-color: red;"    onclick="selectColor('red')"></div>
-    <div class="color-option" style="background-color: green;"  onclick="selectColor('green')"></div>
-    <div class="color-option" style="background-color: blue;"   onclick="selectColor('blue')"></div>
-    <div class="color-option" style="background-color: yellow;" onclick="selectColor('yellow')"></div>
+<div class="color-option" style="background-color: red;"    onclick="selectColor('red')"></div>
+<div class="color-option" style="background-color: green;"  onclick="selectColor('green')"></div>
+<div class="color-option" style="background-color: blue;"   onclick="selectColor('blue')"></div>
+<div class="color-option" style="background-color: yellow;" onclick="selectColor('yellow')"></div>
 </div>
 
 <div class="counter" id="counter">0 de 15 aciertos</div>
@@ -195,9 +208,24 @@ p {
 <p>En cada región de cuatro celdas<br>'no puede haber el mismo color'</p>
 
 <div class="controls">
-    <button class="btn" onclick="checkSolution()">Verificar</button>
-    <button class="btn" onclick="resetBoard()">Reiniciar</button>
-    <button class="btn" onclick="newPuzzle()">Nuevo</button>
+<button class="btn" onclick="checkSolution()">Verificar</button>
+<button class="btn" onclick="resetBoard()">Reiniciar</button>
+<button class="btn" onclick="newPuzzle()">Nuevo</button>
+  <audio id="audio" src="sound.mp3" preload="auto" loop></audio>
+   <button class="bt" id="snd">🔊</button>
+<script>
+    const audio = document.getElementById("audio");
+    const sound = document.getElementById("snd");
+    snd.addEventListener("click", function() {
+        if (audio.paused) {
+            audio.play();
+            snd.textContent = "🔊";
+        } else {
+            audio.pause();
+            snd.textContent = "🔇";
+        }
+    });
+</script>
 </div>
 
 <script>
@@ -445,5 +473,12 @@ p {
 
     window.onload = initializeBoard;
 </script>
+
+<script>
+document.addEventListener('contextmenu', function(e) {
+e.preventDefault();
+});
+</script>
+
 </body>
 </html>
