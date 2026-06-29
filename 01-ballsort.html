@@ -32,7 +32,7 @@
             align-items: center;
             margin: 3px auto;
             padding: 3px 3px;
-            font-size: 14px;
+            font-size: 18px;
             background-color: #003300;
             color: lime;
             border: 1px solid gray;
@@ -167,9 +167,6 @@
     </div>
 <div style="color: lime; font-size: 20px; font-weight: bold;" class="check" id="check">{{ aciertos }} aciertos de 15</div>
 </div>
-
-<p>UNA ESFERA SOLO PUEDE IR<br>
-ENCIMA DE OTRA DEL MISMO COLOR</p>
 
 <script>
 new Vue({
@@ -334,8 +331,13 @@ function playwin() {
 }
 </script>
 
+<div>
+<p>UNA ESFERA SOLO PUEDE IR<br>
+ENCIMA DE OTRA DEL MISMO COLOR</p>
 <audio id="audio" src="snd.mp3" preload="auto" loop></audio>
-<button style="float: left;" id="snd">🔊</button>
+<button id="snd" style="margin: 3px 0;">🔊</button>
+</div>
+
 <script>
     const audio = document.getElementById("audio");
     const snd = document.getElementById("snd");

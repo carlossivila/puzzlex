@@ -140,8 +140,10 @@ canvas {
  <div class="toggle-container">
   <button id="toggle-btn" class="toggle-btn">fácil / difícil</button>
 
+&emsp;
+
   <audio id="audio" src="sound.mp3" preload="auto" loop></audio>
-   <button style="float: left;" id="sound">🔊</button>
+   <button style="display: inline-block; font-size: 18px; background-color: #003300; color: lime; border: 1px solid gray; border-radius: 5px;" id="sound">🔊</button>
 <script>
     const audio = document.getElementById("audio");
     const snd = document.getElementById("sound");
@@ -155,6 +157,8 @@ canvas {
         }
     });
 </script>
+
+&emsp;
 
   <span id="nivel-info">Nivel: <span id="nivel-actual">1</span> de <span id="nivel-total">1</span></span>
  </div>
