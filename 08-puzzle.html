@@ -9,6 +9,13 @@
             background-color: #111;
             margin: 30px 0 0 30px;
         }
+
+        h3 {
+            color: lime;
+            margin: 10px;
+            font-size: 18px;
+        }
+
         .container {
             display: flex;
             flex-direction: column;
@@ -37,10 +44,11 @@
         .empty {
             background: radial-gradient(#999, #333) !important;
         }
-        .button-container {
+        .button-container, .info {
             display: flex;
             gap: 10px;
             align-items: center;
+            font-size: 18px;
         }
         button {
             display: flex;
@@ -100,19 +108,19 @@
 </head>
 <body>
 
-<h3 style="color: lime;">PuzzleX by Carlos Sivila</h3>
+<h3>PuzzleX by Carlos Sivila</h3>
 
 <div class="container">
-    <div class="puzzle-board" id="board"></div>
-    <div class="button-container">
-        <button onclick="changeImage()">Cambiar imagen</button>
-        <button onclick="toggleSize()" id="sizeBtn">Cambiar a 4x4</button>
-        <button class="preview-button" id="previewBtn"></button>
-    </div>
-    <div class="info">
-        Movimientos: <span id="moves">0</span>
-        | Tiempo: <span id="timer">09:59</span>
-    </div>
+  <div class="puzzle-board" id="board"></div>
+  <div class="button-container">
+     <button onclick="changeImage()">Cambiar imagen</button>
+     <button onclick="toggleSize()" id="sizeBtn">Cambiar a 4x4</button>
+  </div>
+  <div class="info">
+   Movimientos: <span id="moves">0</span>
+ | <button class="preview-button" id="previewBtn"></button>
+ | <span id="timer">09:59</span>
+  </div>
 </div>
 
 <script>
