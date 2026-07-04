@@ -20,26 +20,77 @@
     overflow: hidden;
     touch-action: none;
   }
+
   a:link, a:visited { text-decoration: none; color: lime; }
   a:hover { text-decoration: none; color: red; }
+
+  #wrap {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+  }
+
   canvas {
     display: block;
     width: 100%;
-    height: 100%;
+    flex: 1 1 auto;
     touch-action: none;
+  }
+
+  .bar {
+    flex: 0 0 60px;
+    height: 60px;
+    background-color: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  #score {
+    color: lime;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 22px;
+  }
+
+  .btn {
+    display: inline-block;
+    font-size: 16px;
+    background-color: #009900;
+    border: 1px solid gray;
+    border-radius: 5px;
+    padding: 8px 12px;
+    color: white;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease;
+  }
+  .btn:hover {
+    border: 1px solid cyan;
+    box-shadow: 0 0 15px cyan, 0 0 30px aqua;
   }
 </style>
 </head>
 
 <body>
 
-<canvas id="canvas"></canvas>
+<div id="wrap">
+  <canvas id="canvas"></canvas>
+
+  <div class="bar">
+    <span id="score">Puntaje 0 de 199</span>
+    <audio id="audio" src="sound.mp3" preload="auto" loop></audio>
+    <button class="btn" id="snd">🔊</button>
+  </div>
+</div>
 
 <script>
+  var BAR_HEIGHT = 60
   var a = canvas
   var b = document.body
   a.width = window.innerWidth
-  a.height = window.innerHeight
+  a.height = window.innerHeight - BAR_HEIGHT
   window.onresize = function () {
     window.location.reload()
   }
@@ -199,13 +250,9 @@ setInterval(function() {
     c.sR(p.x - d / 4, p.y - d / 4, d / 2, d / 2)
   }
 
-  // marcador — CORREGIDO: centrado y pegado al borde inferior
-  var puntajeActual = Math.min(m, META)
-  c.fillStyle = 'lime'
-  c.font = 'bold ' + (d / 2.2) + 'px monospace'
-  c.textBaseline = 'top'
-  c.textAlign = 'center'
-  c.fillText('Puntaje ' + puntajeActual + ' de ' + META, W / 2, H - d * 0.8)
+  // marcador — ahora se actualiza en el <span> HTML, no se dibuja en canvas
+  var puntajeActual = min(m, META)
+  document.getElementById('score').textContent = 'Puntaje ' + puntajeActual + ' de ' + META
 
   if (h[0]) {
     c.strokeStyle = h[0].o
@@ -225,6 +272,20 @@ setInterval(function() {
 document.addEventListener('contextmenu', function(e) {
   e.preventDefault();
 });
+</script>
+
+<script>
+  var audio = document.getElementById("audio");
+  var sound = document.getElementById("snd");
+  sound.addEventListener("click", function() {
+    if (audio.paused) {
+      audio.play();
+      sound.textContent = "🔊";
+    } else {
+      audio.pause();
+      sound.textContent = "🔇";
+    }
+  });
 </script>
 
 </body>
