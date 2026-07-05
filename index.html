@@ -200,7 +200,7 @@
     }
 
     .game-num {
-      font-family: 'font', Arial, monospace; /* fuente.ttf */
+      font-family: 'font', Arial, monospace;
       color: #fff;
       font-size: 1.1rem;
       letter-spacing: 0.1em;
@@ -229,6 +229,13 @@
       opacity: 0.75;
       display: inline-block;
       animation: spin3d 10s linear infinite;
+    }
+
+     iframe {
+       flex-shrink: 0;
+       width: 450px;
+       height: 300px;
+       max-width: 100%;
     }
 
     @keyframes spin3d {
@@ -292,7 +299,10 @@
         <li><a href="10-puzzle-v3.html">Puzzle v3 <span class="game-hint">Rompecabezas con rotación</span></a></li>
       </ul>
     </nav>
+<iframe src="https://ok.ru/videoembed/4055745694421"></iframe>
   </div>
+
+
 
   <audio id="bgAudio" loop>
     <source src="sound.mp3" type="audio/mpeg">
