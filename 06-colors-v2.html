@@ -91,16 +91,34 @@
   var b = document.body
   a.width = window.innerWidth
   a.height = window.innerHeight - BAR_HEIGHT
-  window.onresize = function () {
-    window.location.reload()
-  }
   var c = a.getContext('2d')
+
+  // Solo recargamos si es un cambio de tamaño REAL (ej: rotar el celular),
+  // no cuando el navegador móvil oculta/muestra su barra de direcciones
+  // (eso dispara "resize" con cambios chicos de altura y causaba el
+  // reinicio/parpadeo de colores antes de empezar a jugar).
+  var initialWidth = window.innerWidth
+  var initialHeight = window.innerHeight
+  var resizeTimeout
+  window.onresize = function () {
+    clearTimeout(resizeTimeout)
+    resizeTimeout = setTimeout(function () {
+      var widthChanged = Math.abs(window.innerWidth - initialWidth) > 50
+      var heightChanged = Math.abs(window.innerHeight - initialHeight) > 150
+      if (widthChanged || heightChanged) {
+        window.location.reload()
+      }
+    }, 300)
+  }
 </script>
 
 <script>
-document.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
-document.addEventListener('touchmove',  function(e) { e.preventDefault(); }, { passive: false });
-document.addEventListener('touchend',   function(e) { e.preventDefault(); }, { passive: false });
+// IMPORTANTE: estos preventDefault() van SOLO en el <canvas>, no en document.
+// Si van en document, el touchend bloquea la generación del "click" sintético
+// en TODO la página, incluyendo el botón de audio, y por eso quedaba muerto en celular.
+canvas.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
+canvas.addEventListener('touchmove',  function(e) { e.preventDefault(); }, { passive: false });
+canvas.addEventListener('touchend',   function(e) { e.preventDefault(); }, { passive: false });
 </script>
 
 <script>
