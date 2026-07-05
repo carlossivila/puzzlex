@@ -92,11 +92,6 @@
   a.width = window.innerWidth
   a.height = window.innerHeight - BAR_HEIGHT
   var c = a.getContext('2d')
-
-  // Solo recargamos ante un cambio de ORIENTACIÓN real (girar el celular),
-  // no ante cambios de altura por la barra de direcciones del navegador
-  // (eso disparaba "resize" en mobile y causaba el reinicio/parpadeo de
-  // colores antes de empezar a jugar).
   var mq = window.matchMedia('(orientation: portrait)')
   mq.addEventListener('change', function () {
     window.location.reload()
@@ -104,9 +99,6 @@
 </script>
 
 <script>
-// IMPORTANTE: estos preventDefault() van SOLO en el <canvas>, no en document.
-// Si van en document, el touchend bloquea la generación del "click" sintético
-// en TODA la página, incluyendo el botón de audio, y por eso quedaba muerto en celular.
 canvas.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
 canvas.addEventListener('touchmove',  function(e) { e.preventDefault(); }, { passive: false });
 canvas.addEventListener('touchend',   function(e) { e.preventDefault(); }, { passive: false });
@@ -259,7 +251,6 @@ setInterval(function() {
     c.sR(p.x - d / 4, p.y - d / 4, d / 2, d / 2)
   }
 
-  // marcador — se actualiza en el <span> HTML, no se dibuja en canvas
   var puntajeActual = min(m, META)
   document.getElementById('score').textContent = 'Puntaje ' + puntajeActual + ' de ' + META
 
@@ -298,8 +289,6 @@ document.addEventListener('contextmenu', function(e) {
     }
   }
 
-  // "touchend" para que responda bien en celular, "click" para que siga
-  // funcionando igual en PC con mouse.
   sound.addEventListener("touchend", toggleSound, { passive: false });
   sound.addEventListener("click", toggleSound);
 </script>
