@@ -231,97 +231,6 @@
       animation: spin3d 10s linear infinite;
     }
 
-    .video-grid {
-      position: relative;
-      width: min(460px, 96vw);
-      margin-top: 18px;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      grid-template-rows: repeat(4, 1fr);
-      gap: 6px;
-    }
-
-    .video-cell {
-      position: relative;
-      aspect-ratio: 16 / 9;
-      overflow: hidden;
-      background: #0a0a0a;
-      border: 1px solid #1a1a1a;
-    }
-
-    .video-cell iframe {
-      width: 100%;
-      height: 100%;
-      border: 0;
-      display: block;
-    }
-
-    .video-cell.empty {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #333;
-      font-family: Arial, sans-serif;
-      font-size: 0.75rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .video-overlay {
-      position: absolute;
-      inset: 0;
-      z-index: 2;
-      cursor: pointer;
-      background: rgba(0,0,0,0);
-      transition: background 0.15s;
-    }
-
-    .video-cell:not(.empty):hover .video-overlay {
-      background: rgba(0,255,247,0.08);
-      box-shadow: inset 0 0 0 2px var(--neon-cyan);
-    }
-
-    .video-close {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      z-index: 4;
-      display: none;
-      width: 34px;
-      height: 34px;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,0,0,0.75);
-      color: var(--neon-cyan);
-      border: 1px solid var(--neon-cyan);
-      font-family: Arial, sans-serif;
-      font-size: 1.1rem;
-      line-height: 1;
-      cursor: pointer;
-      pointer-events: auto;
-      text-shadow: 0 0 6px var(--neon-cyan);
-    }
-
-    /* Celda expandida: tapa toda la grilla */
-    .video-cell.expanded {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 10;
-      aspect-ratio: auto;
-      border-color: var(--neon-cyan);
-    }
-
-    .video-cell.expanded .video-overlay {
-      pointer-events: none;
-      background: transparent;
-    }
-
-    .video-cell.expanded .video-close {
-      display: flex;
-    }
-
     @keyframes spin3d {
       0%   { transform: rotateY(0deg); }
       100% { transform: rotateY(360deg); }
@@ -383,20 +292,6 @@
      <li><a href="10-puzzle-v3.html">Puzzle v3 <span class="game-hint">Rompecabezas con rotación</span></a></li>
    </ul>
  </nav>
-<div class="video-grid" id="videoGrid">
-  <div class="video-cell"><iframe src="https://ok.ru/videoembed/4055745694421" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
-  <div class="video-cell"><iframe src="https://ok.ru/videoembed/4055729834709" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
-  <div class="video-cell"><iframe src="https://ok.ru/videoembed/4055670459093" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
-  <div class="video-cell"><iframe src="https://ok.ru/videoembed/2101613693653" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
-  <div class="video-cell"><iframe src="https://ok.ru/videoembed/2101603863253" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
-  <div class="video-cell"><iframe src="https://ok.ru/videoembed/4055706372821" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
-  <div class="video-cell"><iframe src="https://ok.ru/videoembed/2119381355221" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
-  <div class="video-cell"><iframe src="https://ok.ru/videoembed/2119398394581" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
-  <div class="video-cell"><iframe src="https://ok.ru/videoembed/4571037567701" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
-  <div class="video-cell"><iframe src="https://ok.ru/videoembed/5062147181269" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
-  <div class="video-cell"><iframe src="https://ok.ru/videoembed/3789279857365" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
-  <div class="video-cell"><iframe src="https://ok.ru/videoembed/3790552697557" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
-</div>
 </div>
 
 
