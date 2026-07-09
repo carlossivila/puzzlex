@@ -422,7 +422,9 @@
 
     // Arrancar audio con cualquier click que NO sea un enlace
     document.addEventListener('click', function(e) {
-      if (!e.target.closest('a') && audio.paused) {
+        if (e.target.closest('a')) return;
+        if (e.target.closest('#videoGrid')) return;
+        if (audio.paused) {
         audio.volume = 0.45;
         audio.play().catch(() => {});
       }
@@ -475,6 +477,7 @@
         if (overlay) {
           collapseAll();
           cell.classList.add('expanded');
+        if (!audio.paused) audio.pause();
         }
       });
     })();
