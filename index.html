@@ -382,7 +382,24 @@
      <li><a href="10-puzzle-v3.html">Puzzle v3 <span class="game-hint">Rompecabezas con rotación</span></a></li>
    </ul>
  </nav>
-
+<div class="video-grid" id="videoGrid">
+  <div class="video-cell"><iframe src="https://ok.ru/videoembed/4055745694421" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
+  <div class="video-cell"><iframe src="https://ok.ru/videoembed/4055729834709" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
+  <div class="video-cell"><iframe src="https://ok.ru/videoembed/4055670459093" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
+  <div class="video-cell"><iframe src="https://ok.ru/videoembed/2101613693653" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
+  <div class="video-cell"><iframe src="https://ok.ru/videoembed/2101603863253" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
+  <div class="video-cell"><iframe src="https://ok.ru/videoembed/4055706372821" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
+  <div class="video-cell"><iframe src="https://ok.ru/videoembed/2119381355221" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
+  <div class="video-cell"><iframe src="https://ok.ru/videoembed/2119398394581" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
+  <div class="video-cell"><iframe src="https://ok.ru/videoembed/4571037567701" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
+  <div class="video-cell"><iframe src="https://ok.ru/videoembed/5062147181269" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
+  <div class="video-cell"><iframe src="https://ok.ru/videoembed/3789279857365" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
+  <div class="video-cell"><iframe src="https://ok.ru/videoembed/3790552697557" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
+  <div class="video-cell"><iframe src="https://ok.ru/videoembed/7550601857739" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
+  <div class="video-cell"><iframe width="560" height="315" src="https://www.youtube.com/embed/wyXftCua16k?si=ssTY7kzhHuEhpXmB" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
+  <div class="video-cell"><iframe width="560" height="315" src="https://www.youtube.com/embed/UFi6s6HrGsg?si=ePPUqMyDHVlvwN7z" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
+  <div class="video-cell"><iframe width="560" height="315" src="https://www.youtube.com/embed/6XojB2tyWIM?si=XYHRdTvoVEwNZE5x" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe><div class="video-overlay"></div><div class="video-close">✕</div></div>
+</div>
 </div>
 
   <audio id="bgAudio" loop>
@@ -391,8 +408,6 @@
 
   <script>
     const audio = document.getElementById('bgAudio');
-
-    // Auto-numbering
     const items = document.querySelectorAll('.game-list li a');
     const total = String(items.length).padStart(2, '0');
     items.forEach((a, i) => {
@@ -403,7 +418,6 @@
       a.prepend(span);
     });
 
-    // Arrancar audio con cualquier click que NO sea un enlace
     document.addEventListener('click', function(e) {
         if (e.target.closest('a')) return;
         if (e.target.closest('#videoGrid')) return;
@@ -413,7 +427,6 @@
       }
     });
 
-    // Alinear subtitle con el texto del h1 (después del emoji)
     (function alignSubtitle() {
       const h1 = document.querySelector('h1');
       const subtitle = document.querySelector('.subtitle');
@@ -425,7 +438,6 @@
       subtitle.style.paddingLeft = emojiWidth + 'px';
     })();
 
-    // Reloj
     const dayNames = ['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
     function pad(n) { return String(n).padStart(2,'0'); }
     function updateClock() {
@@ -437,12 +449,9 @@
     }
     updateClock();
     setInterval(updateClock, 1000);
-
-    // Grilla de videos: clic para expandir y tapar la grilla, clic en ✕ para cerrar
     (function videoGridExpand() {
       const grid = document.getElementById('videoGrid');
       if (!grid) return;
-
       function collapseAll() {
         grid.querySelectorAll('.video-cell.expanded').forEach(c => c.classList.remove('expanded'));
       }
