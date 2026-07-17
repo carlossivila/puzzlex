@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Test de Toques</title>
+<style>
+  * { margin: 0; padding: 0; }
+  body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  
+  .container {
+    position: relative;
+    width: 800px;
+    max-width: 100vw;
+    aspect-ratio: 4/3;
+    background: #000;
+    border: 3px solid #e94560;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  #testOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+    background: rgba(255, 0, 0, 0.3); /* ROJO SEMITRANSPARENTE PARA VERLA */
+    touch-action: none;
+  }
+  
+  #debugInfo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-family: Arial;
+    font-size: 24px;
+    z-index: 1000;
+    text-align: center;
+    background: rgba(0,0,0,0.8);
+    padding: 20px;
+    border-radius: 10px;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  
+  <!-- SWF (opcional, puedes comentarlo para probar) -->
+  <object id="gameSwf" type="application/x-shockwave-flash" data="tu_juego.swf" width="100%" height="100%">
+    <param name="movie" value="tu_juego.swf">
+    <param name="wmode" value="window">
+  </object>
+  
+  <!-- CAPA DE PRUEBA (ROJA) -->
+  <div id="testOverlay">
+    <div id="debugInfo">
+      👆 TOCA AQUÍ<br>
+      <span id="counter">0</span> toques detectados
+    </div>
+  </div>
+</div>
+
+<script>
+let count = 0;
+const overlay = document.getElementById('testOverlay');
+const counter = document.getElementById('counter');
+
+// EVENTO TOUCH
+overlay.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  count++;
+  counter.textContent = count;
+  console.log('✅ TOQUE DETECTADO!', count);
+  
+  // Cambiar color para feedback
+  overlay.style.background = 'rgba(0, 255, 0, 0.3)';
+  setTimeout(() => {
+    overlay.style.background = 'rgba(255, 0, 0, 0.3)';
+  }, 200);
+}, { passive: false });
+
+// EVENTO CLICK (para pruebas en PC)
+overlay.addEventListener('click', (e) => {
+  count++;
+  counter.textContent = count;
+  console.log('✅ CLICK DETECTADO!', count);
+});
+
+console.log('🔍 Prueba iniciada. Toca la pantalla roja.');
+</script>
+
+</body>
+</html>
