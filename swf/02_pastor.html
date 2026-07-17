@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>pastor</title>
+<title>Juego SWF con Mouse Virtual</title>
 <style>
   * { margin: 0; padding: 0; user-select: none; -webkit-touch-callout: none; }
   
@@ -16,7 +16,7 @@
     overflow: hidden;
     touch-action: none;
   }
-
+  
   .game-container {
     position: relative;
     width: 800px;
@@ -28,7 +28,8 @@
     overflow: hidden;
     touch-action: none;
   }
-
+  
+  /* CAPA TRANSPARENTE CON CURSOR */
   #touchOverlay {
     position: absolute;
     top: 0;
@@ -38,59 +39,78 @@
     z-index: 10;
     background: transparent;
     touch-action: none;
-    cursor: pointer;
+    cursor: none; /* Ocultamos el cursor del sistema */
   }
-
+  
+  /* CURSOR VIRTUAL (el puntero del mouse) */
+  #virtualCursor {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    z-index: 20;
+    pointer-events: none; /* No bloquea los toques */
+    transform: translate(-50%, -50%);
+    transition: left 0.15s ease-out, top 0.15s ease-out;
+    filter: drop-shadow(0 0 5px rgba(255,255,255,0.5));
+    display: none; /* Oculto hasta que toques */
+  }
+  
+  /* SVG del cursor (diseño clásico de mouse) */
+  #virtualCursor svg {
+    width: 100%;
+    height: 100%;
+  }
+  
+  /* SWF embebido */
   #gameSwf {
     width: 100%;
     height: 100%;
     display: block;
     pointer-events: none;
   }
-
-  .controls-hint {
+  
+  /* Indicador de estado */
+  .status {
     position: absolute;
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    color: rgba(255,255,255,0.3);
-    font-family: Arial;
-    font-size: 14px;
+    color: rgba(255,255,255,0.4);
+    font-family: Arial, sans-serif;
+    font-size: 12px;
     z-index: 5;
-    background: rgba(0,0,0,0.5);
-    padding: 8px 16px;
+    background: rgba(0,0,0,0.6);
+    padding: 6px 16px;
     border-radius: 20px;
     pointer-events: none;
-  }
-
-  .virtual-btn {
-    position: absolute;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.15);
-    border: 2px solid rgba(255,255,255,0.3);
-    color: rgba(255,255,255,0.6);
-    font-size: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    z-index: 5;
+    white-space: nowrap;
   }
   
-  #btnUp { bottom: 140px; left: 50%; transform: translateX(-50%); }
-  #btnDown { bottom: 20px; left: 50%; transform: translateX(-50%); }
-  #btnLeft { bottom: 80px; left: 20px; }
-  #btnRight { bottom: 80px; right: 20px; }
-  #btnAction { bottom: 80px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; background: rgba(233,69,96,0.3); border-color: #e94560; }
+  /* Punto de clic (feedback visual) */
+  .click-feedback {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(233, 69, 96, 0.6);
+    border: 2px solid #e94560;
+    pointer-events: none;
+    z-index: 15;
+    transform: translate(-50%, -50%);
+    animation: clickPulse 0.4s ease-out forwards;
+  }
+  
+  @keyframes clickPulse {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+  }
 </style>
-<script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
 </head>
 <body>
 
 <div class="game-container" id="gameContainer">
-
+  
+  <!-- SWF del juego -->
   <object id="gameSwf" type="application/x-shockwave-flash" data="02_pastor.swf">
     <param name="movie" value="02_pastor.swf">
     <param name="quality" value="high">
@@ -101,175 +121,182 @@
     <param name="scale" value="exactfit">
     <p>Tu navegador no soporta Flash</p>
   </object>
-
-  <div id="touchOverlay"></div>
-
-  <div class="virtual-btn" id="btnUp">▲</div>
-  <div class="virtual-btn" id="btnDown">▼</div>
-  <div class="virtual-btn" id="btnLeft">◄</div>
-  <div class="virtual-btn" id="btnRight">►</div>
-  <div class="virtual-btn" id="btnAction">⚡</div>
   
-  <div class="controls-hint">👆 Toca la pantalla para jugar</div>
+  <!-- CURSOR VIRTUAL -->
+  <div id="virtualCursor">
+    <svg viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 0L22 18L14 19L22 31L18 32L10 20L0 22V0Z" fill="white" stroke="black" stroke-width="1.5"/>
+      <path d="M2 2L18 16L12 17L18 26.5L16 27.5L10 18L2 19.5V2Z" fill="white"/>
+      <circle cx="5" cy="7" r="2" fill="rgba(0,0,0,0.3)"/>
+    </svg>
+  </div>
+  
+  <div class="status" id="status">👆 Toca para mover el cursor | Toca de nuevo para hacer clic</div>
 </div>
 
 <script>
+// ================================================
+//  MOUSE VIRTUAL PARA SWF
+// ================================================
+
 const overlay = document.getElementById('touchOverlay');
+const cursor = document.getElementById('virtualCursor');
 const swf = document.getElementById('gameSwf');
 const container = document.getElementById('gameContainer');
-function getRelativeCoords(e) {
+const status = document.getElementById('status');
+
+let cursorVisible = false;
+let cursorX = 0;
+let cursorY = 0;
+let isClickMode = false; // false = mover cursor, true = hacer clic
+
+// --- FUNCIÓN PARA MOVER EL CURSOR ---
+function moveCursor(clientX, clientY) {
   const rect = container.getBoundingClientRect();
-  const x = (e.clientX - rect.left) / rect.width;
-  const y = (e.clientY - rect.top) / rect.height;
-  return { x: x * 100, y: y * 100 }; // Flash usa % a veces
-}
-
-function simulateClick(x, y) {
-
-  const clickEvent = new MouseEvent('click', {
-    clientX: x,
-    clientY: y,
-    bubbles: true,
-    cancelable: true
-  });
-
-  swf.dispatchEvent(clickEvent);
-
-  swf.focus();
-
-  if (swf.click) {
-    swf.click();
+  
+  // Calcular posición relativa al contenedor
+  const x = clientX - rect.left;
+  const y = clientY - rect.top;
+  
+  // Limitar al contenedor
+  const clampedX = Math.max(0, Math.min(rect.width, x));
+  const clampedY = Math.max(0, Math.min(rect.height, y));
+  
+  // Actualizar posición del cursor
+  cursor.style.left = clampedX + 'px';
+  cursor.style.top = clampedY + 'px';
+  
+  // Guardar coordenadas
+  cursorX = clientX;
+  cursorY = clientY;
+  
+  // Mostrar cursor si estaba oculto
+  if (!cursorVisible) {
+    cursor.style.display = 'block';
+    cursorVisible = true;
+    status.textContent = '🖱️ Cursor activo | Toca para hacer clic';
   }
-  
-  console.log(`🖱️ Click simulado en (${Math.round(x)}, ${Math.round(y)})`);
 }
 
-function simulateKey(key, isDown = true) {
-  const keyMap = {
-    'up': { code: 'ArrowUp', key: 'ArrowUp', keyCode: 38 },
-    'down': { code: 'ArrowDown', key: 'ArrowDown', keyCode: 40 },
-    'left': { code: 'ArrowLeft', key: 'ArrowLeft', keyCode: 37 },
-    'right': { code: 'ArrowRight', key: 'ArrowRight', keyCode: 39 },
-    'space': { code: 'Space', key: ' ', keyCode: 32 },
-    'x': { code: 'KeyX', key: 'x', keyCode: 88 },
-    'z': { code: 'KeyZ', key: 'z', keyCode: 90 }
-  };
+// --- FUNCIÓN PARA HACER CLIC ---
+function doClick(clientX, clientY) {
+  // 1. Feedback visual (efecto de clic)
+  const clickEffect = document.createElement('div');
+  clickEffect.className = 'click-feedback';
+  const rect = container.getBoundingClientRect();
+  clickEffect.style.left = (clientX - rect.left) + 'px';
+  clickEffect.style.top = (clientY - rect.top) + 'px';
+  container.appendChild(clickEffect);
   
-  const keyInfo = keyMap[key];
-  if (!keyInfo) return;
+  // Eliminar el efecto después de la animación
+  setTimeout(() => clickEffect.remove(), 400);
   
-  const eventType = isDown ? 'keydown' : 'keyup';
-  const event = new KeyboardEvent(eventType, {
-    code: keyInfo.code,
-    key: keyInfo.key,
-    keyCode: keyInfo.keyCode,
-    which: keyInfo.keyCode,
-    bubbles: true,
-    cancelable: true,
-    composed: true
-  });
-  
-  // Enviar al SWF y al documento
-  swf.dispatchEvent(event);
-  document.dispatchEvent(event);
-  
-  console.log(`⌨️ ${isDown ? '↓' : '↑'} Tecla: ${keyInfo.key}`);
+  // 2. Enviar evento de clic al SWF
+  try {
+    // Opción A: Evento de mouse directo
+    const clickEvent = new MouseEvent('click', {
+      clientX: clientX,
+      clientY: clientY,
+      bubbles: true,
+      cancelable: true,
+      view: window
+    });
+    swf.dispatchEvent(clickEvent);
+    
+    // Opción B: Enfocar y enviar
+    swf.focus();
+    
+    // Opción C: Simular mousedown + mouseup (más realista)
+    const downEvent = new MouseEvent('mousedown', {
+      clientX: clientX,
+      clientY: clientY,
+      bubbles: true,
+      button: 0
+    });
+    swf.dispatchEvent(downEvent);
+    
+    setTimeout(() => {
+      const upEvent = new MouseEvent('mouseup', {
+        clientX: clientX,
+        clientY: clientY,
+        bubbles: true,
+        button: 0
+      });
+      swf.dispatchEvent(upEvent);
+    }, 50);
+    
+    status.textContent = `✅ Clic en (${Math.round(clientX - rect.left)}, ${Math.round(clientY - rect.top)})`;
+    console.log(`🖱️ Click en (${clientX}, ${clientY})`);
+    
+  } catch (error) {
+    console.error('Error al hacer clic:', error);
+    status.textContent = '❌ Error: Revisa la consola';
+  }
 }
 
-let activeTouches = {};
+// --- MANEJAR TOQUES ---
+let touchAction = false;
 
 overlay.addEventListener('touchstart', (e) => {
   e.preventDefault();
+  const touch = e.touches[0];
   
-  for (let touch of e.touches) {
-    const rect = container.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-
-    simulateClick(touch.clientX, touch.clientY);
-
-    const relX = x / rect.width;
-    const relY = y / rect.height;
-
-    if (relY < 0.3) {
-      simulateKey('up', true);
-      activeTouches[touch.identifier] = 'up';
-    } else if (relY > 0.7) {
-      simulateKey('down', true);
-      activeTouches[touch.identifier] = 'down';
-    } else if (relX < 0.3) {
-      simulateKey('left', true);
-      activeTouches[touch.identifier] = 'left';
-    } else if (relX > 0.7) {
-      simulateKey('right', true);
-      activeTouches[touch.identifier] = 'right';
-    } else {
-
-      simulateKey('space', true);
-      activeTouches[touch.identifier] = 'space';
-    }
+  if (!touch) return;
+  
+  // SI EL CURSOR NO ESTÁ VISIBLE: moverlo
+  if (!cursorVisible) {
+    moveCursor(touch.clientX, touch.clientY);
+    return;
   }
+  
+  // SI EL CURSOR YA ESTÁ VISIBLE: hacer clic donde está el cursor
+  doClick(cursorX, cursorY);
+  
 }, { passive: false });
 
+// Mover cursor mientras el dedo se desliza
 overlay.addEventListener('touchmove', (e) => {
   e.preventDefault();
-
-  for (let touch of e.touches) {
-    const rect = container.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-
-    const mouseMove = new MouseEvent('mousemove', {
-      clientX: touch.clientX,
-      clientY: touch.clientY,
-      bubbles: true
-    });
-    swf.dispatchEvent(mouseMove);
+  const touch = e.touches[0];
+  if (touch && cursorVisible) {
+    moveCursor(touch.clientX, touch.clientY);
   }
 }, { passive: false });
 
-overlay.addEventListener('touchend', (e) => {
-  e.preventDefault();
+// --- SOPORTE PARA RATÓN EN PC (pruebas) ---
+let mouseMoved = false;
 
-  for (let touch of e.changedTouches) {
-    const key = activeTouches[touch.identifier];
-    if (key) {
-      simulateKey(key, false);
-      delete activeTouches[touch.identifier];
-    }
+overlay.addEventListener('mousemove', (e) => {
+  if (!mouseMoved) {
+    // Solo para mostrar que funciona en PC
+    moveCursor(e.clientX, e.clientY);
+    mouseMoved = true;
   }
-}, { passive: false });
+});
 
 overlay.addEventListener('click', (e) => {
-  simulateClick(e.clientX, e.clientY);
+  if (cursorVisible) {
+    doClick(e.clientX, e.clientY);
+  } else {
+    moveCursor(e.clientX, e.clientY);
+  }
 });
 
-overlay.addEventListener('mousedown', (e) => {
+// --- INFORMACIÓN ---
+console.log('🖱️ Mouse Virtual para SWF activado');
+console.log('👆 Toca una vez → Mueve el cursor');
+console.log('👆 Toca de nuevo → Hace clic en esa posición');
+console.log('👆 Desliza el dedo → Mueve el cursor en tiempo real');
 
+// --- FUNCIÓN DE AYUDA PARA DEPURACIÓN ---
+window.debugClick = function(x, y) {
   const rect = container.getBoundingClientRect();
-  const x = (e.clientX - rect.left) / rect.width;
-  const y = (e.clientY - rect.top) / rect.height;
-  
-  if (y < 0.3) simulateKey('up', true);
-  else if (y > 0.7) simulateKey('down', true);
-  else if (x < 0.3) simulateKey('left', true);
-  else if (x > 0.7) simulateKey('right', true);
-});
-
-overlay.addEventListener('mouseup', (e) => {
-  const rect = container.getBoundingClientRect();
-  const x = (e.clientX - rect.left) / rect.width;
-  const y = (e.clientY - rect.top) / rect.height;
-  
-  if (y < 0.3) simulateKey('up', false);
-  else if (y > 0.7) simulateKey('down', false);
-  else if (x < 0.3) simulateKey('left', false);
-  else if (x > 0.7) simulateKey('right', false);
-});
-
-console.log('🎮 Control táctil para SWF activado');
-console.log('👆 Toca arriba/abajo/izquierda/derecha para mover');
-console.log('👆 Toca el centro para acción (espacio/clic)');
+  const clickX = rect.left + x;
+  const clickY = rect.top + y;
+  moveCursor(clickX, clickY);
+  setTimeout(() => doClick(clickX, clickY), 200);
+};
+console.log('💡 Usa debugClick(100, 200) en consola para probar');
 </script>
 
 </body>
