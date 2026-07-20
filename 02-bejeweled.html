@@ -184,6 +184,7 @@ window.onload = function() {
     var totalMovesNeeded = 49;
     var hintButtonElement;
     var scoreElement;
+    var isFirstLoad = true; // Bandera para controlar la primera carga
 
     function init() {
         hintButtonElement = document.getElementById("hint");
@@ -235,10 +236,28 @@ window.onload = function() {
                     findClusters();
                     
                     if (clusters.length > 0) {
+                        // Solo sumar puntos cuando no es la primera carga
+                        if (!isFirstLoad) {
+                            successfulMoves += clusters.length;
+                            updateScore();
+                            playSound([523.25]);
+                            
+                            // Verificar victoria
+                            if (successfulMoves >= totalMovesNeeded) {
+                                setTimeout(function() {
+                                    playSound([523.25, 587.33, 659.25, 783.99, 880.00], 200);
+                                    setTimeout(function() {
+                                        alert("Ganaste");
+                                    }, 1200);
+                                }, 500);
+                            }
+                        }
                         removeClusters();
                         animationstate = 1;
                     } else {
                         gamestate = gamestates.ready;
+                        // Después de la primera carga, permitir sumar puntos
+                        isFirstLoad = false;
                     }
                     animationtime = 0;
                 }
@@ -251,6 +270,8 @@ window.onload = function() {
                     findClusters();
                     if (clusters.length <= 0) {
                         gamestate = gamestates.ready;
+                        // Después de la primera carga, permitir sumar puntos
+                        isFirstLoad = false;
                     }
                 }
             } else if (animationstate == 2) {
@@ -262,20 +283,8 @@ window.onload = function() {
                         animationstate = 0;
                         animationtime = 0;
                         gamestate = gamestates.resolve;
-                        
-successfulMoves += clusters.length;
-updateScore();
-playSound([523.25]);
-
-if (successfulMoves >= totalMovesNeeded) {
-    setTimeout(function() {
-        playSound([523.25, 587.33, 659.25, 783.99, 880.00], 200);
-        setTimeout(function() {
-            alert("Ganaste");
-        }, 1200);
-    }, 500);
-}
-
+                        // Marcar que ya no es la primera carga
+                        isFirstLoad = false;
                     } else {
                         animationstate = 3;
                         animationtime = 0;
@@ -288,6 +297,8 @@ if (successfulMoves >= totalMovesNeeded) {
                 if (animationtime > animationtimetotal) {
                     swap(currentmove.column1, currentmove.row1, currentmove.column2, currentmove.row2);
                     gamestate = gamestates.ready;
+                    // Marcar que ya no es la primera carga
+                    isFirstLoad = false;
                 }
             }
             
@@ -426,6 +437,7 @@ if (successfulMoves >= totalMovesNeeded) {
         gamestate = gamestates.ready;
         gameover = false;
         successfulMoves = 0;
+        isFirstLoad = true; // Resetear bandera
         updateScore();
         hintActive = false;
         hintButtonElement.disabled = false;
@@ -462,6 +474,7 @@ if (successfulMoves >= totalMovesNeeded) {
         findClusters();
         
         while (clusters.length > 0) {
+            // NO sumar puntos aquí (esto solo es para la creación inicial)
             removeClusters();
             shiftTiles();
             findClusters();
@@ -646,6 +659,8 @@ if (successfulMoves >= totalMovesNeeded) {
         animationstate = 2;
         animationtime = 0;
         gamestate = gamestates.resolve;
+        // Asegurar que al hacer un movimiento manual se pueda sumar puntos
+        isFirstLoad = false;
     }
     
     function onMouseMove(e) {
