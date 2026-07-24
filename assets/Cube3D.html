@@ -10,5 +10,94 @@
     width="800"
     height="600">
 
+<script>
+(function() {
+    'use strict';
+
+    const keyboardContainer = document.createElement('div');
+    keyboardContainer.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        display: flex;
+        gap: 10px;
+        background: rgba(0,0,0,0.7);
+        padding: 15px;
+        border-radius: 15px;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+    `;
+
+    const keys = [
+        { label: '←', key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37 },
+        { label: '↑', key: 'ArrowUp', code: 'ArrowUp', keyCode: 38 },
+        { label: '→', key: 'ArrowRight', code: 'ArrowRight', keyCode: 39 },
+        { label: '↓', key: 'ArrowDown', code: 'ArrowDown', keyCode: 40 },
+        { label: '␣', key: ' ', code: 'Space', keyCode: 32 }
+    ];
+
+    // Función para enviar el evento de tecla
+    function sendKeyEvent(key, code, keyCode, type) {
+        const ruffleEmbed = document.querySelector('ruffle-embed');
+        if (!ruffleEmbed) return;
+        ruffleEmbed.focus();
+
+        // Crear y enviar el evento
+        const event = new KeyboardEvent(type, {
+            key: key,
+            code: code,
+            keyCode: keyCode,
+            which: keyCode,
+            bubbles: true,
+            cancelable: true
+        });
+        ruffleEmbed.dispatchEvent(event);
+    }
+
+    keys.forEach(({ label, key, code, keyCode }) => {
+        const btn = document.createElement('button');
+        btn.textContent = label;
+        btn.style.cssText = `
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            border: none;
+            border-radius: 10px;
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            touch-action: none;
+        `;
+
+        // Eventos táctiles
+        btn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            sendKeyEvent(key, code, keyCode, 'keydown');
+        });
+
+        btn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            sendKeyEvent(key, code, keyCode, 'keyup');
+        });
+
+        // Eventos de mouse (para pruebas en escritorio)
+        btn.addEventListener('mousedown', () => {
+            sendKeyEvent(key, code, keyCode, 'keydown');
+        });
+
+        btn.addEventListener('mouseup', () => {
+            sendKeyEvent(key, code, keyCode, 'keyup');
+        });
+
+        keyboardContainer.appendChild(btn);
+    });
+
+    document.body.appendChild(keyboardContainer);
+})();
+</script>
+
 </body>
 </html>
