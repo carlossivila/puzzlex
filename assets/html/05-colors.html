@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script defer src="https://app.embed.im/snow.js"></script>
+    <title>PuzzleX - colors</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            padding: 10px;
+            gap: 10px;
+            color: lime;
+        }
+
+        h3 {
+            color: #00ff00;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            margin-top: 8px;
+            font-size: 20px;
+        }
+
+        .board {
+            background: #222;
+            border: 3px solid #555;
+            padding: 4px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 8px;
+            border-radius: 6px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5), 0 0 20px rgba(0,255,0,0.1);
+        }
+
+        .region {
+            background: #2e2e2e;
+            border: 2px solid rgba(0, 255, 0, 0.5);
+            border-radius: 5px;
+            padding: 4px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 5px;
+        }
+
+        .cell {
+            width: 55px;
+            height: 55px;
+            background-color: #f8f8f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+        }
+
+        .cell:hover:not(.fixed) {
+            transform: scale(1.07);
+            box-shadow: 0 4px 12px rgba(0, 255, 0, 0.35);
+        }
+
+        .cell.fixed {
+            cursor: not-allowed;
+        }
+
+        .color-selector {
+            display: flex;
+            gap: 20px;
+            padding: 10px 16px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+        }
+
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #555;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .color-option:hover {
+            transform: scale(1.15);
+            box-shadow: 0 4px 12px rgba(255,255,255,0.3);
+        }
+
+        .color-option.selected {
+            border-color: #00ff00;
+            box-shadow: 0 0 15px rgba(0,255,0,0.6);
+            transform: scale(1.12);
+        }
+
+        .counter {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff0000;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255,0,0,0.5);
+            letter-spacing: 1px;
+        }
+
+        .message {
+            font-size: 18px;
+            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 5px;
+            text-align: center;
+            transition: all 0.3s ease;
+            min-height: 32px;
+        }
+
+        .success {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+
+        .error {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            font-size: 15px;
+            background: linear-gradient(145deg, #1a1a1a, #000);
+            color: #00ff00;
+            border: 2px solid #00ffff;
+            border-radius: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            color: #ff0000;
+            border-color: #808080;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255,0,0,0.3);
+        }
+
+        .btn:active {
+            background: linear-gradient(145deg, #33F033, #28a745);
+            color: #000;
+            border-color: #000;
+            transform: translateY(0);
+        }
+
+p {
+    font-size: 20px;
+}
+
+.bt {
+  display: inline-block;
+  font-size: 18px;
+  background-color: #009900;
+  border: 1px solid gray;
+  border-radius: 5px;
+  transition: box-shadow 0.3s ease;
+}
+
+.bt:hover {
+  border: 1px solid cyan;
+  box-shadow: 0 0 15px cyan, 0 0 30px aqua;
+}
+
+        a:link, a:visited { text-decoration: none; color: #00ff00; }
+        a:hover { color: #ff0000; }
+    </style>
+</head>
+<body>
+
+<h3>PuzzleX by Carlos Sivila</h3>
+
+<div class="board" id="board"></div>
+
+<div class="color-selector" id="colorSelector">
+<div class="color-option" style="background-color: red;"    onclick="selectColor('red')"></div>
+<div class="color-option" style="background-color: green;"  onclick="selectColor('green')"></div>
+<div class="color-option" style="background-color: blue;"   onclick="selectColor('blue')"></div>
+<div class="color-option" style="background-color: yellow;" onclick="selectColor('yellow')"></div>
+</div>
+
+<div class="counter" id="counter">0 de 15 aciertos</div>
+
+<div class="message" id="message"></div>
+
+<p>En cada región de cuatro celdas<br>'no puede haber el mismo color'</p>
+
+<div class="controls">
+<button class="btn" onclick="checkSolution()">Verificar</button>
+<button class="btn" onclick="resetBoard()">Reiniciar</button>
+<button class="btn" onclick="newPuzzle()">Nuevo</button>
+  <audio id="audio" src="track.mp3" preload="auto" loop></audio>
+   <button class="bt" id="snd">🔊</button>
+<script>
+    const audio = document.getElementById("audio");
+    const sound = document.getElementById("snd");
+    snd.addEventListener("click", function() {
+        if (audio.paused) {
+            audio.play();
+            snd.textContent = "🔊";
+        } else {
+            audio.pause();
+            snd.textContent = "🔇";
+        }
+    });
+</script>
+</div>
+
+<script>
+    const colors = ['red', 'green', 'blue', 'yellow'];
+    let selectedColor = 'red';
+    let board = Array(4).fill().map(() => Array(4).fill(null));
+    let fixedCells = Array(4).fill().map(() => Array(4).fill(false));
+    let solution = Array(4).fill().map(() => Array(4).fill(null));
+    let correctPuzzles = 0;
+    const totalPuzzles = 15;
+    let audioCtx = null;
+
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    function playTones(freqs, times, type = 'sine', vol = 0.2) {
+        initAudio();
+        const now = audioCtx.currentTime;
+        freqs.forEach((freq, i) => {
+            const osc  = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, now + times[i]);
+            gain.gain.setValueAtTime(vol, now + times[i]);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + times[i] + 0.4);
+            osc.start(now + times[i]);
+            osc.stop(now + times[i] + 0.45);
+        });
+    }
+
+    function playgood()  { playTones([523.25,587.33,659.25,783.99], [0,0.15,0.3,0.45]); }
+    function playfail()  { playTones([440,392,349.23,293.66], [0,0.15,0.3,0.45]); }
+    function playlose()  {
+        playTones([392,349.23,311.13,293.66,261.63], [0,0.2,0.4,0.6,0.8], 'triangle', 0.15);
+        playTones([130.81], [1.2], 'sawtooth', 0.2);
+    }
+    function playwin()   {
+        playTones([523.25,587.33,659.25,783.99], [0,0.15,0.3,0.45]);
+        playTones([880,1046.5], [0.75,0.9], 'sine', 0.25);
+    }
+
+    function initializeBoard() {
+        const boardEl = document.getElementById('board');
+        boardEl.innerHTML = '';
+
+        /*
+          Orden de regiones en el grid 2×2:
+            región 0 → filas 0-1, cols 0-1
+            región 1 → filas 0-1, cols 2-3
+            región 2 → filas 2-3, cols 0-1
+            región 3 → filas 2-3, cols 2-3
+        */
+        for (let rIdx = 0; rIdx < 4; rIdx++) {
+            const regionEl = document.createElement('div');
+            regionEl.className = 'region';
+
+            const baseRow = Math.floor(rIdx / 2) * 2;
+            const baseCol = (rIdx % 2) * 2;
+
+            for (let i = 0; i < 2; i++) {
+                for (let j = 0; j < 2; j++) {
+                    const row = baseRow + i;
+                    const col = baseCol + j;
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    cell.addEventListener('click', () => handleCellClick(row, col));
+                    regionEl.appendChild(cell);
+                }
+            }
+            boardEl.appendChild(regionEl);
+        }
+
+        generatePuzzle();
+        updateBoardDisplay();
+        updateCounter();
+        selectColor('red');
+    }
+
+    function isValidPlacement(tempBoard, row, col, color) {
+        for (let i = 0; i < 4; i++) if (tempBoard[row][i] === color) return false;
+        for (let i = 0; i < 4; i++) if (tempBoard[i][col] === color) return false;
+        const rr = Math.floor(row / 2) * 2;
+        const rc = Math.floor(col / 2) * 2;
+        for (let i = 0; i < 2; i++)
+            for (let j = 0; j < 2; j++)
+                if (tempBoard[rr+i][rc+j] === color) return false;
+        return true;
+    }
+
+    function solveRecursively(tempBoard) {
+        let row, col, found = false;
+        outer: for (let i = 0; i < 4; i++)
+            for (let j = 0; j < 4; j++)
+                if (tempBoard[i][j] === null) { row = i; col = j; found = true; break outer; }
+        if (!found) return true;
+        for (const color of [...colors].sort(() => Math.random() - 0.5)) {
+            if (isValidPlacement(tempBoard, row, col, color)) {
+                tempBoard[row][col] = color;
+                if (solveRecursively(tempBoard)) return true;
+                tempBoard[row][col] = null;
+            }
+        }
+        return false;
+    }
+
+    function generateSolution() {
+        for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) solution[i][j] = null;
+        if (!solveRecursively(solution)) generateSolution();
+    }
+
+    function generatePuzzle() {
+        for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) { board[i][j] = null; fixedCells[i][j] = false; }
+        generateSolution();
+        const full = JSON.parse(JSON.stringify(solution));
+        const usedColors = new Set();
+        const cellsToReveal = Math.floor(Math.random() * 3) + 4;
+
+        while (usedColors.size < 4) {
+            const row = Math.floor(Math.random() * 4);
+            const col = Math.floor(Math.random() * 4);
+            const color = full[row][col];
+            if (!usedColors.has(color) && !fixedCells[row][col]) {
+                board[row][col] = color;
+                fixedCells[row][col] = true;
+                usedColors.add(color);
+            }
+        }
+        let revealed = usedColors.size;
+        while (revealed < cellsToReveal) {
+            const row = Math.floor(Math.random() * 4);
+            const col = Math.floor(Math.random() * 4);
+            if (!fixedCells[row][col]) {
+                board[row][col] = full[row][col];
+                fixedCells[row][col] = true;
+                revealed++;
+            }
+        }
+    }
+
+    function updateBoardDisplay() {
+        document.querySelectorAll('.cell').forEach(cell => {
+            const row = +cell.dataset.row;
+            const col = +cell.dataset.col;
+            cell.style.backgroundColor = '#f8f8f8';
+            cell.textContent = '';
+            cell.classList.remove('fixed');
+            if (board[row][col]) {
+                cell.style.backgroundColor = board[row][col];
+                if (fixedCells[row][col]) {
+                    cell.classList.add('fixed');
+                    cell.textContent = '🔒';
+                }
+            }
+        });
+    }
+
+    function handleCellClick(row, col) {
+        if (fixedCells[row][col]) return;
+        board[row][col] = selectedColor;
+        updateBoardDisplay();
+        hideMessage();
+    }
+
+    function selectColor(color) {
+        selectedColor = color;
+        document.querySelectorAll('.color-option').forEach(opt => {
+            opt.classList.toggle('selected', opt.style.backgroundColor === color);
+        });
+    }
+
+    function checkRows() {
+        for (let r = 0; r < 4; r++) if (new Set(board[r]).size !== 4) return false;
+        return true;
+    }
+    function checkColumns() {
+        for (let c = 0; c < 4; c++) if (new Set(board.map(r => r[c])).size !== 4) return false;
+        return true;
+    }
+    function checkRegions() {
+        for (let rr = 0; rr < 2; rr++)
+            for (let rc = 0; rc < 2; rc++) {
+                const s = new Set();
+                for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) s.add(board[rr*2+i][rc*2+j]);
+                if (s.size !== 4) return false;
+            }
+        return true;
+    }
+
+    function checkSolution() {
+        for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++)
+            if (board[r][c] === null) { showMessage('Completa todas las casillas', false); setTimeout(playfail, 1000); return; }
+
+        if (checkRows() && checkColumns() && checkRegions()) {
+            showMessage('¡Correcto! 🎉', true);
+            setTimeout(() => {
+                playgood();
+                correctPuzzles++;
+                updateCounter();
+                if (correctPuzzles >= totalPuzzles) {
+                    setTimeout(() => { playwin(); setTimeout(() => alert('¡Ganaste!'), 1000); }, 1000);
+                } else {
+                    setTimeout(() => { generatePuzzle(); updateBoardDisplay(); hideMessage(); }, 3000);
+                }
+            }, 1000);
+        } else {
+            showMessage('Sigue intentando', false);
+            setTimeout(playfail, 1000);
+        }
+    }
+
+    function showMessage(text, isSuccess) {
+        const el = document.getElementById('message');
+        el.textContent = text;
+        el.className = 'message ' + (isSuccess ? 'success' : 'error');
+        el.style.opacity = 1;
+    }
+
+    function hideMessage() {
+        const el = document.getElementById('message');
+        el.style.opacity = 0;
+        el.className = 'message';
+    }
+
+    function resetBoard() {
+        for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++)
+            if (!fixedCells[r][c]) board[r][c] = null;
+        updateBoardDisplay();
+        hideMessage();
+    }
+
+    function newPuzzle() {
+        setTimeout(() => {
+            playlose();
+            setTimeout(() => { generatePuzzle(); updateBoardDisplay(); hideMessage(); }, 1000);
+        }, 100);
+    }
+
+    function updateCounter() {
+        document.getElementById('counter').textContent = `${correctPuzzles} de ${totalPuzzles} aciertos`;
+    }
+
+    window.onload = initializeBoard;
+</script>
+
+<script>
+document.addEventListener('contextmenu', function(e) {
+e.preventDefault();
+});
+</script>
+
+</body>
+</html>

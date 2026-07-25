@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PuzzleX - Puzzle-v2</title>
+<style>
+body{background:#111; margin: 30px 0 0 30px; padding:5px; font-family: monospace; display:flex; flex-direction:column;}
+span{ color:#FFF; font-size: 18px; }
+#piezas { font-size: 20px; }
+div#content{margin-top:10px; order:1;}
+div#conf{padding-bottom:10px;}
+table{border:2px solid green; box-shadow:1px 1px 8px #00e800,-1px -1px 8px #00e800, 1px -1px 8px #00e800, -1px 1px 8px #00e800; -webkit-box-shadow:1px 1px 8px #00e800,-1px -1px 8px #00e800, 1px -1px 8px #00e800, -1px 1px 8px #00e800; border-collapse:collapse;}
+td.pieza{
+  transition:.3s ease-in-out; 
+  -moz-transition:.3s ease-in-out; 
+  -webkit-transition:.3s ease-in-out; 
+  -o-transition:.3s ease-in-out; 
+  cursor:pointer;
+  background-size: 300px 300px;
+}
+div.posic{display:none;}
+div#titulo{color:#FFF; font-size:22px; font-weight:bold; text-shadow:1px 1px 8px #00e800, -1px -1px 8px #00e800, 1px -1px 8px #00e800, -1px 1px 8px #00e800;}
+
+#counter {
+  order: 3;
+  margin-top: 20px;
+  font-size: clamp(22px, 3.9vmin, 32px);
+  color: lime;
+  letter-spacing: 0.08em;
+  font-family: monospace;
+  text-shadow:
+    0 0 0.6vmin lime,
+    0 0 1.5vmin lime;
+}
+
+button {
+font-size: 20px;
+background-color: black;
+color: lime;
+border: 1px solid cyan;
+border-radius: 5px;
+padding: 5px 10px;
+cursor: pointer;
+transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+button:hover {
+background-color: #050505;
+color: red;
+border: 1px solid gray;
+}
+
+button:active {
+background-color: #33F033;
+color: red;
+border: 1px solid black;
+}
+
+a:link,a:visited {
+text-decoration: none;
+color: lime;
+}
+a:hover {
+text-decoration: none;
+color: red;
+}
+
+@media (max-width: 600px) {
+  body {
+    font-size: 22px;
+    transform: scale(1.0);
+    transform-origin: top left;
+  }
+}
+
+</style>
+</head>
+
+<body>
+<div id='content' align='left'>
+<div id="titulo">PuzzleX by Carlos Sivila</div><br>
+<div id='conf'>
+<span>piezas:</span>
+<select id='piezas'>
+<option value='9'>9</option>
+<option value='16'>16</option>
+<option value='25'>25</option>
+</select>
+</div>
+</div>
+
+<div id="counter">Aciertos: 0 de 24</div>
+
+<script>
+var select = false;
+var c = "inc";
+var pos_s = "";
+var id_s = "";
+
+var imagenes = [
+'https://geoffrichards.co.uk/tetravex-thumbnail.png',
+'https://thumbs.dreamstime.com/z/bot%C3%B3n-determinado-del-n%C3%BAmero-n%C3%BAmeros-103101130.jpg?ct=jpeg',
+'https://i.discogs.com/YOGZe043GsAPj4N7NOJLh1DKrBHxo6wrGWXYEREdbrM/rs:fit/g:sm/q:40/h:300/w:300/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI5MTEy/OTMtMTU5NDI0NTgx/Mi03OTMxLmpwZWc.jpeg',
+'https://www.shutterstock.com/image-photo/nuremberg-germany-august-9-2024-260nw-2516622489.jpg',
+'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Albert_Einstein_Head_cleaned.jpg/500px-Albert_Einstein_Head_cleaned.jpg',
+'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbELh4JZozSYNgqD2ShfgtS3TK_qDLxfAI5w&s',
+'https://www.clarin.com/img/2019/10/30/NXk__gtU_1200x0__1.jpg',
+'https://i.pinimg.com/originals/77/d4/78/77d47823126562484a88fc51e1adb760.jpg',
+'https://i.pinimg.com/474x/11/83/b3/1183b381d5d75af0cefa50253b874a31.jpg',
+'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Maradona-Mundial_86_con_la_copa.JPG/960px-Maradona-Mundial_86_con_la_copa.JPG',
+'https://static.dw.com/image/61527609_804.jpg',
+'https://static.dw.com/image/19306161_604.jpg',
+'https://www.clarin.com/2021/01/08/pDBQXz6Ht_360x240__1.jpg',
+'https://cdn.nba.com/headshots/nba/latest/1040x760/893.png',
+'https://theartofjoshnelson.com/cdn/shop/products/il_794xN.3092575748_c5dm.jpg?v=1624471280',
+'https://static.wikia.nocookie.net/simpsons-2013/images/2/26/Bart_Simpson.PNG/revision/latest?cb=20130602191223&path-prefix=es',
+'https://cdn.forbes.co/2020/07/Bugs-Bunny-1280x720-1.jpg',
+'https://e7.pngegg.com/pngimages/303/900/png-clipart-mickey-mouse-in-wizard-suit-illustration-mickey-mouse-minnie-mouse-epic-mickey-sorcerer-s-hat-psychedelic-game-heroes.png',
+'https://static.wikia.nocookie.net/tio-grandpa/images/c/cd/Patan.png/revision/latest?cb=20160405203004&path-prefix=es',
+'https://static.wikia.nocookie.net/cartoon-characters8569/images/d/d6/Betty-boop.jpg/revision/latest?cb=20170103113524',
+'https://static.wikia.nocookie.net/tkoc/images/a/ab/Felix_the_Cat.jpg/revision/latest/scale-to-width-down/250?cb=20170108143822&path-prefix=pt-br',
+'https://vignette.wikia.nocookie.net/chroniclesofillusion/images/7/7c/MightyMouse.png/revision/latest?cb=20170125162746',
+'https://media-front.elmostrador.cl/2014/08/superheroes.jpg',
+'https://static.wikia.nocookie.net/superman/images/c/ce/Action_Comics_1.png/revision/latest?cb=20150623162141&path-prefix=es'
+];
+
+var TOTAL = imagenes.length;
+var aciertos = 0;
+var queue = [];
+
+function buildQueue(){
+  var arr = [];
+  for(var i = 0; i < TOTAL; i++){ arr.push(i); }
+  for(var i = arr.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+  }
+  return arr;
+}
+
+function updateCounter(){
+  document.getElementById('counter').textContent = 'Aciertos: ' + aciertos + ' de ' + TOTAL;
+}
+
+queue = buildQueue();
+var imagenActual = imagenes[queue.shift()];
+
+var rompecabezas = {
+  _arr_pos_r : new Array(),
+  _arr_pos_a : new Array(),
+  
+  _mostrar: function(){
+    rompecabezas._arr_pos_r.length = 0;
+		var piezas = rompecabezas._get("piezas").value;
+		var tb = document.createElement('table');
+		tb.border = 1;
+		tb.align = 'left';
+		tb.cellPadding = 0;
+		tb.cellSpacing = 0;
+		var dp = document.createElement('div');
+		dp.id = 'posiciones';
+		dp.className = 'posic';
+		var ar = Math.sqrt(piezas);
+		var c = 0;
+		var tam_img = 300;
+		var pos_img = tam_img / ar;
+		for(var fil=1;fil<=ar;fil++){
+			var tr = document.createElement('tr');
+			for(var cel=1;cel<=ar;cel++){
+				c++;
+				var td = document.createElement('td');
+				td.className = 'pieza';
+				td.id = 'pos_'+c;
+				td.style.width = pos_img+'px';
+				td.style.height = pos_img+'px';
+				td.style.backgroundImage = 'url(' + imagenActual + ')';
+				var dbp = document.createElement('div');
+				dbp.id = 'val_bp_'+c;
+				var p = Math.round(((pos_img*cel)-pos_img) * -1)+'px '+Math.round(((fil * pos_img)-pos_img) * -1)+'px';
+				td.style.backgroundPosition = p;
+				rompecabezas._arr_pos_r.push(p);
+				dbp.innerHTML = p;
+				dp.appendChild(dbp);
+				td.onclick = function(){
+					rompecabezas._cambiaBGP(this.id);
+					rompecabezas._compruebaFin();
+				}
+				tr.appendChild(td);
+			}
+			tb.appendChild(tr);
+		}
+		if(!rompecabezas._get("div_content")){
+			var cont = document.createElement('div');
+			cont.id = 'div_content';
+			cont.style.order = '2';
+			cont.appendChild(tb);
+			cont.appendChild(dp);
+			document.body.appendChild(cont);
+		}else{
+			rompecabezas._get("div_content").innerHTML = '';
+			rompecabezas._get("div_content").appendChild(tb);
+			rompecabezas._get("div_content").appendChild(dp);
+		}
+	},
+	
+	_barajar: function(){
+		var pie = parseInt(rompecabezas._get("piezas").value);
+		var arr = [];
+		for(var n=1;n<=pie;n++){ arr.push(n); }
+
+		var esIdentidad = true;
+		do{
+			// Fisher-Yates
+			for(var i=arr.length-1;i>0;i--){
+				var j = Math.floor(Math.random()*(i+1));
+				var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+			}
+			esIdentidad = true;
+			for(var k=0;k<arr.length;k++){
+				if(arr[k] != k+1){ esIdentidad = false; break; }
+			}
+		}while(esIdentidad && pie > 1);
+
+		for(var k2=0; k2<arr.length; k2++){
+			var id = k2+1;
+			rompecabezas._get("pos_"+id).style.backgroundPosition = rompecabezas._get("val_bp_"+arr[k2]).innerHTML;
+		}
+	},
+	
+	_cambiaBGP: function(id){
+		if(select == false){
+			pos_s = rompecabezas._get(id).style.backgroundPosition;
+			id_s = id;
+			select = true;
+      rompecabezas._get(id_s).style.boxShadow = '1px 1px 14px #FFF,-1px -1px 14px #FFF, 1px -1px 14px #FFF,-1px 1px 14px #FFF';
+		}else{
+			var pos_n =  rompecabezas._get(id).style.backgroundPosition;
+			var id_n = id;
+			c = "com";
+			select = false;
+		}
+	 
+		if(c == "com"){ rompecabezas._get(id_n).style.backgroundPosition = pos_s; rompecabezas._get(id_s).style.backgroundPosition = pos_n;
+			c = "inc";
+      rompecabezas._get(id_s).style.boxShadow = '';
+		}
+	},
+	
+	_compruebaFin: function(){
+		var pie = parseInt(rompecabezas._get("piezas").value);
+		var fin = false;
+		rompecabezas._arr_pos_a.length = 0;
+		for(var i=1;i<=pie;i++){
+			rompecabezas._arr_pos_a.push(rompecabezas._get("pos_"+i).style.backgroundPosition);
+		}
+		for(var j=0;j<rompecabezas._arr_pos_r.length;j++){
+			if(rompecabezas._arr_pos_r[j] != rompecabezas._arr_pos_a[j]){
+				fin = false;
+				break;
+			}else{
+				fin = true;
+			}
+		}
+		
+    setTimeout(function(){
+      if(fin){
+        aciertos++;
+        updateCounter();
+
+        setTimeout(function(){
+          if(aciertos >= TOTAL){
+            alert("¡Ganaste!");
+            aciertos = 0;
+            queue = buildQueue();
+            updateCounter();
+          }
+          if(queue.length === 0){
+            queue = buildQueue();
+          }
+          imagenActual = imagenes[queue.shift()];
+          rompecabezas._mostrar();
+          rompecabezas._barajar();
+        }, 2000);
+      }
+    },600);
+	},
+	
+	_get: function(id){
+		return document.getElementById(id);
+	}
+};
+
+
+window.onload = function(){
+	updateCounter();
+	rompecabezas._mostrar();
+	rompecabezas._barajar();
+  rompecabezas._get("piezas").onchange = function(){
+    aciertos = 0;
+    queue = buildQueue();
+    imagenActual = imagenes[queue.shift()];
+    updateCounter();
+    rompecabezas._mostrar();
+    rompecabezas._barajar();
+  }
+}
+</script>
+
+</body>
+</html>

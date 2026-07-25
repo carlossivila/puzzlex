@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PuzzleX - MP3 (quiz)</title>
+    <style>
+      @font-face {
+        font-family: 'font';
+        src: url('font.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+      }
+      .numero {
+        font-family: 'font', Arial, sans-serif;
+        font-size: 16px;
+      }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            color: white;
+            background: #000;
+        }
+        .quiz-container {
+            max-width: 960px;
+            margin: 0;
+            padding: 7px;
+        }
+        .question {
+            margin-bottom: 5px;
+            padding-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            border-bottom: 1px dashed #ffffff;
+        }
+
+        .question:last-child {
+            border-bottom: none;
+        }
+        .options label {
+            display: block;
+            margin-right: 5px;
+        }
+
+        button {
+            text-align: left;
+            margin: 0px 3px;
+            padding: 3px 5px;
+            color: blue;
+            background-color: skyblue;
+            border: 2px solid transparent;
+            border-radius: 2px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            color: black;
+            border: 2px solid lime;
+            background-color: lightblue;
+            box-shadow: 0px 0px 10px cyan;
+        }
+
+        .answer {
+            margin-top: 5px;
+            font-size: 20px;
+            font-weight: bold;
+            color: green;
+        }
+
+        h4 {
+            margin: 0;
+            padding: 0;
+            color: yellow;
+        }
+
+        h2 {
+           color: lime;
+           text-align: left;
+           font-family: 'arial black'; font-style: italic;
+           } 
+
+        .correcto {
+            color: lime;
+        }
+
+        .incorrecto {
+            color: red;
+        }
+
+        audio {
+            width: 100px;
+            height: 18px;
+        }
+
+        a:link, a:visited {
+            text-decoration: none;
+            color: lime;
+        }
+
+        a:hover {
+            text-decoration: none;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<h2>PuzzleX by Carlos Sivila</h2>
+
+<div class="quiz-container" id="quiz-container"></div>
+<div><button onclick="calculateScore()">COMPROBAR</button></div>
+<div class="answer" style="display: none;"></div>
+
+<script>
+const audios = [
+"Aerosmith.mp3",
+"Avril Lavigne.mp3",
+"Backstreet Boys.mp3",
+"Benny Benassi.mp3",
+"Beyoncé.mp3",
+"Blink 182.mp3",
+"Bon Jovi.mp3",
+"Britney Spears.mp3",
+"Christina Aguilera.mp3",
+"Coldplay.mp3",
+"Daft Punk.mp3",
+"Destiny is Child.mp3",
+"Eiffel 65.mp3",
+"Eminem.mp3",
+"Eric Prydz.mp3",
+"Evanescence.mp3",
+"Five.mp3",
+"Green Day.mp3",
+"Guns N Roses.mp3",
+"Hoobastank.mp3",
+"Jennifer Lopez.mp3",
+"Kylie Minogue.mp3",
+"Linkin Park.mp3",
+"Madonna.mp3",
+"Mandy Moore.mp3",
+"Metallica.mp3",
+"Michael Gray.mp3",
+"Michael Jackson.mp3",
+"My Chemical Romance.mp3",
+"Nickelback.mp3",
+"Nirvana.mp3",
+"Nsync.mp3",
+"Queen.mp3",
+"Red Hot Chili Peppers.mp3",
+"Rihanna.mp3",
+"Spice Girls.mp3",
+"Taylor Swift.mp3",
+"The Black Eyed Peas.mp3",
+"The Chainsmokers.mp3",
+"The Offspring.mp3",
+"The Pussycat Dolls.mp3",
+"The Ramsus.mp3",
+"The Verve.mp3",
+"Westlife.mp3",
+"Alejandro Sanz.mp3",
+"Ambra.mp3",
+"Amistades Peligrosas.mp3",
+"Camilo Sesto.mp3",
+"Carlos Mata.mp3",
+"Chayanne.mp3",
+"Cristian Castro.mp3",
+"Emanuel Ortega.mp3",
+"Enrique Iglesias.mp3",
+"Eros Ramazzotti.mp3",
+"Franco de Vita.mp3",
+"Gianluca Grignani.mp3",
+"Laura Pausini.mp3",
+"Luis Miguel.mp3",
+"Ricardo Arjona.mp3",
+"Ricardo Montaner.mp3",
+"Ricky Martin.mp3",
+"Thalía.mp3",
+"Alejandro Lerner.mp3",
+"Axel Fernando.mp3",
+"Marcela Morelo.mp3",
+"Marta Sánchez.mp3",
+"Noelia.mp3",
+"Paulina Rubio.mp3",
+"Rosana.mp3",
+"Marco Antonio Solís.mp3",
+"Camila.mp3",
+"Fey.mp3",
+"Julieta Venegas.mp3",
+"Gloria Estefan.mp3",
+"Ana Gabriel.mp3",
+"Azúcar Moreno.mp3",
+"Diego Verdaguer.mp3",
+"Dyango.mp3",
+"Isabel Pantoja.mp3",
+"Jeannete.mp3",
+"José Luis Perales.mp3",
+"José Luis Rodriguez.mp3",
+"Juan Gabriel.mp3",
+"Julio Iglesias.mp3",
+"Leo Dan.mp3",
+"Leonardo Favio.mp3",
+"Los Golpes.mp3",
+"Los Iracundos.mp3",
+"Mónica Naranjo.mp3",
+"Nino Bravo.mp3",
+"Piero.mp3",
+"Rafaella Carra.mp3",
+"Raphael.mp3",
+"Roberto Carlos.mp3",
+"Rudy la Escala.mp3",
+"Kano y los Bulldogs.mp3",
+"La Joven Guardia.mp3",
+"Los diablos.mp3",
+"Manolo Galván.mp3",
+"Los Náufragos.mp3"
+];
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function getAnswer(file) {
+        return file.replace('.mp3', '');
+    }
+
+    function getOptions(correctIndex) {
+        const correctAnswer = getAnswer(audios[correctIndex]);
+        const otherAnswers = audios
+            .filter((file, i) => i !== correctIndex)
+            .map(file => getAnswer(file));
+        shuffle(otherAnswers);
+        const options = [correctAnswer, otherAnswers[0], otherAnswers[1]];
+        shuffle(options);
+        return options;
+    }
+
+    function loadQuestions() {
+        shuffle(audios);
+        const quizContainer = document.getElementById("quiz-container");
+
+        audios.forEach((file, index) => {
+            const options = getOptions(index);
+            const questionDiv = document.createElement("div");
+            questionDiv.classList.add("question");
+        questionDiv.innerHTML = `
+        <h4><span class="numero">${String(index + 1).padStart(3, '0')}</span>&nbsp;&nbsp;<audio src="sound/sound1/${file}" controls></audio></h4>
+       <div class="options">
+        ${options.map(option => `<label><input type="radio" name="q${index + 1}" value="${option}"> ${option}</label>`).join('')}
+       </div>
+       `;
+            quizContainer.appendChild(questionDiv);
+        });
+    }
+
+    function calculateScore() {
+        let score = 0;
+
+        audios.forEach((file, index) => {
+            const correctAnswer = getAnswer(file);
+            const selectedOption = document.querySelector(`input[name="q${index + 1}"]:checked`);
+            if (selectedOption) {
+                if (selectedOption.value === correctAnswer) {
+                    score++;
+                    selectedOption.parentNode.classList.add('correcto');
+                } else {
+                    selectedOption.parentNode.classList.add('incorrecto');
+                }
+            }
+
+            const correctOption = [...document.querySelectorAll(`input[name="q${index + 1}"]`)]
+                .find(option => option.value === correctAnswer);
+            if (correctOption) {
+                correctOption.parentNode.classList.add('correcto');
+            }
+        });
+
+        const percentage = (score / audios.length) * 100;
+        const answerDiv = document.querySelector('.answer');
+        answerDiv.innerHTML = `&nbsp;Acertaste ${score} de ${audios.length} - ${percentage.toFixed(2)}%`;
+        answerDiv.style.display = 'block';
+    }
+
+    window.onload = loadQuestions;
+</script>
+
+<script>
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+</script>
+
+</body>
+</html>

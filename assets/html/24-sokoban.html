@@ -1,0 +1,490 @@
+<html>
+<head>
+  <title>PuzzleX - sokoban</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    body {
+      background-color: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    #game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+    canvas {
+      max-width: 100vw;
+      max-height: 60vw;
+      width: auto;
+      height: auto;
+      display: block;
+    }
+    button {
+      background-color: lime;
+      color: blue;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      margin: 4px;
+      font-size: 18px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    button:hover {
+      border: solid cyan 1px;
+      background-color: darkgreen;
+    }
+
+    #dpad {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 10px;
+    }
+    #dpad .dpad-row {
+      display: flex;
+      flex-direction: row;
+    }
+    #dpad button {
+      width: 60px;
+      height: 60px;
+      font-size: 22px;
+      margin: 3px;
+      padding: 0;
+    }
+
+    @media (max-width: 600px) {
+      canvas {
+        max-width: 100vw;
+        max-height: 55vw;
+      }
+      button {
+        font-size: 16px;
+        padding: 8px 12px;
+      }
+      #dpad {
+        display: flex;
+      }
+    }
+
+    a:link, a:visited {
+      text-decoration: none;
+      color: lime;
+    }
+    a:hover {
+      text-decoration: none;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+<div id="game-container">
+<canvas width="400" height="400" id="game"></canvas>
+
+<div style="text-align: center;">
+  <button id="deshacer">Deshacer</button>
+  <button id="reiniciar">Reiniciar</button>
+  <button id="saltar">Saltar</button>
+</div>
+
+<!-- D-pad para celular -->
+<div id="dpad">
+  <div class="dpad-row">
+    <button id="btn-up">▲</button>
+  </div>
+  <div class="dpad-row">
+    <button id="btn-left">◀</button>
+    <button id="btn-down">▼</button>
+    <button id="btn-right">▶</button>
+  </div>
+</div>
+</div>
+
+<script>
+const canvas = document.getElementById('game');
+const context = canvas.getContext('2d');
+
+let audioCtx = null;
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+}
+function playgood() {
+    initAudio();
+    const notas = [523.25, 587.33, 659.25, 783.99];
+    const tiempos = [0, 0.15, 0.3, 0.45];
+    notas.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime + tiempos[i]);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + tiempos[i] + 0.15);
+        osc.start(audioCtx.currentTime + tiempos[i]);
+        osc.stop(audioCtx.currentTime + tiempos[i] + 0.15);
+    });
+}
+function playwin() {
+    initAudio();
+    const now = audioCtx.currentTime;
+    const notasIniciales = [523.25, 587.33, 659.25, 783.99];
+    notasIniciales.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(freq, now + i * 0.15);
+        gainNode.gain.setValueAtTime(0.2, now + i * 0.15);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.15);
+        osc.start(now + i * 0.15);
+        osc.stop(now + i * 0.15 + 0.15);
+    });
+    const notasFinales = [880, 1046.5];
+    notasFinales.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        const startTime = now + 0.75 + i * 0.15;
+        osc.frequency.setValueAtTime(freq, startTime);
+        gainNode.gain.setValueAtTime(0.25, startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+        osc.start(startTime);
+        osc.stop(startTime + 0.2);
+    });
+}
+
+const grid = 64;
+
+// Wall canvas for textured walls
+const wallCanvas = document.createElement('canvas');
+const wallCtx = wallCanvas.getContext('2d');
+wallCanvas.width = wallCanvas.height = grid;
+
+wallCtx.fillStyle = '#5b5530';
+wallCtx.fillRect(0, 0, grid, grid);
+wallCtx.fillStyle = '#a19555';
+wallCtx.fillRect(1, 1, grid - 2, 20);
+wallCtx.fillRect(0, 23, 20, 18);
+wallCtx.fillRect(22, 23, 42, 18);
+wallCtx.fillRect(0, 43, 42, 20);
+wallCtx.fillRect(44, 43, 20, 20);
+
+const types = {
+  wall: '#',
+  player: '@',
+  playerOnGoal: '+',
+  block: '$',
+  blockOnGoal: '*',
+  goal: '.',
+  empty: ' '
+};
+
+const levels = [
+  "##### |#@  ##|#.$* #|#  # #|#    #|######",
+  "###### |#@   ##|# $$  #|# #. .#|#     #|#######",
+  "  #### |###  # |#@ .$##|#   $ #|# #.  #|#     #|#######",
+  " ##### |##@  ##|#  #  #|# $*$ #|#  .  #|## . ##| ##### ",
+  "######  |#    ###|#   .. #|# $$$@ #|#  # . #|########",
+  " #####  |##   ###|# .# $@#|#  # # #|# *  $.#|#    ###|######  ",
+  "#######|#@*  ##|# $#  #|# $ . #|# .   ##|#######",
+  "########|##    ##|# ..   #|# # $$$#|#   #@.#|########",
+  "#######|#.@* ##|#$  $ #|#   # #|#  .  #|#######",
+  "#######|#@ ..##|# #$ ##|# #   #|#  $# #|#  *  #|#######",
+  "#####  |#   #  |# # ###|#*.$  #|#  #$ #|#@   .#|#######",
+  "#######|###  @#|#. *# #|#   $ #|# $. ##|#######",
+  "######  |#@   ## |# .$* ##|# #$.  #|#      #|########",
+  "###### |#  . # |# #. ##|#  .  #|# $$$ #|#  # @#|#######"
+];
+
+let playerDir = { row: 0, col: 0 };
+let playerPos = { row: 0, col: 0 };
+let rAF = null;
+let width = 0;
+let currentLevelIndex = 0; // siempre empieza en nivel 1
+let movementHistory = [];
+let cells = [];
+let resolvedLevels = []; // niveles resueltos (números 1-based)
+let levelCompleted = false;
+
+function loadLevel(index) {
+  movementHistory = []; // Clear movement history
+  levelCompleted = false;
+  const levelData = levels[index];
+  cells = [];
+  playerPos = { row: 0, col: 0 };
+  width = 0;
+
+  levelData.split('|').forEach((rowData, row) => {
+    cells[row] = [];
+    if (rowData.length > width) {
+      width = rowData.length;
+    }
+    rowData.split('').forEach((colData, col) => {
+      cells[row][col] = colData;
+      if (colData === types.player || colData === types.playerOnGoal) {
+        playerPos = { row, col };
+      }
+    });
+  });
+
+  canvas.width = width * grid;
+  canvas.height = cells.length * grid;
+
+  const nivelEl = document.getElementById('nivel-actual');
+  if (nivelEl) nivelEl.textContent = index + 1;
+}
+
+function move(startPos, endPos) {
+  // Save current state before moving
+  movementHistory.push({
+    cells: JSON.parse(JSON.stringify(cells)),
+    playerPos: { ...playerPos }
+  });
+
+  const startCell = cells[startPos.row][startPos.col];
+  const endCell = cells[endPos.row][endPos.col];
+  const isPlayer = startCell === types.player || startCell === types.playerOnGoal;
+
+  switch(startCell) {
+    case types.player:
+    case types.block:
+      cells[startPos.row][startPos.col] = types.empty;
+      break;
+    case types.playerOnGoal:
+    case types.blockOnGoal:
+      cells[startPos.row][startPos.col] = types.goal;
+      break;
+  }
+
+  switch(endCell) {
+    case types.empty:
+      cells[endPos.row][endPos.col] = isPlayer ? types.player : types.block;
+      break;
+    case types.goal:
+      cells[endPos.row][endPos.col] = isPlayer ? types.playerOnGoal : types.blockOnGoal;
+      break;
+  }
+}
+
+function undoLastMove() {
+  if (movementHistory.length > 0) {
+    const lastState = movementHistory.pop();
+    cells = lastState.cells;
+    playerPos = lastState.playerPos;
+    requestAnimationFrame(loop);
+  }
+}
+
+function resetCurrentLevel() {
+  loadLevel(currentLevelIndex);
+  requestAnimationFrame(loop);
+}
+
+function jumpToNextLevel() {
+  // Buscar el siguiente nivel no resuelto después del actual, en orden circular
+  for (let i = 1; i < levels.length; i++) {
+    const candidate = (currentLevelIndex + i) % levels.length;
+    if (!resolvedLevels.includes(candidate + 1)) {
+      currentLevelIndex = candidate;
+      loadLevel(currentLevelIndex);
+      requestAnimationFrame(loop);
+      return;
+    }
+  }
+  // Si todos los demás están resueltos, no hacer nada
+}
+
+function showWin() {
+  cancelAnimationFrame(rAF);
+  const sorted = [...resolvedLevels].sort((a, b) => a - b);
+  alert('Niveles resueltos: ' + sorted.join(', '));
+  alert('Ganaste, haz resuelto todos los niveles');
+}
+
+function loop() {
+  rAF = requestAnimationFrame(loop);
+  context.clearRect(0, 0, canvas.width, canvas.height);
+
+  const row = playerPos.row + playerDir.row;
+  const col = playerPos.col + playerDir.col;
+  const cell = cells[row][col];
+  
+  switch(cell) {
+    case types.empty:
+    case types.goal:
+      move(playerPos, { row, col });
+      playerPos.row = row;
+      playerPos.col = col;
+      break;
+    case types.wall:
+      break;
+    case types.block:
+    case types.blockOnGoal:
+      const nextRow = row + playerDir.row;
+      const nextCol = col + playerDir.col;
+      const nextCell = cells[nextRow][nextCol];
+      if (nextCell === types.empty || nextCell === types.goal) {
+        move({ row, col }, { row: nextRow, col: nextCol });
+        move(playerPos, { row, col });
+        playerPos.row = row;
+        playerPos.col = col;
+      }
+      break;
+  }
+
+  playerDir = { row: 0, col: 0 };
+  let allBlocksOnGoals = true;
+  
+  context.strokeStyle = 'red';
+  context.lineWidth = 2;
+  for (let row = 0; row < cells.length; row++) {
+    for (let col = 0; col < cells[row].length; col++) {
+      const cell = cells[row][col];
+      if (cell === types.wall) {
+        context.drawImage(wallCanvas, col * grid, row * grid);
+      }
+      if (cell === types.block || cell === types.blockOnGoal) {
+        if (cell === types.block) {
+          context.fillStyle = '#ffbb5b';
+          allBlocksOnGoals = false;
+        } else {
+          context.fillStyle = '#ba6a15';
+        }
+        context.fillRect(col * grid, row * grid, grid, grid);
+        context.strokeRect(col * grid, row * grid, grid, grid);
+        context.strokeRect((col + 0.1) * grid, (row + 0.1) * grid, grid - (0.2 * grid), grid - (0.2 * grid));
+        context.beginPath();
+        context.moveTo((col + 0.1) * grid, (row + 0.1) * grid);
+        context.lineTo((col + 0.9) * grid, (row + 0.9) * grid);
+        context.moveTo((col + 0.9) * grid, (row + 0.1) * grid);
+        context.lineTo((col + 0.1) * grid, (row + 0.9) * grid);
+        context.stroke();
+      }
+      if (cell === types.goal || cell === types.playerOnGoal) {
+        context.fillStyle = '#914430';
+        context.beginPath();
+        context.arc((col + 0.5) * grid, (row + 0.5) * grid, 10, 0, Math.PI * 2);
+        context.fill();
+      }
+      if (cell === types.player || cell === types.playerOnGoal) {
+        context.fillStyle = 'lime';
+        context.beginPath();
+        context.arc((col + 0.5) * grid, (row + 0.3) * grid, 8, 0, Math.PI * 2);
+        context.fill();
+        context.fillRect((col + 0.48) * grid, (row + 0.3) * grid, 2, grid / 2.5);
+        context.fillRect((col + 0.3) * grid, (row + 0.5) * grid, grid / 2.5, 2);
+        context.moveTo((col + 0.5) * grid, (row + 0.7) * grid);
+        context.lineTo((col + 0.65) * grid, (row + 0.9) * grid);
+        context.moveTo((col + 0.5) * grid, (row + 0.7) * grid);
+        context.lineTo((col + 0.35) * grid, (row + 0.9) * grid);
+        context.stroke();
+      }
+    }
+  }
+
+  if (allBlocksOnGoals && !levelCompleted) {
+    levelCompleted = true;
+    cancelAnimationFrame(rAF);
+    rAF = null;
+
+    // Registrar nivel resuelto si no estaba ya
+    const levelNum = currentLevelIndex + 1;
+    if (!resolvedLevels.includes(levelNum)) {
+      resolvedLevels.push(levelNum);
+    }
+
+    setTimeout(() => {
+      if (levels.every((_, i) => resolvedLevels.includes(i + 1))) {
+        // Todos resueltos: playgood → 500ms → alert niveles → 500ms → playwin → 500ms → alert ganaste
+        playgood();
+        setTimeout(() => {
+          const sorted = [...resolvedLevels].sort((a, b) => a - b);
+          alert('Niveles resueltos: ' + sorted.join(', '));
+          setTimeout(() => {
+            playwin();
+            setTimeout(() => {
+              alert('Ganaste, has resuelto todos los niveles');
+            }, 500);
+          }, 500);
+        }, 500);
+      } else {
+        // Nivel completado: playgood → 500ms → alert niveles resueltos
+        playgood();
+        setTimeout(() => {
+          const sorted = [...resolvedLevels].sort((a, b) => a - b);
+          alert('Niveles resueltos: ' + sorted.join(', '));
+
+          // Avanzar al primer nivel no resuelto desde índice 0
+          let next = 0;
+          while (resolvedLevels.includes(next + 1)) {
+            next++;
+          }
+          currentLevelIndex = next;
+          loadLevel(currentLevelIndex);
+          requestAnimationFrame(loop);
+        }, 500);
+      }
+    }, 1000);
+  }
+}
+
+// Keyboard controls
+document.addEventListener('keydown', function(e) {
+  initAudio();
+  playerDir = { row: 0, col: 0 };
+  if (e.which === 37) playerDir.col = -1; // left
+  else if (e.which === 38) playerDir.row = -1; // up
+  else if (e.which === 39) playerDir.col = 1; // right
+  else if (e.which === 40) playerDir.row = 1; // down
+});
+
+// D-pad controls para celular
+function addDpadListener(id, dir) {
+  ['click', 'touchstart'].forEach(evt => {
+    document.getElementById(id).addEventListener(evt, (e) => {
+      e.preventDefault();
+      initAudio();
+      playerDir = dir;
+    });
+  });
+}
+addDpadListener('btn-up',    { row: -1, col:  0 });
+addDpadListener('btn-down',  { row:  1, col:  0 });
+addDpadListener('btn-left',  { row:  0, col: -1 });
+addDpadListener('btn-right', { row:  0, col:  1 });
+document.getElementById('deshacer').addEventListener('click', undoLastMove);
+document.getElementById('reiniciar').addEventListener('click', resetCurrentLevel);
+document.getElementById('saltar').addEventListener('click', jumpToNextLevel);
+
+// Start the game
+document.addEventListener('DOMContentLoaded', function() {
+  loadLevel(currentLevelIndex);
+  requestAnimationFrame(loop);
+});
+</script>
+<h3 style="color: lime; text-align: center;">
+<div style="color: lime; text-align: center;">Estás en nivel '<span id="nivel-actual"></span>' - 
+<a href="https://www.youtube.com/watch?v=B-fMK8-Joic">VER SOLUCIONES</a></div>
+PuzzleX by Carlos Sivila</h3>
+
+<script>
+document.addEventListener('contextmenu', function(e) {
+e.preventDefault();
+});
+</script>
+
+</body>
+</html>

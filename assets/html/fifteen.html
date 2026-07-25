@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PuzzleX - fifteen</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: left;
+            justify-content: center;
+            background-color: #111;
+            font-size: 18px;
+            color: white;
+        }
+
+        #puzzle {
+            display: grid;
+            gap: 2px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .puzzle-3x3 {
+            grid-template-columns: repeat(3, 60px);
+            grid-template-rows: repeat(3, 60px);
+        }
+
+        .puzzle-4x4 {
+            grid-template-columns: repeat(4, 60px);
+            grid-template-rows: repeat(4, 60px);
+        }
+
+        .piece {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: black;
+            color: lime;
+            font-size: 24px;
+            font-weight: bold;
+            border: 1px solid cyan;
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.3s;
+        }
+
+        .piece:hover {
+            color: red;
+        }
+
+        #info {
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .highlight {
+            color: red;
+            font-weight: bold;
+        }
+
+        #buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        #shuffle, #toggle {
+            background-color: black;
+            color: lime;
+            border: 1px solid cyan;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        #shuffle:hover, #toggle:hover {
+            background-color: #050505;
+            color: red;
+            border: 1px solid gray;
+        }
+
+        #shuffle:active, #toggle:active {
+            background-color: #33F033;
+            color: red;
+            border: 1px solid black;
+        }
+
+        .empty {
+            background-color: gray;
+        }
+
+        a:link,a:visited {
+            text-decoration: none;
+            color: lime;
+        }
+        a:hover {
+            text-decoration: none;
+            color: red;
+        }
+
+@media (max-width: 600px) {
+  body {
+    font-size: 20px;
+    transform: scale(1.0);
+    transform-origin: top left;
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<h4 style="color: lime;">PuzzleX by Carlos Sivila</h4>
+
+<div id="puzzle" class="puzzle-3x3"></div>
+
+<div id="buttons">
+    <button id="shuffle">Mezclar</button>
+    <button id="toggle">3X3 / 4X4</button>
+</div>
+
+<div id="info">
+  <div id="moves">
+    Hiciste <span class="highlight">0</span> movimientos de <span class="highlight">999</span>.
+    Te quedan <span class="highlight">999</span> movimientos posibles.
+  </div>
+  <div id="timer">
+    Han transcurrido <span class="highlight">00:00</span> de <span class="highlight">19:59</span>.
+    Te quedan <span class="highlight">19:59</span>.
+  </div>
+</div>
+
+<script>
+    const puzzle = document.getElementById('puzzle');
+    const shuffleButton = document.getElementById('shuffle');
+    const toggleButton = document.getElementById('toggle');
+    const movesDisplay = document.getElementById('moves');
+    const timerDisplay = document.getElementById('timer');
+
+    let is4x4 = false;
+    let gridSize = 3;
+    let tiles = [];
+    let moveCount = 0;
+    let timer;
+    let secondsLeft = 1199;
+
+    function initializeTiles() {
+        const totalTiles = gridSize * gridSize;
+        tiles = [...Array(totalTiles).keys()].map(i => i + 1);
+        tiles[totalTiles - 1] = null;
+    }
+
+    function renderPuzzle() {
+        puzzle.innerHTML = '';
+        tiles.forEach((tile, index) => {
+            const piece = document.createElement('div');
+            piece.classList.add('piece');
+            if (tile === null) {
+                piece.classList.add('empty');
+            } else {
+                piece.textContent = tile;
+                piece.addEventListener('click', () => moveTileWithTimerCheck(index));
+            }
+            puzzle.appendChild(piece);
+        });
+        updateInfo();
+    }
+
+    function updateInfo() {
+        const remainingMoves = 999 - moveCount;
+        const elapsedMinutes = Math.floor((1199 - secondsLeft) / 60);
+        const elapsedSeconds = (1199 - secondsLeft) % 60;
+        const remainingMinutes = Math.floor(secondsLeft / 60);
+        const remainingSeconds = secondsLeft % 60;
+
+        movesDisplay.innerHTML = `Hiciste <span class="highlight">${moveCount}</span> movimientos de <span class="highlight">999</span>.<br>Te quedan <span class="highlight">${remainingMoves}</span> movimientos posibles.`;
+        timerDisplay.innerHTML = `Han transcurrido <span class="highlight">${String(elapsedMinutes).padStart(2, '0')}:${String(elapsedSeconds).padStart(2, '0')}</span> de <span class="highlight">19:59</span>.<br>Te quedan <span class="highlight">${String(remainingMinutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}</span>.`;
+    }
+
+    function shuffle() {
+        for (let i = tiles.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+        }
+
+        if (!isSolvable()) {
+            if (tiles[0] !== null && tiles[1] !== null) {
+                [tiles[0], tiles[1]] = [tiles[1], tiles[0]];
+            } else if (tiles[gridSize] !== null && tiles[gridSize + 1] !== null) {
+                [tiles[gridSize], tiles[gridSize + 1]] = [tiles[gridSize + 1], tiles[gridSize]];
+            }
+        }
+        
+        moveCount = 0;
+        secondsLeft = 1199;
+        clearInterval(timer);
+        startTimer();
+        renderPuzzle();
+    }
+
+    function isSolvable() {
+        let inversions = 0;
+        const flatTiles = tiles.filter(tile => tile !== null);
+        
+        for (let i = 0; i < flatTiles.length - 1; i++) {
+            for (let j = i + 1; j < flatTiles.length; j++) {
+                if (flatTiles[i] > flatTiles[j]) {
+                    inversions++;
+                }
+            }
+        }
+
+        if (gridSize === 3) {
+            return inversions % 2 === 0;
+        } else {
+            const emptyRow = Math.floor(tiles.indexOf(null) / gridSize);
+            if (gridSize % 2 === 1) {
+                return inversions % 2 === 0;
+            } else {
+                return (inversions + emptyRow) % 2 === 1;
+            }
+        }
+    }
+
+    function startTimer() {
+        timer = setInterval(() => {
+            if (secondsLeft <= 0) {
+                clearInterval(timer);
+                setTimeout(() => {
+                    alert("Perdiste, se te acabó el tiempo");
+                    moveCount = 0;
+                    secondsLeft = 1199;
+                    initializeTiles();
+                    renderPuzzle();
+                }, 2500);
+            } else {
+                secondsLeft--;
+                updateInfo();
+            }
+        }, 1000);
+    }
+
+    function moveTileWithTimerCheck(index) {
+        const emptyIndex = tiles.indexOf(null);
+        const row = Math.floor(index / gridSize);
+        const col = index % gridSize;
+        const emptyRow = Math.floor(emptyIndex / gridSize);
+        const emptyCol = emptyIndex % gridSize;
+
+        // Verificar si está en la misma fila
+        if (row === emptyRow) {
+            const minCol = Math.min(col, emptyCol);
+            const maxCol = Math.max(col, emptyCol);
+            
+            // Deslizar todas las piezas entre la clickeada y el vacío
+            if (col < emptyCol) {
+                // Mover hacia la derecha
+                for (let c = emptyCol; c > col; c--) {
+                    const currentIndex = row * gridSize + c;
+                    const prevIndex = row * gridSize + (c - 1);
+                    tiles[currentIndex] = tiles[prevIndex];
+                }
+                tiles[index] = null;
+            } else {
+                // Mover hacia la izquierda
+                for (let c = emptyCol; c < col; c++) {
+                    const currentIndex = row * gridSize + c;
+                    const nextIndex = row * gridSize + (c + 1);
+                    tiles[currentIndex] = tiles[nextIndex];
+                }
+                tiles[index] = null;
+            }
+            
+            moveCount++;
+            renderPuzzle();
+        }
+        // Verificar si está en la misma columna
+        else if (col === emptyCol) {
+            const minRow = Math.min(row, emptyRow);
+            const maxRow = Math.max(row, emptyRow);
+            
+            // Deslizar todas las piezas entre la clickeada y el vacío
+            if (row < emptyRow) {
+                // Mover hacia abajo
+                for (let r = emptyRow; r > row; r--) {
+                    const currentIndex = r * gridSize + col;
+                    const prevIndex = (r - 1) * gridSize + col;
+                    tiles[currentIndex] = tiles[prevIndex];
+                }
+                tiles[index] = null;
+            } else {
+                // Mover hacia arriba
+                for (let r = emptyRow; r < row; r++) {
+                    const currentIndex = r * gridSize + col;
+                    const nextIndex = (r + 1) * gridSize + col;
+                    tiles[currentIndex] = tiles[nextIndex];
+                }
+                tiles[index] = null;
+            }
+            
+            moveCount++;
+            renderPuzzle();
+        }
+
+        if (moveCount >= 999) {
+            setTimeout(() => {
+                alert("Perdiste, demasiados movimientos");
+                moveCount = 0;
+                secondsLeft = 1199;
+                clearInterval(timer);
+                initializeTiles();
+                renderPuzzle();
+            }, 2500);
+        }
+        checkWinCondition();
+    }
+
+    function checkWinCondition() {
+        const totalTiles = gridSize * gridSize;
+        const winningArrangement = [...Array(totalTiles - 1).keys()].map(i => i + 1);
+        winningArrangement.push(null);
+        
+        if (JSON.stringify(tiles) === JSON.stringify(winningArrangement)) {
+            clearInterval(timer);
+            setTimeout(() => {
+                alert("Ganaste");
+                moveCount = 0;
+                secondsLeft = 1199;
+                initializeTiles();
+                renderPuzzle();
+            }, 2500);
+        }
+    }
+
+    function togglePuzzleSize() {
+        is4x4 = !is4x4;
+        gridSize = is4x4 ? 4 : 3;
+
+        puzzle.className = is4x4 ? 'puzzle-4x4' : 'puzzle-3x3';
+        toggleButton.textContent = is4x4 ? '4X4 / 3X3' : '3X3 / 4X4';
+
+        clearInterval(timer);
+        moveCount = 0;
+        secondsLeft = 1199;
+        initializeTiles();
+        renderPuzzle();
+    }
+
+    shuffleButton.addEventListener('click', shuffle);
+    toggleButton.addEventListener('click', togglePuzzleSize);
+
+    initializeTiles();
+    renderPuzzle();
+</script>
+
+<script>
+document.addEventListener('contextmenu', function(e) {
+e.preventDefault();
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PuzzleX - English</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 5px;
+            background-color: #111;
+            margin-top: 6px;
+        }
+
+        h4 {
+            font-size: 18px;
+            color: lime;
+            text-align: left;
+        }
+
+        .box {
+            font-size: 18px;
+            font-weight: bold;
+            padding: 6px 4px;
+            margin-bottom: 0;
+            color: blue;
+            background: beige;
+            border: 1px solid gray;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .button {
+            margin: 0;
+            padding: 6px 4px;
+            font-size: 18px;
+            background-color: #eee;
+            color: #333;
+            border: 1px solid gray;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            white-space: nowrap;
+            display: block;
+            width: 100%;
+        }
+
+        .button:hover {
+            background-color: #ddd;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .correct {
+            background: #4CAF50 !important;
+            color: white !important;
+        }
+
+        .incorrect {
+            background: #f44336 !important;
+            color: white !important;
+        }
+
+        .counters {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .timer {
+            font-size: 18px;
+            font-weight: bold;
+            margin-left: 5px;
+            color: red;
+        }
+
+        #speak-btn {
+            font-size: 24px;
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background: #111;
+            transition: all 0.3s ease;
+            display: inline-block;
+            width: fit-content;
+            box-shadow:
+                0 0 5px #0ff,
+                0 0 10px #0ff,
+                0 0 20px #0ff,
+                0 0 40px #0ff;
+        }
+
+        #speak-btn:hover {
+            box-shadow:
+                0 0 10px #0ff,
+                0 0 20px #0ff,
+                0 0 40px #0ff,
+                0 0 80px #0ff;
+            transform: scale(1.05);
+        }
+
+        a:link, a:visited {
+            text-decoration: none;
+            color: lime;
+        }
+        a:hover {
+            text-decoration: none;
+            color: red;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                font-size: 20px;
+                transform: scale(1.0);
+                transform-origin: top left;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<h4 style="color: lime;">PuzzleX by Carlos Sivila</h4>
+
+<div style="display: inline-flex; flex-direction: column; gap: 3px;">
+<div id="wordBox" class="box">Palabra</div>
+<div id="wordBoxs" class="boxs" style="display: inline-grid; grid-template-columns: repeat(3, auto); gap: 3px;">        
+<button id="button1" class="button">Botón 1</button>
+<button id="button2" class="button">Botón 2</button>
+<button id="button3" class="button">Botón 3</button>
+<button id="button4" class="button">Botón 4</button>
+<button id="button5" class="button">Botón 5</button>
+<button id="button6" class="button">Botón 6</button>
+<button id="button7" class="button">Botón 7</button>
+<button id="button8" class="button">Botón 8</button>
+<button id="button9" class="button">Botón 9</button>
+</div>
+</div><br><br>
+<div class="counters">
+<span style="color: white;">Aciertos: </span><span style="color: red;" id="correctCount">0</span><span style="color: red;"> de 99</span><br>
+<span style="color: white;">Fallos: </span><span style="color: red;" id="incorrectCount">0</span><br>
+<span style="color: white;">Tiempo restante: </span>
+<div class="timer" id="timer">00:59</div><br>
+<button id="speak-btn" class="button">🔊</button>
+</div>
+
+<script>
+const wordPairs = [
+["cuerpo", "body"],
+["cabeza", "head"],
+["ojo", "eye"],
+["ojos", "eyes"],
+["boca", "mouth"],
+["nariz", "nose"],
+["oreja", "ear"],
+["orejas", "ears"],
+["cabello", "hair"],
+["diente", "tooth"],
+["dientes", "teeth"],
+["cuello", "neck"],
+["hombro", "shoulder"],
+["brazo", "arm"],
+["mano", "hand"],
+["dedo", "finger"],
+["espalda", "back"],
+["hueso", "bone"],
+["pierna", "leg"],
+["pie", "foot"],
+["pies", "feet"],
+["codo", "elbow"],
+["rodilla", "knee"],
+["casa", "house"],
+["mueble", "furniture"],
+["piso", "floor"],
+["pared", "wall"],
+["ladrillo", "brick"],
+["puerta", "door"],
+["ventana", "window"],
+["mesa", "table"],
+["silla", "chair"],
+["alfombra", "carpet"],
+["cocina", "kitchen"],
+["refrigerador", "fridge"],
+["fregadero", "sink"],
+["toalla", "towel"],
+["cepillo", "brush"],
+["peine", "comb"],
+["dormitorio", "bedroom"],
+["cama", "bed"],
+["almohada", "pillow"],
+["espejo", "mirror"],
+["oficina", "office"],
+["escritorio", "desk"],
+["llave", "key"],
+["pelota", "ball"],
+["juguete", "toy"],
+["botella", "bottle"],
+["caja", "box"],
+["bolsa", "bag"],
+["moneda", "coin"],
+["luz", "light"],
+["sombra", "shadow"],
+["ajedrez", "chess"],
+["dado", "die"],
+["clavo", "nail"],
+["martillo", "hammer"],
+["tornillo", "screw"],
+["pala", "shovel"],
+["rastrillo", "rake"],
+["escoba", "broom"],
+["espada", "sword"],
+["escudo", "shield"],
+["flecha", "arrow"],
+["palabra", "word"],
+["campana", "bell"],
+["piedra", "stone"],
+["arena", "sand"],
+["tierra", "earth"],
+["agua", "water"],
+["fuego", "fire"],
+["viento", "wind"],
+["madera", "wood"],
+["motor", "engine"],
+["puente", "bridge"],
+["calle", "street"],
+["hielo", "ice"],
+["hora", "hour"],
+["libro", "book"],
+["revista", "magazine"],
+["ropa", "clothes"],
+["camisa", "shirt"],
+["vestido", "dress"],
+["falda", "skirt"],
+["chaqueta", "jacket"],
+["sombrero", "hat"],
+["abrigo", "coat"],
+["zapatos", "shoes"],
+["calcetines", "socks"],
+["maleta", "suitcase"],
+["padre", "father"],
+["madre", "mother"],
+["hijo", "son"],
+["hija", "daughter"],
+["hermano", "brother"],
+["hermana", "sister"],
+["primo", "cousin"],
+["marido", "husband"],
+["esposa", "wife"],
+["novia", "girlfriend"],
+["amigo", "friend"],
+["amor", "love"],
+["vida", "life"],
+["guerra", "war"],
+["juego", "game"],
+["fiesta", "party"],
+["deporte", "sport"],
+["sol", "sun"],
+["luna", "moon"],
+["cielo", "sky"],
+["tormenta", "storm"],
+["trueno", "thunder"],
+["lluvia", "rain"],
+["nieve", "snow"],
+["nube", "cloud"],
+["humo", "smoke"],
+["cable", "wire"],
+["diamante", "diamond"],
+["boleto", "ticket"],
+["reloj", "clock / watch"],
+["rey", "king"],
+["reina", "queen"],
+["noche", "night"],
+["torre", "tower"],
+["caramelo", "candy"],
+["vela", "candle"],
+["pistola", "gun"],
+["sobre", "envelope"],
+["salud", "health"],
+["piedad", "mercy"],
+["duda", "doubt"],
+["beso", "kiss"],
+["abrazo", "hug"],
+["miedo", "fear"],
+["carrera", "race"],
+["odio", "hate"],
+["tomate", "tomato"],
+["papa", "potato"],
+["lechuga", "lettuce"],
+["zanahoria", "carrot"],
+["pimiento", "pepper"],
+["cebolla", "onion"],
+["ajo", "garlic"],
+["arveja", "pea"],
+["poroto", "bean"],
+["frutilla", "strawberry"],
+["naranja", "orange"],
+["rojo", "red"],
+["verde", "green"],
+["azul", "blue"],
+["amarillo", "yellow"],
+["manzana", "apple"],
+["uva", "grape"],
+["durazno", "peach"],
+["pera", "pear"],
+["palta", "avocado"],
+["pan", "bread"],
+["huevo", "egg"],
+["arroz", "rice"],
+["ensalada", "salad"],
+["carne", "meat"],
+["pollo", "chicken"],
+["pescado", "fish"],
+["cerveza", "beer"],
+["vino", "wine"],
+["jugo", "juice"],
+["leche", "milk"],
+["café", "coffee"],
+["galleta", "cookie"],
+["torta", "cake"],
+["queso", "cheese"],
+["comida", "food"],
+["plato", "plate"],
+["taza", "cup"],
+["vaso", "glass"],
+["estudiante", "student"],
+["maestro", "teacher"],
+["conductor", "driver"],
+["enfermero", "nurse"],
+["jardinero", "gardener"],
+["mesero", "waiter"],
+["payaso", "clown"],
+["abogado", "lawyer"],
+["bombero", "fireman"],
+["cocinero", "cook"],
+["panadero", "baker"],
+["soldado", "soldier"],
+["marinero", "sailor"],
+["dentista", "dentist"],
+["dios", "god"],
+["escuela", "school"],
+["tienda", "store"],
+["iglesia", "church"],
+["granja", "farm"],
+["desierto", "desert"],
+["isla", "island"],
+["playa", "beach"],
+["cuerda", "rope"],
+["cadena", "chain"],
+["cerca", "fence"],
+["jefe", "boss"],
+["empleo", "job"],
+["error", "mistake"],
+["problema", "problem"],
+["globo", "balloon"],
+["postre", "dessert"],
+["automóvil", "car"],
+["tren", "train"],
+["cohete", "rocket"],
+["bote", "boat"],
+["barco", "ship"],
+["bicicleta", "bicycle"],
+["perro", "dog"],
+["gato", "cat"],
+["vaca", "cow"],
+["toro", "bull"],
+["caballo", "horse"],
+["cabra", "goat"],
+["oveja", "sheep"],
+["cerdo", "pig"],
+["pato", "duck"],
+["loro", "parrot"],
+["paloma", "dove"],
+["gallo", "rooster"],
+["gallina", "hen"],
+["cuervo", "crow"],
+["serpiente", "snake"],
+["lobo", "wolf"],
+["zorro", "fox"],
+["tigre", "tiger"],
+["pantera", "panther"],
+["ciervo", "deer"],
+["camello", "camel"],
+["oso", "bear"],
+["jirafa", "giraffe"],
+["elefante", "elephant"],
+["ardilla", "squirrel"],
+["conejo", "rabbit"],
+["liebre", "hare"],
+["rana", "frog"],
+["hormiga", "ant"],
+["abeja", "bee"],
+["mosca", "fly"],
+["grande", "big / large"],
+["largo", "long"],
+["corto / bajito", "short"],
+["alto", "tall / high"],
+["ancho", "wide"],
+["dorado", "golden"],
+["lento", "slow"],
+["hermosa", "pretty"],
+["feo", "ugly"],
+["caro", "expensive"],
+["bueno", "good"],
+["malo", "bad"],
+["blando", "soft"],
+["duro", "hard"],
+["claro", "clear"],
+["oscuro", "dark"],
+["divertido", "funny"],
+["amable", "kind"],
+["hermoso", "beautiful"],
+["lindo", "nice"],
+["gordo", "fat"],
+["limpio", "clean"],
+["sucio", "dirty"],
+["mojado", "wet"],
+["dulce", "sweet"],
+["orgulloso", "proud"],
+["salado", "salty"],
+["joven", "young"],
+["viejo", "old"],
+["fuerte", "strong"],
+["pesado", "heavy"],
+["triste", "sad"],
+["perezoso", "lazy"],
+["enfermo", "sick"],
+["ocupado", "busy"],
+["caliente", "hot"],
+["aburrido", "bored / boring"],
+["cansado", "tired / tiring"],
+["abrir", "open"],
+["cerrar", "close"],
+["jugar", "play"],
+["bailar", "dance"],
+["estudiar", "study"],
+["llorar", "cry"],
+["intentar", "try"],
+["mentir", "lie"],
+["hablar", "talk / speak"],
+["escuchar", "listen"],
+["esperar", "wait"],
+["llegar", "arrive"],
+["preguntar", "ask"],
+["necesitar", "need"],
+["llamar", "call"],
+["amar", "love"],
+["ayudar", "help"],
+["caminar", "walk"],
+["lavar", "wash"],
+["trabajar", "work"],
+["cocinar", "cook"],
+["pintar", "paint"],
+["saltar", "jump"],
+["vivir", "live"],
+["empezar", "start"],
+["viajar", "travel"],
+["creer", "believe"],
+["recordar", "remember / remind"],
+["perder / extrañar", "miss"],
+["ir", "go"],
+["hacer", "do / make"],
+["llevar / tomar", "take"],
+["traer", "bring"],
+["dar", "give"],
+["venir", "come"],
+["leer", "read"],
+["escribir", "write"],
+["decir", "say / tell"],
+["ver / mirar", "see / watch"],
+["saber", "know"],
+["dibujar / empate", "draw"],
+["correr", "run"],
+["nadar", "swim"],
+["cantar", "sing"],
+["comprar", "buy"],
+["vender", "sell"],
+["pagar", "pay"],
+["elegir", "choose"],
+["comer", "eat"],
+["beber", "drink"],
+["ganar", "win"],
+["perder", "lose"],
+["arrojar", "throw"],
+["atrapar", "catch"],
+["pensar", "think"],
+["pelear", "fight"],
+["romper", "break"],
+["construir", "build"],
+["olvidar", "forget"],
+["dejar / permitir", "let"],
+["abandonar / irse", "leave"],
+["conducir", "drive"],
+["fue", "went"],
+["hizo", "did / made"],
+["llevó / tomó", "took"],
+["trajo", "brought"],
+["dio", "gave"],
+["vino", "came"],
+["escribió", "wrote"],
+["dijo", "said / told"],
+["vio / miró", "saw / watched"],
+["supo", "knew"],
+["dibujó / empató", "drew"],
+["corrió", "ran"],
+["nadó", "swam"],
+["cantó", "sang"],
+["compró", "bought"],
+["vendió", "sold"],
+["pagó", "paid"],
+["eligió", "chose"],
+["comió", "ate"],
+["bebió", "drank"],
+["ganó", "won"],
+["perdió", "lost"],
+["arrojó", "threw"],
+["atrapó", "caught"],
+["pensó", "thought"],
+["peleó", "fought"],
+["rompió", "broke"],
+["construyó", "built"],
+["olvidó", "forgot"],
+["se fue / abandonó", "left"],
+["condujo", "drove"]
+];
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        let currentCorrectAnswer = "";
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+        }
+
+        function speakCorrectAnswer() {
+            if (!currentCorrectAnswer) return;
+            
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(currentCorrectAnswer);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+                utterance.pitch = 1;
+                
+                speechSynthesis.cancel();
+                speechSynthesis.speak(utterance);
+            } else {
+                alert('Tu navegador no soporta síntesis de voz');
+            }
+        }
+
+        function playCorrecto() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+            osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
+            
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        function playIncorrecto() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.3);
+            
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        function playGanaste() {
+            initAudio();
+            const notas = [523.25, 587.33, 659.25, 783.99];
+            const tiempos = [0, 0.15, 0.3, 0.45];
+            
+            notas.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime + tiempos[i]);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + tiempos[i] + 0.15);
+                
+                osc.start(audioCtx.currentTime + tiempos[i]);
+                osc.stop(audioCtx.currentTime + tiempos[i] + 0.15);
+            });
+        }
+
+        function playPerdiste() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(493.88, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(293.66, audioCtx.currentTime + 0.2);
+            osc.frequency.setValueAtTime(261.63, audioCtx.currentTime + 0.3);
+            
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+            
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.6);
+        }
+
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let timerSeconds = 59;
+        let timerInterval;
+        let incorrectDetails = [];
+
+        const wordBox = document.getElementById('wordBox');
+        const button1 = document.getElementById('button1');
+        const button2 = document.getElementById('button2');
+        const button3 = document.getElementById('button3');
+        const button4 = document.getElementById('button4');
+        const button5 = document.getElementById('button5');
+        const button6 = document.getElementById('button6');
+        const button7 = document.getElementById('button7');
+        const button8 = document.getElementById('button8');
+        const button9 = document.getElementById('button9');
+        const correctCountElement = document.getElementById('correctCount');
+        const incorrectCountElement = document.getElementById('incorrectCount');
+        const timerElement = document.getElementById('timer');
+        const speakBtn = document.getElementById('speak-btn');
+
+        function getRandomInt(max) {
+            return Math.floor(Math.random() * max);
+        }
+
+        function startGame() {
+            correctCount = 0;
+            incorrectCount = 0;
+            timerSeconds = 59;
+            incorrectDetails = [];
+            updateCounters();
+            updateTimer();
+            loadNewPair();
+            startTimer();
+        }
+
+        function loadNewPair() {
+            const randomIndex = getRandomInt(wordPairs.length);
+            const [word, pair] = wordPairs[randomIndex];
+            wordBox.textContent = word;
+            currentCorrectAnswer = pair;
+
+            const choices = [pair];
+            while (choices.length < 9) {
+                const randomPair = wordPairs[getRandomInt(wordPairs.length)][1];
+                if (!choices.includes(randomPair)) {
+                    choices.push(randomPair);
+                }
+            }
+
+            choices.sort(() => Math.random() - 0.5);
+
+            button1.textContent = choices[0];
+            button2.textContent = choices[1];
+            button3.textContent = choices[2];
+            button4.textContent = choices[3];
+            button5.textContent = choices[4];
+            button6.textContent = choices[5];
+            button7.textContent = choices[6];
+            button8.textContent = choices[7];
+            button9.textContent = choices[8];
+
+            button1.onclick = () => handleChoice(button1.textContent, pair);
+            button2.onclick = () => handleChoice(button2.textContent, pair);
+            button3.onclick = () => handleChoice(button3.textContent, pair);
+            button4.onclick = () => handleChoice(button4.textContent, pair);
+            button5.onclick = () => handleChoice(button5.textContent, pair);
+            button6.onclick = () => handleChoice(button6.textContent, pair);
+            button7.onclick = () => handleChoice(button7.textContent, pair);
+            button8.onclick = () => handleChoice(button8.textContent, pair);
+            button9.onclick = () => handleChoice(button9.textContent, pair);
+        }
+
+        function getAllButtons() {
+            return [button1, button2, button3, button4, button5, button6, button7, button8, button9];
+        }
+
+        function handleChoice(choice, correctPair) {
+            const currentSentence = wordBox.textContent;
+            const allBtns = getAllButtons();
+
+            allBtns.forEach(btn => btn.disabled = true);
+
+            allBtns.forEach(btn => {
+                if (btn.textContent === correctPair) btn.classList.add('correct');
+            });
+
+            if (choice === correctPair) {
+                playCorrecto();
+                correctCount++;
+                updateCounters();
+                setTimeout(() => {
+                    allBtns.forEach(btn => { btn.classList.remove('correct', 'incorrect'); btn.disabled = false; });
+                    resetTimer();
+                    loadNewPair();
+                    checkWin();
+                }, 600);
+            } else {
+                playIncorrecto();
+                incorrectCount++;
+                updateCounters();
+                incorrectDetails.push(`${currentSentence} - ${correctPair} - ${choice}`);
+                allBtns.forEach(btn => {
+                    if (btn.textContent === choice) btn.classList.add('incorrect');
+                });
+                setTimeout(() => {
+                    allBtns.forEach(btn => { btn.classList.remove('correct', 'incorrect'); btn.disabled = false; });
+                    if (incorrectCount >= 12) {
+                        checkLoss();
+                    } else {
+                        loadNewPair();
+                    }
+                }, 900);
+            }
+        }
+
+        function updateCounters() {
+            correctCountElement.textContent = correctCount;
+            incorrectCountElement.textContent = incorrectCount;
+        }
+
+        function checkWin() {
+            if (correctCount >= 99) {
+                clearInterval(timerInterval);
+                playGanaste();
+                setTimeout(() => {
+                    alert(`Ganaste\nPalabra - Debía haber sido - Tú elegiste\n${incorrectDetails.join('\n')}`);
+                    location.reload();
+                }, 1000);
+            }
+        }
+
+        function checkLoss() {
+            clearInterval(timerInterval);
+            playPerdiste();
+            setTimeout(() => {
+                alert(`Perdiste, demasiados fallos.\nPalabra - Debía haber sido - Tú elegiste\n${incorrectDetails.join('\n')}`);
+                location.reload();
+            }, 1000);
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                updateTimer();
+
+                if (timerSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    playPerdiste();
+                    setTimeout(() => {
+                        alert(`Perdiste, se te acabó el tiempo.\nPalabra - Debía haber sido - Tú elegiste\n${incorrectDetails.join('\n')}`);
+                        location.reload();
+                    }, 1000);
+                }
+            }, 1000);
+        }
+
+        function resetTimer() {
+            timerSeconds = 45;
+            updateTimer();
+            clearInterval(timerInterval);
+            startTimer();
+        }
+
+        function updateTimer() {
+            const minutes = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const seconds = (timerSeconds % 60).toString().padStart(2, '0');
+            timerElement.textContent = `${minutes}:${seconds}`;
+        }
+
+        speakBtn.onclick = speakCorrectAnswer;
+
+        startGame();
+    </script>
+
+<script>
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+});
+</script>
+
+</body>
+</html>

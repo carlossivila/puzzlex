@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="Roman Strakhov">
+    <meta name="theme-color" content="#eee" id='metaBarColor'>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.min.js"></script>
+
+    <title>PuzzleX - Twiddle</title>
+
+    <style>
+    body {
+        background-color: #333;
+        }
+
+    h3 {
+        color: lime;
+        font-size: 18px;
+        font-weight: bold;
+        font-family: "Roboto Mono", monospace;
+        padding: 4px;
+        border: 2px solid #222;
+        margin: 20px 80px;
+        }
+
+    .noselect {
+        -moz-user-select: none; -webkit-user-select: none; -ms-user-select: none;
+        user-select: none; -o-user-select: none;
+    }
+    .tile {
+        position: absolute;
+        border: 1px solid black;
+        text-align: center;
+        padding: 0;
+        line-height: auto;
+        z-index: 4;
+    }
+    .bbot {
+        border-bottom: 4px solid #005;
+    }
+    .handle {
+        position: absolute;
+        text-align: center;
+        padding: 0;
+        line-height: 1em;
+        margin: 0;
+        z-index: 5;
+        font-family: Courier New;
+    }
+    #boardContainer {
+        padding: 0;
+    }
+    #glass {
+        top: 0;
+        left: 0;
+        position: absolute;
+        background-color: none;
+        z-index: 999;
+        margin: 0;
+        padding: 0;
+    }
+    #virtShift {
+        cursor: pointer;
+        border: 1px solid blue;
+        background-color: white;
+        padding: 2em;
+        margin: 0;
+        font-size: 1.5rem;
+        font-family: Monospace;
+    }
+    </style>
+
+    <style id='tilesStyle'></style>
+</head>
+<body>
+<h3>PuzzleX by Carlos Sivila</h3>
+
+<div id="mainLayWrap" class='container'>
+    <div id='mainLayout' class='centered'></div>
+</div>
+
+<script>
+/* ===== glob18db.js ===== */
+Glob = function () {}
+Glob.vs = null;
+
+/* ===== board18db.js ===== */
+function Board() {}
+Board.tileSize = null;
+Board.width = null;
+Board.height = null;
+Board.rDeg = null;
+Board.padding = null;
+Board.showVirtualShift = null;
+Board.tiles = null;
+Board.handles = null;
+Board.state = null;
+Board.ori = null;
+
+function isSolved() {
+    if (null == Board.state) return false;
+    for (let i = 0; i < Board.ori.length; ++i)
+        if (Board.ori[i] % 360 != 0) return false;
+    let num = 0;
+    for (let y = 0; y < Board.height; y++)
+        for (let x = 0; x < Board.width; x++)
+            if (Board.state[y][x] != (num++)) return false;
+    return true;
+}
+
+function initBoard() {
+    Glob.boardContainer.empty();
+    Glob.glass = createGlass();
+    Glob.boardContainer.append(Glob.glass);
+
+    Board.tiles = [];
+    Board.state = [];
+    Board.ori = [];
+    let tileIndex = 0;
+    for (let i = 0; i < Board.height; ++i) {
+        let row = [];
+        for (let j = 0; j < Board.width; ++j) {
+            let tile = jqTile(tileIndex, Board.width, Board.height);
+            Glob.boardContainer.append(tile);
+            row.push(tileIndex);
+            Board.ori.push(0);
+            Board.tiles.push(tile);
+            tileIndex++;
+        }
+        Board.state.push(row);
+    }
+    applyStyleSheet();
+    applyPaint();
+    applyBoardPos();
+
+    Board.handles = [];
+    for (let j = 0; j < Board.height - 1; j++) {
+        for (let i = 0; i < Board.width - 1; i++) {
+            let handle = jqHandle(i, j);
+            Glob.boardContainer.append(handle);
+            Board.handles.push(handle);
+        }
+    }
+    updHandlesText();
+
+    Glob.glass
+        .css('width', Board.width * Board.tileSize + (Board.width - 1) * Board.padding)
+        .css('height', Board.height * Board.tileSize + (Board.height - 1) * Board.padding);
+
+    $("#shiftWrap").empty();
+    if (Board.showVirtualShift) {
+        Glob.vs = createVs();
+        $("#shiftWrap").html(Glob.vs);
+    }
+}
+
+function applyBoardPos() {
+    for (let i = 0; i < Board.height; ++i) {
+        for (let j = 0; j < Board.width; ++j) {
+            let pos = posByIndeces(j, i);
+            let num = Board.state[i][j];
+            let ori = Board.ori[num];
+            let tr = "rotate(" + ori + "deg)";
+            Board.tiles[num].css('left', pos[0]).css('top', pos[1]).css('transform', tr);
+            if (Colors.scheme == 4) {
+                let i0 = num % Board.width;
+                let j0 = Math.floor(num / Board.width);
+                let pos0 = posByIndeces(i0, j0);
+                Board.tiles[num].css('background-position', (-pos0[0]) + 'px ' + (-pos0[1]) + 'px');
+            }
+        }
+    }
+}
+
+function jqTile(i, w, h) {
+    return $("<div class='tile noselect'></div>").addClass((Board.rDeg != 0) ? "bbot" : "").html(i + 1);
+}
+
+function jqHandle(i, j) {
+    let cx = (i + 1) * (Board.tileSize + Board.padding);
+    let cy = (j + 1) * (Board.tileSize + Board.padding);
+    let size = Board.tileSize / 4;
+    return $("<div class='handle'></div>")
+        .css('left', Math.round(cx - (size + Board.padding) / 2))
+        .css('top', Math.round(cy - (size + Board.padding) / 2))
+        .css('width', size).css('height', size);
+}
+
+function updHandlesText() {
+    let index = 0;
+    Board.handles.forEach(function (h) {
+        let ij = handleIjByIndx(index);
+        let newVal = handleLetter(ij[0], ij[1], !Board.shiftOn);
+        h.html(newVal);
+        h.css('border-width', Board.shiftOn ? "3px" : "");
+        index++;
+    });
+}
+
+/* ===== coords18db.js ===== */
+function pieceIndexByIj(i, j) { return j * (Board.width) + i; }
+function pieceIjByIndx(index) { return [index % Board.width, Math.floor(index / Board.width)]; }
+function handleIndexByIj(i, j) { return j * (Board.width - 1) + i; }
+function handleIjByIndx(index) {
+    const w = (Board.width - 1);
+    return [index % w, Math.floor(index / w)];
+}
+
+function rhiByCoords(x, y) {
+    let p = [
+        Math.floor((x - Board.tileSize / 2) / (Board.tileSize + Board.padding)),
+        Math.floor((y - Board.tileSize / 2) / (Board.tileSize + Board.padding))
+    ];
+    if (p[0] >= Board.width - 1) p[0] = Board.width - 2;
+    if (p[1] >= Board.height - 1) p[1] = Board.height - 2;
+    if (p[0] < 0) p[0] = 0;
+    if (p[1] < 0) p[1] = 0;
+    return p;
+}
+
+function indxInBounds(i, j) {
+    return i >= 0 && j >= 0 && i < Board.width && j < Board.height;
+}
+
+function posByIndeces(j, i) {
+    return [j * (Board.tileSize + Board.padding), i * (Board.tileSize + Board.padding)];
+}
+
+/* ===== colors18db.js ===== */
+function Colors() {}
+Colors.scheme = null;
+Colors.pictureUrl = 'images/unicorn.jpg';
+Colors.hText = 0;
+Colors.clrsArray = ["#f66", "#ff5", "#77f", "#5f5", "#0ff", "#f5a742", "#d712e6", "#aaa", "#78a5cf", "white"];
+Colors.defStroke = '#333';
+Colors.hlStroke = '#000';
+Colors.borderRadius = null;
+Colors.fontSize = null;
+Colors.animationTime = null;
+Colors.fontfamily = 'Tahoma, Geneva, sans-serif';
+Colors.handleCol = 'rgba(255, 250, 153, 0.5)';
+Colors.handleColHl = 'rgba(252, 236, 3, 0.9)';
+Colors.handleColCongr = 'rgba(255,255,255,1)';
+Colors.handleStroke = 'rgba(128,25,25,1)';
+Colors.handleTextCol = 'rgba(128,0,0,1)';
+Colors.handleFont = 'Times New Roman';
+
+function applyPaint() {
+    if (Colors.scheme == 4) {
+        let totalWidth = Board.width * Board.tileSize + (Board.width - 1) * Board.padding;
+        let totalHeight = Board.height * Board.tileSize + (Board.height - 1) * Board.padding;
+        $(Board.tiles).each(function (index, obj) {
+            $(obj).css({
+                'background-image': 'url(' + Colors.pictureUrl + ')',
+                'background-size': totalWidth + 'px ' + totalHeight + 'px',
+                'background-repeat': 'no-repeat',
+                'background-color': 'transparent'
+            });
+        });
+    } else {
+        $(Board.tiles).each(function (index, obj) {
+            obj.css('background-color', fillByIndex(index, Board.width, Board.height));
+        });
+    }
+}
+
+function applyStyleSheet() {
+    Colors.fontSize = Math.floor(Board.tileSize * 0.7) + "px";
+    Colors.handleFontSize = Math.floor(Board.tileSize * 0.25) + "px";
+
+    let ss = "";
+    ss += ".tile {";
+    ss += "width: " + Board.tileSize + "px;";
+    ss += "height: " + Board.tileSize + "px;";
+    ss += "border-radius:" + Colors.borderRadius + "%;";
+    ss += "font-size:" + Colors.fontSize + ";";
+    ss += "transition: all " + Colors.animationTime + "s;";
+    ss += "font-family: " + Colors.fontfamily + ";";
+    ss += "}";
+    ss += ".handle {";
+    ss += "background-color:" + Colors.handleCol + ";";
+    ss += "border-radius: 50%;";
+    ss += "border: 1px solid " + Colors.handleStroke + ";";
+    ss += "color: " + Colors.handleTextCol + ";";
+    ss += "font-family: " + Colors.handleFont + ";";
+    ss += "font-size:" + Colors.handleFontSize + ";";
+    ss += "}";
+    ss += "#boardContainer{";
+    ss += "min-width:" + (Board.tileSize * Board.width + (Board.width - 1) * Board.padding) + "px;";
+    ss += "min-height:" + ((Board.tileSize) * Board.height + (Board.width - 1) * Board.padding) + "px;";
+    ss += "}";
+
+    $("#tilesStyle").html(ss);
+}
+
+function fillByIndex(i, w, h) {
+    switch (Colors.scheme) {
+        case 0: return "#eee";
+        case 1: return fillRows(i, w, h);
+        case 2: return fillFringe(i, w, h);
+        case 3: return fillViolet(i, w, h);
+        case 4: return fillPicture(i, w, h);
+        default: return "#eee";
+    }
+}
+
+function fillPicture(i, w, h) { return null; }
+
+function applyHandleHl(jqHandle, toHl) {
+    if (!toHl)
+        return jqHandle.css('background-color', '').css('color', '').css('border', '').css('padding', '').css('transform', '');
+    else if (toHl == 1)
+        return jqHandle.css('background-color', Colors.handleColHl).css('color', '').css('border', '').css('transform', '');
+    else if (toHl == 2)
+        return jqHandle.css('background-color', Colors.handleColCongr).css('color', 'rgba(255,255,255,0)')
+            .css('border', '3px solid black').css('transform', 'scale(1.3)');
+}
+
+function fillFringe(i, w, h) {
+    if (i < 0 || i >= w * h) return "black";
+    let colorIndex = 0;
+    let row = Math.floor(i / w);
+    let col = i % w;
+    while (colorIndex < Colors.clrsArray.length) {
+        if (row == colorIndex) return Colors.clrsArray[2 * colorIndex];
+        if (col == colorIndex) return Colors.clrsArray[2 * colorIndex + 1];
+        colorIndex++;
+    }
+    return "white";
+}
+
+function fillRows(i, w, h) {
+    if (i < 0 || i >= w * h) return "black";
+    let row = Math.floor(i / w);
+    if (row < Colors.clrsArray.length) return Colors.clrsArray[row];
+    return "white";
+}
+
+function fillViolet(i, w, h) {
+    let x = i % w;
+    let y = Math.floor(i / h);
+    const baseVal = 120;
+    const fullVal = 255;
+    let pX = Math.floor(x / w * (fullVal - baseVal));
+    let pY = Math.floor(y / h * (fullVal - baseVal));
+    return "rgb(" + (baseVal + pX) + "," + baseVal + "," + (baseVal + pY) + ")";
+}
+
+/* ===== moves18db.js ===== */
+Board.keyMovesMap = {
+    "KeyU": [0,0], "KeyI": [1,0], "KeyO": [2,0],
+    "KeyJ": [0,1], "KeyK": [1,1], "KeyL": [2,1],
+    "KeyM": [0,2], "Comma": [1,2], "Period": [2,2],
+    "Numpad7": [0,0], "Numpad8": [1,0], "Numpad9": [2,0],
+    "Numpad4": [0,1], "Numpad5": [1,1], "Numpad6": [2,1],
+    "Numpad1": [0,2], "Numpad2": [1,2], "Numpad3": [2,2],
+};
+
+Board.btnsText = [
+    [['u','i','o'],['j','k','l'],['m',',','.']],
+    [['U','I','O'],['J','K','L'],['M','<','>']],
+    [['7','8','9'],['4','5','6'],['1','2','3']],
+    [['<strong>7</strong>','<strong>8</strong>','<strong>9</strong>'],
+     ['<strong>4</strong>','<strong>5</strong>','<strong>6</strong>'],
+     ['<strong>1</strong>','<strong>2</strong>','<strong>3</strong>']],
+];
+
+function handleLetter(i, j, lower = true) {
+    if (Colors.hText == 0) return "";
+    let index = 2 * Colors.hText - 2 + (lower ? 0 : 1);
+    let controls = Board.btnsText[index];
+    return (j < controls.length ? (i < controls[j].length ? controls[j][i] : "&nbsp;") : "&nbsp;");
+}
+
+function makeMoveByHnd(i, j, cw) {
+    if (i >= Board.width - 1 || j >= Board.height - 1 || i < 0 || j < 0) return false;
+    makeMove(i, j, cw);
+    applyBoardPos();
+    if (isSolved()) hlCongrats();
+}
+
+function makeMove(i, j, cw = true) {
+    let perm = cw
+        ? [[i,j], [i,j+1], [i+1,j+1], [i+1,j]]
+        : [[i,j], [i+1,j], [i+1,j+1], [i,j+1]];
+
+    let tempTile = Board.state[perm[0][1]][perm[0][0]];
+    for (let k = 0; k < perm.length - 1; ++k)
+        Board.state[perm[k][1]][perm[k][0]] = Board.state[perm[k+1][1]][perm[k+1][0]];
+    Board.state[perm[perm.length-1][1]][perm[perm.length-1][0]] = tempTile;
+
+    for (let k = 0; k < perm.length; ++k) {
+        let tileIndex = Board.state[perm[k][1]][perm[k][0]];
+        Board.ori[tileIndex] = (Board.ori[tileIndex] + (cw ? Board.rDeg : -Board.rDeg));
+    }
+}
+
+function hlHandle(i, j) {
+    for (let i1 = 0; i1 < Board.width - 1; ++i1)
+        for (let j1 = 0; j1 < Board.height - 1; ++j1)
+            applyHandleHl(Board.handles[handleIndexByIj(i1, j1)], (i === i1 && j === j1));
+}
+
+function hlCongrats() {
+    for (let i1 = 0; i1 < Board.width - 1; ++i1)
+        for (let j1 = 0; j1 < Board.height - 1; ++j1)
+            applyHandleHl(Board.handles[handleIndexByIj(i1, j1)], 2);
+}
+
+/* ===== gestures18db.js ===== */
+Board.shiftOn = false;
+
+function windowKup(e) {
+    if (e.code == "ShiftLeft" || e.code == "ShiftRight") {
+        Board.shiftOn = false;
+        onVsUpd();
+    }
+}
+
+function windowKd(e) {
+    if (e.code == "ShiftLeft" || e.code == "ShiftRight") {
+        Board.shiftOn = true;
+        onVsUpd();
+    }
+    if (Board.keyMovesMap.hasOwnProperty(e.code)) {
+        let m = Board.keyMovesMap[e.code];
+        hlHandle(m[0], m[1]);
+        makeMoveByHnd(m[0], m[1], !Board.shiftOn);
+        return e.preventDefault();
+    }
+}
+
+function glassMout() { hlHandle(-1, -1); }
+
+function glassMm(e) {
+    e = e || window.event;
+    let handleIn = rhiByCoords(e.offsetX, e.offsetY);
+    hlHandle(handleIn[0], handleIn[1]);
+    e.preventDefault();
+}
+
+function glassTs(e) {
+    e.preventDefault();
+    if (e.touches.length > 0) {
+        let t = e.touches[e.touches.length - 1];
+        let x = t.pageX - e.target.getBoundingClientRect().x;
+        let y = t.pageY - e.target.getBoundingClientRect().y;
+        let handleIn = rhiByCoords(x, y);
+        makeMoveByHnd(handleIn[0], handleIn[1], !Board.shiftOn);
+    }
+}
+
+function glassMd(e) {
+    e = e || window.event;
+    let isRightMB = ("which" in e) ? e.which == 3 : e.button == 2;
+    let handleIn = rhiByCoords(e.offsetX, e.offsetY);
+    makeMoveByHnd(handleIn[0], handleIn[1], !isRightMB);
+    e.preventDefault();
+}
+
+function onContextMenu(e) {
+    if (e.target.id == "glass") return false;
+    return true;
+}
+
+function onVsUpd() {
+    updHandlesText();
+    if (Glob.vs)
+        Glob.vs.css('background-color', Board.shiftOn ? 'lightblue' : '').html(Board.shiftOn ? 'SHIFT' : 'shift');
+}
+
+function vsTs(e) { e.preventDefault(); if (e.touches.length > 0) { Board.shiftOn = true; onVsUpd(); } }
+function vsTe(e) { e.preventDefault(); if (e.touches.length == 0) { Board.shiftOn = false; onVsUpd(); } }
+function vsMd(e) { e.preventDefault(); Board.shiftOn = true; onVsUpd(); }
+function vsMu(e) { e.preventDefault(); Board.shiftOn = false; onVsUpd(); }
+
+/* ===== layouts18db.js ===== */
+function loMain() {
+    let row = $("<div class='row'></div>").append(Glob.boardContainer);
+    $("#mainLayout").empty().html(row);
+}
+
+/* ===== init18db.js ===== */
+$(document).ready(function () {
+    Glob.boardContainer = $("<div class='col-sm-6 col-12 mt-1' id='boardContainer'></div>");
+
+    Board.tileSize = 100;
+    Board.width = 3;
+    Board.height = 3;
+    Board.rDeg = 0;
+    Board.padding = 5;
+    Board.showVirtualShift = false;
+    Colors.scheme = 1;
+    Colors.borderRadius = 25;
+    Colors.animationTime = 0.25;
+    Colors.hText = 0;
+
+    initBoard();
+    loMain();
+
+    window.oncontextmenu = onContextMenu;
+    window.onkeydown = windowKd;
+    window.onkeyup = windowKup;
+});
+
+function createVs() {
+    return $("<div class='w-100 text-center rounded noselect' id='virtShift'></div>")
+        .html("shift")
+        .on('touchstart', vsTs).on('touchend', vsTe).on('mousedown', vsMd).on('mouseup', vsMu).on('mouseleave', vsMu);
+}
+
+function createGlass() {
+    return $("<div id='glass'></div>")
+        .on('mouseout', glassMout)
+        .on('mousemove', glassMm)
+        .on('mousedown', glassMd)
+        .on('touchstart', glassTs);
+}
+</script>
+</body>
+</html>

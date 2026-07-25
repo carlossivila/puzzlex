@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PuzzleX - Anagram</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #fff;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            text-align: left;
+            padding: 20px 15px;
+            max-width: 675px;
+            width: 100%;
+        }
+
+        .word-container {
+            display: flex;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 45px;
+            min-height: 60px;
+        }
+
+        .letter-cell {
+            width: 37px;
+            height: 37px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid #00ffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 10px #00ffff;
+            color: #00ffff;
+        }
+
+        .letter-cell:hover {
+            background: rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff;
+            transform: scale(1.1);
+        }
+
+        .letter-cell.selected {
+            background: rgba(255, 0, 255, 0.4);
+            border-color: #ff00ff;
+            box-shadow: 0 0 20px #ff00ff, 0 0 30px #ff00ff;
+            color: #ff00ff;
+        }
+
+        .letter-cell.vowel {
+            background: rgba(255, 255, 0, 0.12);
+            border-color: #ffff00;
+            box-shadow: 0 0 10px #ffff00;
+            color: #ffff00;
+            cursor: default;
+        }
+
+        .letter-cell.vowel:hover {
+            background: rgba(255, 255, 0, 0.12);
+            box-shadow: 0 0 10px #ffff00;
+            transform: none;
+        }
+
+        .letter-cell.correct {
+            background: rgba(0, 255, 0, 0.3);
+            border-color: #00ff00;
+            box-shadow: 0 0 20px #00ff00;
+            color: #00ff00;
+            animation: correctPulse 0.5s;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .counter {
+            font-size: 1.5em;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+            margin-bottom: 22px;
+        }
+
+        .message {
+            font-size: 1.35em;
+            margin-top: 15px;
+            height: 30px;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+<h3 style="color: lime; text-align: left; padding: 2px; border: 1px solid: black; margin: 6px;">PuzzleX &ensp; by &ensp; Carlos Sivila</h3>
+        <div class="word-container" id="wordContainer"></div>
+        
+        <div class="counter" id="counter">0 de 99</div>
+        
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+let audioCtx = null;
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+}
+
+function playgood() {
+    initAudio();
+    const notas = [523.25, 587.33, 659.25, 783.99];
+    const tiempos = [0, 0.15, 0.3, 0.45];
+    
+    notas.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime + tiempos[i]);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + tiempos[i] + 0.15);
+        
+        osc.start(audioCtx.currentTime + tiempos[i]);
+        osc.stop(audioCtx.currentTime + tiempos[i] + 0.15);
+    });
+}
+
+function playwin() {
+    initAudio();
+    const now = audioCtx.currentTime;
+    const notasIniciales = [523.25, 587.33, 659.25, 783.99];
+    notasIniciales.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.frequency.setValueAtTime(freq, now + i * 0.15);
+        gainNode.gain.setValueAtTime(0.2, now + i * 0.15);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.15);
+        
+        osc.start(now + i * 0.15);
+        osc.stop(now + i * 0.15 + 0.15);
+    });
+    const notasFinales = [880, 1046.5];
+    notasFinales.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        const startTime = now + 0.75 + i * 0.15;
+        osc.frequency.setValueAtTime(freq, startTime);
+        gainNode.gain.setValueAtTime(0.25, startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+        
+        osc.start(startTime);
+        osc.stop(startTime + 0.2);
+    });
+}
+
+const words = [
+'ABEJA','ABISMO','ABSTINENCIA','ACEITE','ACÉRRIMO','ACNÉ','ACORDEÓN','ACROBACIA','ACROFOBIA','ACTITUD','ACUEDUCTO','ACUPUNTURA','ADICCIÓN','ADOLESCENCIA','ADOLESCENTE','ADRENALINA',
+'ADUGO','ADONIS','AFASIA','AGENTE','ÁGIL','AGORAFOBIA','AGRICULTURA','AGUDO','AGUJA','AGUJERO','AJEDREZ','ALBA','ALBACA','ALBINO','ALBINISMO','ALCANCÍA','ALCOHOL','ALEATORIO',
+'ALEJANDRÍA','ALHAJAS','ALIAS','ALIENÍGENA','ALMEJA','ALMOHADA','ALQUILER','ALQUIMIA','ALTERAR','ALTERNAR','ALTRUISMO','ALTRUISTA','ALUD','ALUMINIO','ALUCINACIÓN','ALZHEIMER',
+'AMAPOLAS','ÁMBAR','AMBICIÓN','AMBIDIESTRO','AMBIGUO','AMISTAD','AMNESIA','AMPERAJE','AMPERIO','ANALOGÍA','ANCESTRAL','ANCESTRO','ANCLA','ANDROIDE','ANESTESIA','ANFITRIÓN','ANFIBIO',
+'ANHELO','ANIMAL','ANÍS','ANONADADO','ANOREXIA','ANSIA','ANTAGONISTA','ANTAGÓNICO','ANTOLOGÍA','ANTONOMASIA','ANTÓNIMO','ANVERSO','ANZUELO','AÑIL','APÉNDICE','APOCALIPSIS','APICULTURA',
+'APÓCRIFO','APOGEO','APÓSITO','APRENDIZAJE','ÁRBOL','ARCAICO','ARGUMENTO','ARISTA','ARISTÓCRATA','ARISTOCRACIA','ARLEQUÍN','ARMAGEDÓN','ARMERÍA','ARPA','ARPÍA','ARRITMIA','ARTILUGIO',
+'ARTISTA','ARTRÓPODOS','ASCENDER','ASFIXIA','ASESINO','ASERTIVIDAD','ASISTENTE','ASMA','ASOMBROSO','ASPERGER','ASOCIAR','ASTENIA','ASTIGMATISMO','ATAQUE','ATAÚD','ATENCIÓN','ÁTICO',
+'ATRIBUTO','ÁTOMO','AUGE','AURORA','AUSENCIA','AUSENTE','AUTODIDACTA','AUTÓNOMO','AUXILIO','AVALANCHA','AVATAR','AVÍCOLA','AVISPA','AZÚCAR','BABEL','BACTERIA','BAJO','BALA','BALADA',
+'BALANZA','BALDE','BALLESTA','BANDADA','BARRILETE','BASILAR','BASILISCO','BÁSCULA','BAÚL','BEATBOX','BEIGE','BELLEZA','BESTIA','BINARIO','BINGO','BITÁCORA','BLASFEMIA','BLUSA',
+'BOCETO','BOCINA','BODEGA','BOICOT','BOLETO','BOMBO','BORCEGO','BRAHMÁN','BROCHA','BRONCE','BRÚJULA','BUCLE','BUDA','BUFÓN','BUQUE','BUROCRACIA','BÓVEDA','BYTE','CABELLO','CABLE','CADÁVER',
+'CADENA','CAIMÁN','CALAVERA','CALENDARIO','CALISTENIA','CALUMNIA','CAMAROTE','CANARIO','CÁNCER','CANDELABRO','CANDELARIO','CANDADO','CANJE','CANGREJO','CANOA','CANSANCIO','CAPRINO',
+'CARÁCTER','CARBÓN','CARDENAL','CARENCIA','CARIDAD','CARISMA','CARMESÍ','CARPINCHO','CARRETA','CARROÑA','CARRUSEL','CASCADA','CASINO','CASTAÑUELAS','CATACUMBA','CATACLISMO',
+'CATALEPSIA','CATAPULTA','CATARSIS','CATÁSTROFE','CATÉTER','CAUCHO','CAUTELA','CAUTERIZAR','CAVERNA','CAVERNÍCOLA','CAÑÓN','CEBADA','CEBOLLA','CEBÚ','CELDA','CELIBATO','CÉLULA',
+'CENICERO','CENIZAS','CENTAURO','CENTENO','CENTINELA','CENTOLLA','CENTURIÓN','CENTURIA','CEPILLO','CEREAL','CEREBRO','CEREZA','CERDO','CERROJO','CERTEZA','CERVEZA','CETÁCEOS',
+'CETRO','CHAKRA','CHAMÁN','CHANTAJE','CHATARRA','CHÍA','CHIHUAHUA','CICATRIZ','CICLO','CIENCIA','CIGARRILLO','CIZAÑA','CLAN','CLANDESTINO','CLAUSTROFOBIA','CLAXON','CLEPTÓMANO',
+'CLERO','CLEOPATRA','CLON','COBERTIZO','COBRE','COCAÍNA','CODICIA','COHERENCIA','COIMA','COLECTA','CÓLERA','COLOSAL','COMBUSTIBLE','COMBUSTIÓN','COMEDIA','COMERCIO','COMODATO',
+'COMPAÑÍA','CONCATENAR','CÓNCAVO','CONCLUSIÓN','CONDESCENDENCIA','CONDICIÓN','CONDUCTA','CONJURO','CONO','CONSECUENCIA','CONSISTENCIA','CONSOLA','CONSTRICTORA','CONTROL','CONVEXO',
+'CORREO','COSMOS','CREMA','CREMACIÓN','CREPÚSCULO','CRÍA','CROMOSOMA','CRÓNICAS','CRUDO','CRUEL','CRUSTÁCEOS','CUADRIPLEJIA','CUALITATIVO','CUANTITATIVO','CUBETA','CUERDA','CUEVA',
+'CULPA','CULTO','DADO','DALTONISMO','DECIBEL','DECISIÓN','DEDUCCIÓN','DELIRIO','DEMONIO','DEPRESIÓN','DESARROLLO','DESGRACIA','DESAHUCIADO','DESIDIA','DESIERTO','DESTINO','DIABETES',
+'DIABLO','DIADEMA','DIAFRAGMA','DIAGRAMA','DIAMANTE','DIBUJO','DICCIONARIO','DIDÁCTICO','DIENTE','DIÉRESIS','DIESTRO','DIEZMO','DIFTERIA','DIGESTIÓN','DILEMA','DINERO','DINOSAURIO',
+'DIOSA','DIPLOMACIA','DISCÍPULO','DISCORDIA','DISCRIMINACIÓN','DISCURSO','DISECCIÓN','DISLEXIA','DISNEA','DISTURBIO','DISYUNCIÓN','DOBLE','DOBLEZ','DODECAEDRO','DOGMA','DOLO','DOMICILIO',
+'DOMO','DONACIÓN','DORMITAR','DORSO','DRAGÓN','DRAMATURGO','DRÁCULA','DRENAJE','DRENAR','DROGA','DUELO','DUNA','DUDA','ÉBOLA','ECLESIÁSTICO','ECUACIÓN','ECUÁNIME','ECUESTRE','EDÉN',
+'EFÍMERO','EJERCICIO','ELECCIÓN','ELIXIR','ELOCUENCIA','EMBARGO','EMBLEMA','EMPATÍA','ENCICLOPEDIA','ENDEMIA','ENDORFINA','ENEMIGO','ENERGÍA','ENFERMEDAD','ENGENDRO','ENGRANAJE','ENIGMA',
+'ENJAMBRE','ENTE','ENVIDIA','EPIDEMIA','EPIFANÍA','EPILEPSIA','EPÍLOGO','EQUIDAD','EQUIDNA','EQUINO','EQUINODERMOS','ERKE','ERMITAÑO','ERUDITO','ESCALA','ESCENARIO','ESCLAVO',
+'ESCRÚPULO','ESENCIA','ESFERA','ESFINGE','ESGRIMA','ESLABÓN','ESMALTE','ESMERALDA','ESPACIO','ESPECIE','ESPECTRO','ESPEJO','ESPERANZA','ESPIGA','ESPÍRITU','ESQUEMA','ESQUILAR',
+'ESQUINA','ESQUIZOFRENIA','ESTAFA','ESTAMBRE','ESTAMPA','ESTANCIA','ESTATUA','ESTEREOTIPO','ESTIÉRCOL','ESTIGMA','ESTILO','ESTÍMULO','ESTIRPE','ESTRABISMO','ESTRELLA','ESTREÑIMIENTO',
+'ESTRUCTURA','ÉTER','ETERNIDAD','ETIMOLOGÍA','ETNIA','EUTANASIA','EVIDENCIA','EXCEPCIÓN','EXCLUSIVO','EXILIO','EXISTIR','EXPERIENCIA','EXTRAORDINARIO','EXAMEN','EXTORSIÓN',
+'EXTRATERRESTRE','EXTRAÑO','EXTREMO','FACTURA','FALACIA','FALANGE','FANGO','FANTASÍA','FANTASMA','FARADIO','FASCINANTE','FAUNA','FERIA','FÉRETRO','FÉRTIL','FIEL','FIERA',
+'FILANTROPÍA','FILÁNTROPO','FILOSOFÍA','FILTRO','FISIOLOGÍA','FISONOMÍA','FLAUTA','FLAMENCO','FLORA','FLUJO','FLUIDO','FOBIA','FOLKLORE','FORTALEZA','FORTUITO','FOTOSÍNTESIS',
+'FRACASO','FRAGMENTO','FRAUDE','FRECUENCIA','FRONTERA','FRUTA','FUERO','FUENTE','FUCSIA','FUERZA','FURCIO','FUSIBLE','FUSIL','FÁBULA','FÓSFORO','FÚNEBRE','GAITA','GÁNSTER',
+'GALAXIA','GALLO','GANSO','GARAGE','GARANTÍA','GARRAPATA','GATO','GEISHA','GÉISER','GENERACIÓN','GENOCIDIO','GENDARME','GENIO','GENOMA','GEOIDE','GEOMETRÍA','GIGANTOGRAFÍA',
+'GINEBRA','GLOBO','GNOMO','GOBIERNO','GOLONDRINA','GÓTICO','GRAFFITI','GRAMÁTICA','GRAMO','GRANIZO','GRAVE','GRIPE','GRÚA','GRUTA','GULA','GÚGOL','HABILIDAD','HAMACA','HARDWARE',
+'HARÉN','HECATOMBE','HECHIZO','HELIO','HEMORRAGIA','HEPATITIS','HEREJE','HERENCIA','HERMÉTICO','HERPES','HEXADECIMAL','HIATO','HIDROCEFALIA','HIDRÓGENO','HIERRO','HIPOCAMPO','HIPOCONDRÍA',
+'HIPOCRESÍA','HIPOPÓTAMO','HIPOTÁLAMO','HIPOXIA','HISTOLOGÍA','HISTORIA','HOLOGRAMA','HOLOCAUSTO','HOMÓFONO','HORCA','HORIZONTE','HORTALIZA','HORTENSIAS','HOSPEDAJE','HOYO','HUECO',
+'HUELLA','HUMOR','HUERTA','HUESO','HUÉSPED','ICOSAEDRO','IDEA','IDEOGRAMA','IDIOMA','IDIOSINCRASIA','IGLESIA','ILUMINACIÓN','ILLUMINATI','ILUSIÓN','IMÁN','IMPERIO','IMPRUDENCIA',
+'INCERTIDUMBRE','INCONGRUENCIA','INCONSCIENTE','INDÍGENA','ÍNDIGO','INDUCCIÓN','INERTE','INFIERNO','INFINITO','INFLAMACIÓN','INFRAMUNDO','INFRARROJO','INHERENTE','INJURIA','INMINENTE',
+'INSECTO','INSOMNIO','INSULINA','INTELIGENCIA','INTENSIDAD','INTEMPERIE','INTERFERENCIA','INTRUSO','INTUICIÓN','INVEROSÍMIL','IRONÍA','ITERAR','JACTANCIA','JALEA','JAMAICA','JAQUECA',
+'JAURÍA','JAZMÍN','JENGIBRE','JERGA','JERARQUÍA','JEROGLÍFICO','JUDO','JUEGO','JUEVES','JUVENTUD','JUSTICIA','KARMA','KATANA','KIWI','LABERINTO','LACAYO','LÁGRIMA','LASAÑA','LATENCIA',
+'LATIDO','LATITUD','LAVA','LAVABO','LAXANTE','LAZARILLO','LEGADO','LEGUMBRE','LELO','LEMA','LENGUA','LENGUAJE','LENTE','LEPRA','LETARGO','LEYENDA','LIBRA','LICÁNTROPO','LILA',
+'LIMBO','LIMOSNA','LINO','LIRA','LITIGIO','LITURGIA','LLAVE','LOBOTOMÍA','LOCACIÓN','LODO','LOGIA','LOGO','LONGEVIDAD','LONGITUD','LOTO','LUBRICANTE','LÚCIDO','LUCIFER','LUCRAR','LÚDICO',
+'LUDÓPATA','LÚGUBRE','LUJURIA','LUMEN','LUNAR','LUPUS','LÍMITE','LUSTRO','MACABRO','MACUMBA','MAGIA','MAGNATE','MAGNÍFICO','MALARIA','MALETA','MAMUT','MANDRIL','MANÍA','MANIQUÍ','MANIVELA',
+'MANOPLA','MANUBRIO','MAPACHE','MARCA','MARACA','MAREO','MARKETING','MARTINI','MÁRTIR','MARTIRIO','MARXISMO','MASA','MASOQUISTA','MATERIA','MATRIZ','MAYA','MAYORDOMO','MEDICINA',
+'MEDICAMENTO','MEDIOCRE','MÉDULA','MEDUSA','MELANISMO','MELÓMANO','MENDIGO','MENSAJE','MENTA','MENTOR','MENÚ','MERCADO','MERMELADA','MÉRITO','METAMORFOSIS','METÁSTASIS','METEORITO',
+'METEORO','MEZCLA','MEZQUITA','MICRÓFONO','MICROSCOPIO','MICRÓN','MIGRAÑA','MIMBRE','MIMO','MIOPÍA','MISÓGINO','MITÓMANO','MITO','MODELO','MODISMO','MOLÉCULA','MOLINO','MOLOTOV',
+'MOLUSCOS','MONEDA','MONOTRIBUTO','MONTAJE','MORALEJA','MORGUE','MOCASÍN','MUCHEDUMBRE','MUCOSA','MUEBLE','MUGIDO','MÚSCULO','MÚSICA','NANOTECNOLOGÍA','NAPALM','NARCISISMO','NARCISISTA',
+'NAVE','NAVEGANTE','NAZI','NEBRASKA','NECROLÓGICA','NEGLIGENCIA','NERD','NERVIO','NESSY','NEUMÁTICO','NEURONA','NIEBLA','NIEVE','NINFÓMANA','NIRVANA','NICTOFOBIA','NOBLE','NOCTURNO',
+'NORMA','NOSTALGIA','NUDO','NÁUSEAS','NÓMADE','NUEZ','OBEDIENCIA','OASIS','OBITUARIO','OBISPO','OBSEQUIO','OBSECUENTE','OBSOLETO','OGRO','OHMIO','OMBLIGO','OMNISCIENTE','OMNISCIENCIA',
+'ONDA','OPENING','OPIO','ORATORIA','ORCA','ORDEN','ORÉGANO','ORFEBRE','ORGANIZACIÓN','ÓRGANO','ORIGAMI','ORTODOXO','ORTOGRAFÍA','OSCURO','OTAKU','OTHELLO','OUIJA','OVILLO','OXÍGENO',
+'PAÍS','PANEL','PANDEMÓNIUM','PANDEMIA','PANFLETO','PANTALLA','PANTANO','PAPIRO','PAPIROFLEXIA','PARARRAYOS','PARAGUAS','PARADIGMA','PARADOJA','PARÁBOLA','PARÁLISIS','PARÁSITO','PARCA',
+'PARKINSON','PARLANTE','PARQUE','PASTA','PASTILLA','PATENTE','PATOLOGÍA','PATRIARCA','PAUPÉRRIMO','PAUTA','PERNOCTAR','PECULIAR','PEDAGOGÍA','PEDAGÓGICO','PEGAMENTO','PEGASO','PELDAÑO',
+'PELIGRO','PELO','PENA','PENDIENTE','PÉNDULO','PENTÁGONO','PENTAGRAMA','PENTATEUCO','PENUMBRA','PERCEPTIVO','PERDÓN','PEREZA','PERGAMINO','PERFIDIA','PERIFERIA','PERIODISMO','PERLA',
+'PERMANENTE','PERMUTO','PERPETUO','PERPLEJO','PERSEVERANCIA','PERSIANA','PERSUASIÓN','PESTE','PETRIFICADO','PIARA','PIEZA','PIGMEO','PIGMENTO','PÍLDORA','PIMIENTA','PINCEL','PINO',
+'PIRÁMIDE','PIRAÑA','PIRATA','PIRÓMANO','PISCINA','PISTA','PISTOLA','PISTÓN','PIXEL','PLAGA','PLAGIO','PLANARIA','PLANCTON','PLANETA','PLÁSTICO','POCILGA','PODIO','POEMA','POESÍA',
+'PÓKER','POLICÍA','POLTERGEIST','POLVO','PORCINO','POSTER','POZO','PRAGMÁTICO','PREMATURO','PREMIO','PREMISA','PRENDA','PRENSA','PRESA','PRESAGIO','PRESENCIA','PRESENTE','PRESTIGIO',
+'PRIMOGÉNITO','PRINCIPIANTE','PRISMA','PRIVILEGIO','PROBLEMA','PROCRASTINACIÓN','PRODIGIO','PRÓDIGO','PROFANAR','PROFECÍA','PROFILÁCTICO','PRÓLOGO','PROPAGANDA','PROPIEDAD','PROSA',
+'PROSPERIDAD','PROTESTA','PROTOTIPO','PROTUBERANCIA','PROVERBIO','PSEUDOCÓDIGO','PUDOR','PUEBLO','PUENTE','PUERTO','PULCRO','PULGA','PUPILA','PUPILO','PURGA','PURGAR','PURGATORIO',
+'PUTREFACTO','PUZZLE','QUIMERA','QUIRÓFANO','QUIROMANCIA','QUISQUILLOSO','RACISMO','RACHA','RACISTA','RADAR','RAPTO','RAVIOLES','RANGO','RASCACIELOS','REALIDAD','REBAÑO','RECUERDO',
+'REFLEXIÓN','REFRACCIÓN','REFRIGERADOR','REGALO','RÉGIMEN','REGLA','REHILETE','REJAS','RELACIÓN','RELIQUIA','RELOJ','REMUNERACIÓN','RENTA','REPRESALIA','REPROCHE','REPUDIO',
+'RESENTIMIENTO','RESERVA','RESILIENCIA','RESISTENCIA','RETÓRICA','REVERSO','REVÓLVER','RIFA','RIGOR','RIMA','ROSA','ROSARIO','RUBÍ','RUBIK','RÚBRICA','RUDIMENTARIO','RULETA',
+'RUPESTRE','RUTILISMO','SACRILEGIO','SÁDICO','SALSA','SALUD','SAMBA','SANATA','SARCASMO','SARCÓFAGO','SASQUATCH','SASTRE','SATANÁS','SAVANT','SAXOFÓN','SECUENCIA','SEDA','SEDENTARIO',
+'SEDUCCIÓN','SELLO','SEMENTAL','SEMINARIO','SENCILLO','SENTENCIA','SENTIDO','SEPIA','SEPULCRO','SEPULTURA','SERIE','SERIGRAFÍA','SERMÓN','SERVICIO','SECTA','SERVILLETA','SEXO',
+'SIAMÉS','SIESTA','SIGNO','SILOGISMO','SIMBIOSIS','SIMPLE','SIMULACIÓN','SINAGOGA','SINAPSIS','SINOPSIS','SINTAXIS','SINÓNIMO','SISMO','SISTEMA','SÍMBOLO','SÍNDROME','SÍNTOMA','SÉSAMO',
+'SOBORNO','SOGA','SOFTWARE','SOKOBAN','SOLUCIÓN','SOLITARIO','SOMA','SONÁMBULO','SÓTANO','SOUVENIR','SUDOKU','SUDOR','SULTÁN','SUPERFICIAL','SUSPENSO','SUTURA','SUTIL','TABACO',
+'TABÚ','TANGENTE','TANGRAM','TANQUE','TANATOFOBIA','TAQUILLA','TARDE','TARDÍGRADO','TARTA','TAXONOMÍA','TAXÓN','TECLA','TELEFÉRICO','TELESCOPIO','TEMPLO','TENIA','TENUE','TEMPERAMENTO',
+'TENDENCIA','TEQUILA','TERAPIA','TERCIOPELO','TESTAFERRO','TETRIS','TEXTIL','TEXTO','TEXTURA','TIEMPO','TIARA','TICKET','TIMAR','TIMBALES','TIMO','TINTA','TINTORERÍA','TIPO','TIPOGRAFÍA',
+'TÉTRICO','TEOCÉNTRICO','TOPACIO','TONEL','TOPOGRAFÍA','TÓXICO','TRAGEDIA','TRAJE','TRANSVERSAL','TRAPECIO','TRECE','TREGUA','TREINTA','TRIBU','TRIBUTO','TRIPLE','TRIUNFO','TROFEO',
+'TROMPETA','TROMPO','TRUEQUE','TSUNAMI','TULIPANES','TUMOR','TUPÉ','TURISTA','UMBANDA','UMBRAL','UNICORNIO','URBE','UFOLOGÍA','UTOPÍA','VACUNA','VACUNO','VAGABUNDO','VAINILLA',
+'VAJILLA','VALIJA','VALOR','VÁLVULA','VAMPIRO','VANIDAD','VANGUARDIA','VAPOR','VASELINA','VASIJA','VEINTE','VEINTIUNO','VELERO','VENGANZA','VENTA','VENTAJA','VERAZ','VERDUGO',
+'VERGÜENZA','VERSO','VERSIÓN','VERTEBRA','VERTEBRADO','VERTIENTE','VÉRTICE','VESTÍBULO','VIAGRA','VIDRIO','VIGA','VIGENTE','VIGOR','VILLANO','VINAGRE','VINO',
+'VINTAGE','VIOLACIÓN','VIRGEN','VÉRTIGO','VITAMINA','VIUDO','VIVAZ','VODKA','VOLCÁN','VOLANTE','VOLTAJE','VOLTIO','VOLUMEN','VÓMITO','VIRUS','VISIÓN','VUDÚ','WHISKY',
+'XILÓFONO','YAKUZA','YATE','YERNO','YOGA','ZARIGÜEYA','ZAMBA','ZÓCALO','ZOMBIE'
+];
+
+let currentWord = '';
+let scrambledWord = [];
+let selectedIndex = null;
+let correctCount = 0;
+let usedWords = [];
+let gameWords = [];
+
+// Seleccionar 99 palabras aleatorias al inicio
+function selectRandomWords() {
+    const shuffled = [...words].sort(() => Math.random() - 0.5);
+    gameWords = shuffled.slice(0, Math.min(99, words.length));
+}
+
+const VOWELS = 'AEIOUÁÉÍÓÚaeiouáéíóú';
+
+function isVowel(char) {
+    return VOWELS.includes(char);
+}
+
+function shuffle(word) {
+    // Solo mezclar consonantes; las vocales se quedan en su lugar
+    const arr = word.split('');
+    const consonantIndices = arr.map((c, i) => i).filter(i => !isVowel(arr[i]));
+    const consonantLetters = consonantIndices.map(i => arr[i]);
+
+    // Mezclar las consonantes
+    let shuffledConsonants;
+    do {
+        shuffledConsonants = consonantLetters.slice();
+        for (let i = shuffledConsonants.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledConsonants[i], shuffledConsonants[j]] = [shuffledConsonants[j], shuffledConsonants[i]];
+        }
+    } while (shuffledConsonants.join('') === consonantLetters.join('') && consonantLetters.length > 1);
+
+    // Reconstruir array con vocales fijas y consonantes mezcladas
+    const result = arr.slice();
+    consonantIndices.forEach((pos, i) => {
+        result[pos] = shuffledConsonants[i];
+    });
+    return result;
+}
+
+function loadWord() {
+    if (usedWords.length === gameWords.length) {
+        usedWords = [];
+        correctCount = 0;
+    }
+
+    let availableWords = gameWords.filter(w => !usedWords.includes(w));
+    currentWord = availableWords[Math.floor(Math.random() * availableWords.length)];
+    scrambledWord = shuffle(currentWord);
+    selectedIndex = null;
+    
+    renderWord();
+    document.getElementById('counter').textContent = correctCount + ' de ' + gameWords.length;
+    document.getElementById('message').textContent = '';
+}
+
+function renderWord() {
+    const container = document.getElementById('wordContainer');
+    container.innerHTML = '';
+    
+    scrambledWord.forEach((letter, index) => {
+        const cell = document.createElement('div');
+        cell.textContent = letter;
+
+        if (isVowel(letter)) {
+            // Vocal: amarilla, fija, no clickeable
+            cell.className = 'letter-cell vowel';
+        } else {
+            // Consonante: cyan, movible
+            cell.className = 'letter-cell';
+            cell.onclick = () => selectLetter(index);
+        }
+
+        container.appendChild(cell);
+    });
+}
+
+function selectLetter(index) {
+    // Solo interactuar con consonantes
+    if (isVowel(scrambledWord[index])) return;
+
+    const cells = document.querySelectorAll('.letter-cell');
+    
+    if (selectedIndex === null) {
+        selectedIndex = index;
+        cells[index].classList.add('selected');
+    } else {
+        if (selectedIndex === index) {
+            cells[index].classList.remove('selected');
+            selectedIndex = null;
+        } else {
+            [scrambledWord[selectedIndex], scrambledWord[index]] = [scrambledWord[index], scrambledWord[selectedIndex]];
+            
+            cells[selectedIndex].classList.remove('selected');
+            selectedIndex = null;
+            
+            renderWord();
+            checkSolution();
+        }
+    }
+}
+
+function checkSolution() {
+    if (scrambledWord.join('') === currentWord) {
+        const cells = document.querySelectorAll('.letter-cell');
+        cells.forEach(cell => {
+            cell.classList.add('correct');
+            cell.style.pointerEvents = 'none';
+        });
+        
+        correctCount++;
+        usedWords.push(currentWord);
+        
+        // Reproducir sonido apropiado
+        if (correctCount === gameWords.length) {
+            playwin(); // Sonido de victoria al completar todos
+        } else {
+            playgood(); // Sonido de acierto
+        }
+        
+        document.getElementById('counter').textContent = correctCount + ' de ' + gameWords.length;
+        
+        setTimeout(() => {
+            loadWord();
+        }, 1000);
+    }
+}
+
+selectRandomWords();
+loadWord();
+    </script>
+</body>
+</html>

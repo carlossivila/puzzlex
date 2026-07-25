@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Symbols+2&amp;display=swap" rel="stylesheet"/>
+    <title>PuzzleX - Ajedrez</title>
+    <style>
+
+        .chess-board {
+            display: inline-block;
+            border: 1px solid red;
+            border-radius: 5px;
+            background: black;
+            padding: 2px;
+        }
+
+        .chess-row {
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+
+        .chess-square {
+            width: 35px;
+            height: 35px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 1px;
+            border-radius: 3px;
+            position: relative;
+        }
+
+        .chess-square.white {
+            background-color: lightgray;
+            color: #000;
+        }
+
+        .chess-square.black {
+            background-color: gray;
+            color: #000;
+        }
+
+        .chess-square.selected {
+            background-color: skyblue !important;
+            box-shadow: 0 0 10px skyblue;
+        }
+
+        .chess-square:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 1);
+        }
+
+        .king-in-check {
+            box-shadow: inset 0 0 10px 5px rgba(255, 0, 0, 0.5) !important;
+        }
+
+        .chess-piece {
+            font-family: 'Noto Sans Symbols 2', sans-serif;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+            user-select: none;
+        }
+
+        .chess-piece.white {
+            color: darkgreen;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .chess-piece.black {
+            color: black;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);
+        }
+
+        .coordinates-container {
+            display: inline-block;
+            position: relative;
+        }
+
+        .coordinate-label {
+            color: yellow;
+            font-weight: bold;
+            font-size: 14px;
+            user-select: none;
+        }
+
+        .coord-top, .coord-bottom {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 20px;
+            width: 310px;
+        }
+
+        .coord-left, .coord-right {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            height: 290px;
+            width: 1px;
+            top: 10px;
+        }
+
+        .coord-left {
+            left: -1px;
+        }
+
+        .coord-right {
+            right: -1px;
+        }
+
+        .controls {
+            font-size: 12px;
+            margin: 2px 0;
+            text-align: center;
+        }
+
+        .controls input[type="checkbox"] {
+            margin: 0 10px;
+        }
+
+        .controls select {
+            background: #333;
+            color: #fff;
+            border: 1px solid #666;
+            padding: 2px;
+            border-radius: 3px;
+        }
+
+        .game-log {
+            font-family: monospace;
+            font-size: 13px;
+            color: white;
+        }
+
+        .undo {
+            font-size: 15px;
+            color: blue;
+            background-color: skyblue;
+            border: 1px solid blue;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+
+        .undo:hover {
+            color: green;
+            background-color: lime;
+            border: 1px solid green;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+
+        .undo:active {
+            color: red;
+            border: 1px solid red;
+            font-weight: bold;
+            border-radius: 3px;
+            box-shadow: 5px 5px 5px rgba(0, 255, 255, 0.5),
+            -5px 5px 5px rgba(0, 255, 255, 0.5),
+            5px -5px 5px rgba(0, 255, 255, 0.5),
+            -5px -5px 5px rgba(0, 255, 255, 0.5);
+        }
+
+        a:link, a:visited {
+            text-decoration: none;
+            color: lime;
+        }
+
+        a:hover {
+            text-decoration: none;
+            color: red;
+        }
+
+
+        .chess-square.last-human-start {
+            box-shadow: inset 0 0 10px cyan;
+        }
+        
+        .chess-square.last-human-end {
+            box-shadow: inset 0 0 5px cyan;
+        }
+        
+        .chess-square.last-opponent-start {
+            box-shadow: inset 0 0 10px yellow;
+        }
+        
+        .chess-square.last-opponent-end {
+            box-shadow: inset 0 0 5px yellow;
+        }
+
+
+.fen-links {
+    color: white;
+    font-size: 16px;
+    margin: 10px 0;
+    user-select: none;
+}
+
+.fen-link {
+    color: cyan;
+    text-decoration: none;
+    padding: 2px 6px;
+    transition: all 0.2s;
+}
+
+.fen-link:hover {
+    color: yellow;
+    text-shadow: 0 0 5px yellow;
+}
+
+.fen-link:active {
+    color: red;
+}
+
+
+        @media (max-width: 600px) {
+            body {
+                font-size: 20px;
+                transform: scale(1.0);
+                transform-origin: top left;
+            }
+        }
+
+</style>
+</head>
+
+<body onload="l()">
+<div align="left">
+    <table bgcolor="#000000" border="0" bordercolor="#000000" cellpadding="0" cellspacing="0" class="frame" height="40%"
+           valign="top" width="100%">
+        <tr>
+            <td class="tl" width="30"></td>
+            <td class="t" width="640"></td>
+            <td class="tr" width="30"></td>
+        </tr>
+        <tr>
+            <td class="l"></td>
+            <td class="box" valign="top">
+                <table align="center" border="0" width="275">
+                    <tr></tr>
+                </table>
+                <div class="controls" style="color: white;">
+                    <input name="checkbox" onclick="pw(this)" type="checkbox"/>PC (blancas)
+                    <input checked="true" name="checkbox2" onchange="pb(this)" type="checkbox"/>PC (negras)
+                       Ambos deselecc
+                </div>
+                <center>
+                    <div class="coordinates-container">
+                        <div class="coord-top">
+                            <span class="coordinate-label">A</span>
+                            <span class="coordinate-label">B</span>
+                            <span class="coordinate-label">C</span>
+                            <span class="coordinate-label">D</span>
+                            <span class="coordinate-label">E</span>
+                            <span class="coordinate-label">F</span>
+                            <span class="coordinate-label">G</span>
+                            <span class="coordinate-label">H</span>
+                        </div>
+                        <div style="position: relative;">
+                            <div class="coord-left">
+                                <span class="coordinate-label">8</span>
+                                <span class="coordinate-label">7</span>
+                                <span class="coordinate-label">6</span>
+                                <span class="coordinate-label">5</span>
+                                <span class="coordinate-label">4</span>
+                                <span class="coordinate-label">3</span>
+                                <span class="coordinate-label">2</span>
+                                <span class="coordinate-label">1</span>
+                            </div>
+                            <div class="coord-right">
+                                <span class="coordinate-label">8</span>
+                                <span class="coordinate-label">7</span>
+                                <span class="coordinate-label">6</span>
+                                <span class="coordinate-label">5</span>
+                                <span class="coordinate-label">4</span>
+                                <span class="coordinate-label">3</span>
+                                <span class="coordinate-label">2</span>
+                                <span class="coordinate-label">1</span>
+                            </div>
+                            <div class="chess-board">
+                                <div class="border-top"></div>
+                                <div style="display: flex;">
+                                    <div class="border-left"></div>
+                                    <div id="chessboard-container"></div>
+                                    <div class="border-right"></div>
+                                </div>
+                                <div class="border-bottom"></div>
+                            </div>
+                        </div>
+                        <div class="coord-bottom">
+                            <span class="coordinate-label">A</span>
+                            <span class="coordinate-label">B</span>
+                            <span class="coordinate-label">C</span>
+                            <span class="coordinate-label">D</span>
+                            <span class="coordinate-label">E</span>
+                            <span class="coordinate-label">F</span>
+                            <span class="coordinate-label">G</span>
+                            <span class="coordinate-label">H</span>
+                        </div>
+                    </div>
+                </center>
+                <center>
+
+                    <span style="color: lime; font-size: 15px; margin: 0;">PuzzleX by Carlos Sivila 
+
+                    -&ensp;<a href="https://seblague.github.io/Mate-In-One/?timed=false">VSx</a>&ensp;
+                    -&ensp;<a href="https://www.ajedrez-online.eu/game/klhupr8w2ghy/await">VS</a>
+
+<div class="fen-links" style="margin: 0;">
+<a href="#" class="fen-link" data-pos="1">1</a> - 
+<a href="#" class="fen-link" data-pos="2">2</a> - 
+<a href="#" class="fen-link" data-pos="3">3</a> - 
+<a href="#" class="fen-link" data-pos="4">4</a> - 
+<a href="#" class="fen-link" data-pos="5">5</a> -
+<a href="#" class="fen-link" data-pos="6">6</a> -
+
+                    <button class="undo" onclick="undo()">atrás</button>&ensp;<span id="togglefont-btn" style="color: cyan; font-weight: bold; cursor: pointer;" onclick="togglefont()">X</span>&ensp;<span id="toggle-motor-btn" style="color: red; font-weight: bold; cursor: pointer;" onclick="cambiarMotor()">+</span>
+
+                    </span>
+                </center>
+                <table align="left" bgcolor="#000000" border="0" bordercolor="#000000" cellpadding="0" cellspacing="0"
+                       class="game-log" height="60%" width="100%">
+                    <tr>
+                        <td>
+                            <div id="m0"></div>
+                        </td>
+                        <td>
+                            <div id="m1"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div id="m2"></div>
+                        </td>
+                        <td>
+                            <div id="m3"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div id="m4"></div>
+                        </td>
+                        <td>
+                            <div id="m5"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div id="m6"></div>
+                        </td>
+                        <td>
+                            <div id="m7"></div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<script type="text/javascript">
+    const pieceSymbols = {
+        'w1': '♙', 'w2': '♘', 'w3': '♗', 'w4': '♖', 'w5': '♕', 'w6': '♔',
+        'b1': '♟', 'b2': '♞', 'b3': '♝', 'b4': '♜', 'b5': '♛', 'b6': '♚'
+    };
+
+    function createBoard() {
+        const container = document.getElementById('chessboard-container');
+        container.innerHTML = '';
+
+        for (let i = 0; i < 8; i++) {
+            const row = document.createElement('div');
+            row.className = 'chess-row';
+
+            for (let j = 0; j < 8; j++) {
+                const square = document.createElement('div');
+                square.className = `chess-square ${(i + j) % 2 === 0 ? 'white' : 'black'}`;
+                square.onclick = function () {
+                    hu(j, i);
+                };
+                square.id = `${j}${i}`;
+                row.appendChild(square);
+            }
+            container.appendChild(row);
+        }
+    }
+
+    function d(b) {
+        const isWhiteInCheck = isCheck(b, 64);
+        const isBlackInCheck = isCheck(b, 128);
+        for (let y = 0; y < 8; y++) {
+            for (let x = 0; x < 8; x++) {
+                const square = document.getElementById(`${x}${y}`);
+                const isSelected = F == 1 && x == px && y == py;
+                square.classList.remove('selected', 'king-in-check');
+                if (isSelected) {
+                    square.classList.add('selected');
+                }
+                if (!em(b, x, y)) {
+                    const isWhite = sa(b, x, y, 64);
+                    const pieceType = ge(b, x, y) & 7;
+                    const pieceKey = (isWhite ? 'w' : 'b') + pieceType;
+                    const pieceSymbol = pieceSymbols[pieceKey] || '?';
+                    square.innerHTML = `<span class="chess-piece ${isWhite ? 'white' : 'black'}">${pieceSymbol}</span>`;
+                    if (pieceType === 6) {
+                        if ((isWhite && isWhiteInCheck) || (!isWhite && isBlackInCheck)) {
+                            square.classList.add('king-in-check');
+                        }
+                    }
+                } else {
+                    square.innerHTML = '';
+                }
+            }
+        }
+    }
+
+    const history = [];
+
+    N = 1;
+    K = "";
+    F = px = py = 0;
+
+    function sm(i) {
+        if (N > 120) return;
+        var j = "abcdefgh";
+        if (N & 1) {
+            if (N < 19) K += " ";
+            K += (1 + N >> 1) + ". ";
+        } else K += "   ";
+        if (i.f == 3) K += "o-o  ";
+        else if (i.f == 5) K += "o-o-o";
+        else K += j.charAt(i.x) + (8 - i.y) + " " + j.charAt(i.X) + (8 - i.Y);
+        if (++N & 1) K += "\n";
+        document.getElementById("m" + Math.floor((N - 2) / 20)).innerHTML = "<pre>" + K + "</pre>";
+        if (!((N - 1) % 20)) K = "";
+    }
+
+    function un(u, b) {
+        for (var i = u.x.length - 1; i >= 0; --i) Z(b, u.x[i], u.y[i], u.p[i]);
+    }
+
+    function au(u, b, x, y) {
+        u.x.push(x);
+        u.y.push(y);
+        u.p.push(b[x + y * 8]);
+    }
+
+    function st(x) {
+        document.getElementById("i").innerHTML = x;
+    }
+
+    function P(x, y, X, Y, f) {
+        this.x = x;
+        this.y = y;
+        this.X = X;
+        this.Y = Y;
+        this.f = f;
+    }
+
+    function U() {
+        this.x = [];
+        this.y = [];
+        this.p = [];
+    }
+
+    function em(b, x, y) {
+        return !b[x + y * 8];
+    }
+
+    function ge(b, x, y) {
+        return b[x + y * 8] & 7;
+    }
+
+    function co(b, x, y) {
+        return b[x + y * 8] & 192;
+    }
+
+    function sa(b, x, y, c) {
+        var i = b[x + y * 8];
+        return i && (i & c);
+    }
+
+    function op(b, x, y, c) {
+        var i = b[x + y * 8];
+        return i && !(i & c);
+    }
+
+    function mo(b, x, y) {
+        var i = b[x + y * 8];
+        return i && (i & 32);
+    }
+
+    function la(b, x, y) {
+        var i = b[x + y * 8];
+        return i && (i & 16);
+    }
+
+    function ra(x, y) {
+        return x >= 0 && x < 8 && y >= 0 && y < 8;
+    }
+
+    function di(c) {
+        return c == 64 ? -1 : 1;
+    }
+
+    function Z(b, x, y, p) {
+        b[x + y * 8] = p;
+        return b;
+    }
+
+    function t(b, x, y, i, j, c, l) {
+        var X = x;
+        var Y = y;
+        while (ra(X += i, Y += j) && em(b, X, Y)) l.push(new P(x, y, X, Y, 0));
+        if (ra(X, Y) && op(b, X, Y, c)) l.push(new P(x, y, X, Y, 0));
+        return l;
+    }
+
+    function ro(b, x, y, c, l) {
+        t(b, x, y, 1, 0, c, t(b, x, y, -1, 0, c, t(b, x, y, 0, 1, c, t(b, x, y, 0, -1, c, l))));
+    }
+
+    function bi(b, x, y, c, l) {
+        t(b, x, y, 1, 1, c, t(b, x, y, -1, -1, c, t(b, x, y, 1, -1, c, t(b, x, y, -1, 1, c, l))));
+    }
+
+    function ki(b, x, y, c, l) {
+        for (var i = -1; i < 2; ++i)
+            for (var j = -1; j < 2; ++j) {
+                var X = x + i;
+                var Y = y + j;
+                if ((i || j) && ra(X, Y) && !sa(b, X, Y, c)) l.push(new P(x, y, X, Y, 0));
+            }
+        if (!mo(b, x, y))
+            if (em(b, 5, y) && em(b, 6, y) && !em(b, 7, y) && !mo(b, 7, y)) {
+                var u = new U();
+                au(u, b, x, y);
+                Z(b, x, y, 0);
+                var i = fi(b, c ^ 192);
+                var j = 0;
+                var X = -1;
+                while (!j && ++X != i.length) j = i[X].Y == y && i[X].X == 5;
+                if (!j) l.push(new P(x, y, 6, y, 3));
+                un(u, b);
+            } else if (em(b, 3, y) && em(b, 2, y) && em(b, 1, y) && !em(b, 0, y) && !mo(b, 0, y)) {
+                var u = new U();
+                au(u, b, x, y);
+                Z(b, x, y, 0);
+                var i = fi(b, c ^ 192);
+                var j = 0;
+                var X = -1;
+                while (!j && ++X != i.length) j = i[X].Y == y && i[X].X == 3;
+                if (!j) l.push(new P(x, y, 2, y, 5));
+                un(u, b);
+            }
+    }
+
+    function kn(b, x, y, c, l) {
+        for (var i = -2; i < 3; ++i)
+            for (var j = -2; j < 3; ++j)
+                if (Math.abs(i) + Math.abs(j) == 3) {
+                    var X = x + i;
+                    var Y = y + j;
+                    if (ra(X, Y) && !sa(b, X, Y, c)) l.push(new P(x, y, X, Y, 0));
+                }
+    }
+
+    function pa(b, x, y, c, l) {
+        var Y = y + di(c);
+        var Z = y + di(c) * 2;
+        if (!mo(b, x, y) && em(b, x, Y) && em(b, x, Z)) l.push(new P(x, y, x, Z, 2));
+        if (em(b, x, Y)) {
+            if (!Y || Y == 7) l.push(new P(x, y, x, Y, 4));
+            else l.push(new P(x, y, x, Y, 0));
+        }
+        for (var i = -1; i < 2; i += 2) {
+            var X = x + i;
+            if (ra(X, Y)) {
+                if (op(b, X, Y, c)) {
+                    if (!Y || Y == 7) l.push(new P(x, y, X, Y, 4));
+                    else l.push(new P(x, y, X, Y, 0));
+                } else if (em(b, X, Y) && la(b, X, Y - di(c))) l.push(new P(x, y, X, Y, 1));
+            }
+        }
+    }
+
+    function ma(b, m) {
+        u = new U();
+        for (var x = 0; x < 8; ++x)
+            for (var y = 0; y < 8; ++y)
+                if (la(b, x, y)) {
+                    au(u, b, x, y);
+                    Z(b, x, y, ge(b, x, y) | co(b, x, y) | mo(b, x, y));
+                }
+        au(u, b, m.X, m.Y);
+        if (m.f == 4) Z(b, m.X, m.Y, 37 | co(b, m.x, m.y));
+        else Z(b, m.X, m.Y, ge(b, m.x, m.y) | co(b, m.x, m.y) | 32 | (m.f == 2 ? 16 : 0));
+        au(u, b, m.x, m.y);
+        Z(b, m.x, m.y, 0);
+        if (m.f == 1) {
+            au(u, b, m.X, m.Y - di(c));
+            Z(b, m.X, m.Y - di(c), 0);
+        } else if (m.f == 3) {
+            au(u, b, 5, m.y);
+            au(u, b, 7, m.y);
+            Z(Z(b, 5, m.y, ge(b, 7, m.y) | co(b, 7, m.y) | 32), 7, m.y, 0);
+        } else if (m.f == 5) {
+            au(u, b, 3, m.y);
+            au(u, b, 0, m.y);
+            Z(Z(b, 3, m.y, ge(b, 0, m.y) | co(b, 0, m.y) | 32), 0, m.y, 0);
+        }
+        return u;
+    }
+
+    function fi(b, c) {
+        var l = [];
+        for (var x = 0; x < 8; ++x)
+            for (var y = 0; y < 8; ++y)
+                if (sa(b, x, y, c)) {
+                    var i = ge(b, x, y);
+                    if (i == 1) pa(b, x, y, c, l);
+                    else if (i == 2) kn(b, x, y, c, l);
+                    else if (i == 3) bi(b, x, y, c, l);
+                    else if (i == 4) ro(b, x, y, c, l);
+                    else if (i == 5) {
+                        bi(b, x, y, c, l);
+                        ro(b, x, y, c, l)
+                    } else if (i == 6) ki(b, x, y, c, l);
+                }
+        for (var i = 0; i < l.length / 3; ++i) {
+            var j = Math.floor(Math.random() * l.length);
+            var k = Math.floor(Math.random() * l.length);
+            var x = l[j];
+            l[j] = l[k];
+            l[k] = x;
+        }
+        return l;
+    }
+
+    var Sp = [0, 60, 370, 370, 450, 1000, 5000];
+    var Sb = [[0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 4, 0, 0, 4, 3, 2, 4, 6, 12, 12, 12, 4, 6, 4, 4, 7, 18, 25, 25, 16, 7, 4, 6, 11, 18, 27, 27, 16, 11, 6, 10, 15, 24, 32, 32, 24, 15, 10, 10, 15, 24, 32, 32, 24, 15, 10, 0, 0, 0, 0, 0, 0, 0, 0], [-7, -3, 1, 3, 3, 1, -3, -7, 2, 6, 14, 20, 20, 14, 6, 2, 6, 14, 22, 26, 26, 22, 14, 6, 8, 18, 26, 30, 30, 26, 18, 8, 8, 18, 30, 32, 32, 30, 18, 8, 6, 14, 28, 32, 32, 28, 14, 6, 2, 6, 14, 20, 20, 14, 6, 2, -7, -3, 1, 3, 3, 1, -3, -7], [16, 16, 16, 16, 16, 16, 16, 16, 26, 29, 31, 31, 31, 31, 29, 26, 26, 28, 32, 32, 32, 32, 28, 26, 16, 26, 32, 32, 32, 32, 26, 16, 16, 26, 32, 32, 32, 32, 26, 16, 16, 28, 32, 32, 32, 32, 28, 16, 16, 29, 31, 31, 31, 31, 29, 16, 16, 16, 16, 16, 16, 16, 16], [0, 0, 0, 3, 3, 0, 0, 0, -2, 0, 0, 0, 0, 0, 0, -2, -2, 0, 0, 0, 0, 0, 0, -2, -2, 0, 0, 0, 0, 0, 0, -2, -2, 0, 0, 0, 0, 0, 0, -2, -2, 0, 0, 0, 0, 0, 0, -2, 10, 10, 10, 10, 10, 10, 10, 10, 0, 0, 0, 0, 0, 0, 0, 0], [-2, -2, -2, 0, 0, -2, -2, -2, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, -2, -2, 0, 0, 0, 0, 0, 0, -2, -2, 0, 0, 0, 0, 0, 0, -2, -2, 0, 0, 0, 0, 0, 0], [3, 3, 8, -12, -8, -12, 10, 5, 0, 0, -5, -5, -12, -12, -12, -12, -5, -5, -7, -15, -15, -15, -15, -15, -15, -7, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20], []];
+    for (var x = 0; x < 8; ++x)
+        for (var y = 0; y < 8; ++y) Sb[6][x + y * 8] = Sb[5][(7 - x) + y * 8];
+
+    function sc(b, c) {
+        var s = 0;
+        for (var x = 0; x < 8; ++x)
+            for (var y = 0; y < 8; ++y) {
+                var i = ge(b, x, y);
+                if (i)
+                    if (sa(b, x, y, 128)) s += Sb[i == 6 ? 6 : i - 1][(7 - x) + y * 8] + Sp[i];
+                    else s -= Sb[i - 1][x + (7 - y) * 8] + Sp[i];
+            }
+        return c == 128 ? s : -s;
+    }
+
+    function cpu() {
+        if (F != 2) return;
+        var m = fi(b, c);
+        var bs = -99999;
+        var ws = bs;
+        var bm = 0;
+        var C = c ^ 192;
+        var kx = 0;
+        var ky = 0;
+        for (var i = 0; i < m.length; ++i) {
+            var u = ma(b, m[i]);
+            if (ge(b, kx, ky) != 6 || sa(b, kx, ky, C)) {
+                kx = ky = 0;
+                while (ge(b, kx, ky) != 6 || sa(b, kx, ky, C))
+                    if (++kx == 8) {
+                        kx = 0;
+                        ++ky;
+                    }
+            }
+            var om = fi(b, C);
+            var obs = -99999;
+            var ows = 99999;
+            for (var j = 0; j < om.length; ++j) {
+                if (kx == om[j].X && ky == om[j].Y) {
+                    obs = -99999;
+                    break;
+                }
+                var U = ma(b, om[j]);
+                var r = sc(b, c);
+                un(U, b);
+                obs = Math.max(obs, r);
+                ows = Math.min(ows, r);
+                if (r < ws) break;
+            }
+            un(u, b);
+            if (obs > bs && ows > ws) {
+                bs = obs;
+                ws = ows;
+                bm = m[i];
+            }
+        }
+        _wasCapture = bm && ((bm.f == 1) || !em(b, bm.X, bm.Y));
+        ma(b, bm);
+        sm(bm);
+        nx(bm);
+    }
+
+
+
+
+    function cpux() {
+        if (F != 2) return;
+        var m = fi(b, c);
+        var bs = -99999;
+        var ws = bs;
+        var bm = 0;
+        var C = c ^ 192;
+        var kx = 0;
+        var ky = 0;
+
+        for (var i = 0; i < m.length / 3; ++i) {
+            var j = Math.floor(Math.random() * m.length);
+            var k = Math.floor(Math.random() * m.length);
+            var temp = m[j];
+            m[j] = m[k];
+            m[k] = temp;
+        }
+        
+        for (var i = 0; i < m.length; ++i) {
+            var u = ma(b, m[i]);
+            if (ge(b, kx, ky) != 6 || sa(b, kx, ky, C)) {
+                kx = ky = 0;
+                while (ge(b, kx, ky) != 6 || sa(b, kx, ky, C))
+                    if (++kx == 8) {
+                        kx = 0;
+                        ++ky;
+                    }
+            }
+            var om = fi(b, C);
+            var obs = -99999;
+            var ows = 99999;
+            for (var j = 0; j < om.length; ++j) {
+                if (kx == om[j].X && ky == om[j].Y) {
+                    obs = -99999;
+                    break;
+                }
+                var U = ma(b, om[j]);
+                var r = sc(b, c);
+                un(U, b);
+                obs = Math.max(obs, r);
+                ows = Math.min(ows, r);
+
+            }
+            un(u, b);
+            if (obs > bs && ows > ws) {
+                bs = obs;
+                ws = ows;
+                bm = m[i];
+            }
+        }
+        _wasCapture = bm && ((bm.f == 1) || !em(b, bm.X, bm.Y));
+        ma(b, bm);
+        sm(bm);
+        nx(bm);
+    }
+
+
+
+
+    let motorActual = 0;
+    let toggleUsado = false;
+    
+    function cambiarMotor() {
+        if (toggleUsado) return;
+        toggleUsado = true;
+        motorActual = 1;
+        
+        let btn = document.getElementById('toggle-motor-btn');
+        if (btn) {
+            btn.style.color = '#555';
+            btn.style.cursor = 'default';
+            btn.style.opacity = '0.5';
+        }
+
+        history.length = 0;
+        lastHumanMove = null;
+        lastOpponentMove = null;
+        N = 1;
+        K = "";
+        F = 0;
+        px = py = 0;
+        l();
+        for (let i = 0; i <= 7; i++) {
+            let div = document.getElementById(`m${i}`);
+            if (div) div.innerHTML = "";
+        }
+        d(b);
+        saveState();
+    }
+
+    const cpuOriginal = cpu;
+    
+    cpu = function() {
+        if (motorActual === 0) {
+            cpuOriginal();
+        } else {
+            cpux();
+        }
+    };
+
+
+
+
+    cpw = 0;
+    cpb = 1;
+
+    function pw(e) {
+        cpw = e.checked;
+        if (F < 2 && cpw && c == 64) {
+            F = 2;
+            setTimeout(function() { cpu(); }, 100);
+        }
+    }
+
+    function pb(e) {
+        cpb = e.checked;
+        if (F < 2 && cpb && c == 128) {
+            F = 2;
+            setTimeout(function() { cpu(); }, 100);
+        }
+    }
+
+    let lastHumanMove = null;
+    let lastOpponentMove = null;
+    var _wasCapture = false;
+
+    function saveState(move) {
+        const boardCopy = Array.from(b);
+        const logCopy = K;
+        const nCopy = N;
+
+        if (c === 64) {
+            lastOpponentMove = move;
+        } else {
+            lastHumanMove = move;
+        }
+
+        history.push({
+            board: boardCopy,
+            log: logCopy,
+            turn: c,
+            nValue: nCopy,
+            lastHumanMove: lastHumanMove,
+            lastOpponentMove: lastOpponentMove
+        });
+    }
+
+    function undo() {
+        if (history.length > 2) {
+            history.pop();
+            history.pop();
+            const previousState = history[history.length - 1];
+            b = previousState.board;
+            K = previousState.log;
+            N = previousState.nValue;
+            c = previousState.turn;
+            lastHumanMove = previousState.lastHumanMove;
+            lastOpponentMove = previousState.lastOpponentMove;
+            d(b);
+            updateHighlights();
+            for (let i = 0; i <= 7; i++) {
+                document.getElementById(`m${i}`).innerHTML = "";
+            }
+            document.getElementById("m0").innerHTML = "<pre>" + K + "</pre>";
+            console.log('Movimientos deshechos. Tu turno (', c === 64 ? 'blancas' : 'negras', ')');
+        } else {
+            console.log('No hay suficientes movimientos para deshacer.');
+        }
+    }
+
+    function l() {
+        createBoard();
+        b = [];
+        for (i = 0; i < 8; ++i) Z(Z(b, i, 6, 65), i, 1, 129);
+        d(Z(Z(Z(Z(Z(Z(Z(Z(Z(Z(Z(Z(Z(Z(Z(Z(b, 0, 0, 132), 1, 0, 130), 2, 0, 131), 3, 0, 133), 4, 0, 134), 5, 0, 131), 6, 0, 130), 7, 0, 132), 0, 7, 68), 1, 7, 66), 2, 7, 67), 3, 7, 69), 4, 7, 70), 5, 7, 67), 6, 7, 66), 7, 7, 68));
+        c = 64;
+        saveState();
+    }
+
+    function isCheck(board, color) {
+        let kingX = -1, kingY = -1;
+        for (let y = 0; y < 8; y++) {
+            for (let x = 0; x < 8; x++) {
+                if (ge(board, x, y) === 6 && sa(board, x, y, color)) {
+                    kingX = x;
+                    kingY = y;
+                    break;
+                }
+            }
+            if (kingX !== -1) break;
+        }
+        if (kingX === -1) {
+            return false;
+        }
+        const opponentColor = color === 64 ? 128 : 64;
+        const opponentMoves = fi(board, opponentColor);
+        for (let i = 0; i < opponentMoves.length; i++) {
+            if (opponentMoves[i].X === kingX && opponentMoves[i].Y === kingY) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function hu(x, y) {
+        if (F == 0) {
+            if (sa(b, x, y, c)) {
+                px = x;
+                py = y;
+                F = 1;
+                d(b);
+            }
+        } else if (F == 1) {
+            if (sa(b, x, y, c)) {
+                px = x;
+                py = y;
+                F = 1;
+                d(b);
+                return;
+            }
+            if (x == px && y == py) {
+                F = 0;
+                d(b);
+                return;
+            }
+            var m = fi(b, c);
+            for (var i = 0; i < m.length; ++i) {
+                if (m[i].x == px && m[i].y == py && m[i].X == x && m[i].Y == y && ge(b, x, y) != 6) {
+                    _wasCapture = (m[i].f == 1) || !em(b, m[i].X, m[i].Y);
+                    var u = ma(b, m[i]);
+                    var o = fi(b, c ^ 192);
+                    for (var j = 0; j < o.length; ++j)
+                        if (ge(b, o[j].X, o[j].Y) == 6 && sa(b, o[j].X, o[j].Y, c)) {
+                            un(u, b);
+                            st("Invalid move");
+                            return;
+                        }
+                    sm(m[i]);
+                    nx(m[i]);
+                    return;
+                }
+            }
+            st("Invalid move");
+        }
+    }
+
+    function updateHighlights() {
+        document.querySelectorAll('.last-human-start, .last-human-end, .last-opponent-start, .last-opponent-end')
+            .forEach(el => el.classList.remove('last-human-start', 'last-human-end', 'last-opponent-start', 'last-opponent-end'));
+        
+        if (lastHumanMove) {
+            const startSquare = document.getElementById(`${lastHumanMove.x}${lastHumanMove.y}`);
+            if (startSquare) {
+                startSquare.classList.add('last-human-start');
+            }
+            const endSquare = document.getElementById(`${lastHumanMove.X}${lastHumanMove.Y}`);
+            if (endSquare) {
+                endSquare.classList.add('last-human-end');
+            }
+        }
+
+        if (lastOpponentMove) {
+            const startSquare = document.getElementById(`${lastOpponentMove.x}${lastOpponentMove.y}`);
+            if (startSquare) {
+                startSquare.classList.add('last-opponent-start');
+            }
+            const endSquare = document.getElementById(`${lastOpponentMove.X}${lastOpponentMove.Y}`);
+            if (endSquare) {
+                endSquare.classList.add('last-opponent-end');
+            }
+        }
+    }
+
+    let fontDisabled = false;
+
+    function togglefont() {
+        if (fontDisabled) return;
+
+        fontDisabled = true;
+
+        document.querySelectorAll('link[href*="fonts.googleapis.com"], link[href*="fonts.gstatic.com"]')
+            .forEach(function(link) { link.parentNode.removeChild(link); });
+
+        var style = document.createElement('style');
+        style.id = 'font-override';
+        style.textContent = '.chess-piece { font-family: serif !important; }';
+        document.head.appendChild(style);
+
+        d(b);
+
+        var btn = document.getElementById('togglefont-btn');
+        btn.style.color = '#555';
+        btn.style.cursor = 'default';
+        btn.title = 'Reiniciá el juego para restaurar la fuente';
+    }
+
+    const _ac = new (window.AudioContext || window.webkitAudioContext)();
+    function _resume() { if (_ac.state === 'suspended') _ac.resume(); }
+
+    function _woodHit(freq, vol, decay) {
+        var t = _ac.currentTime;
+
+        var o = _ac.createOscillator();
+        var og = _ac.createGain();
+        o.connect(og); og.connect(_ac.destination);
+        o.type = 'sine'; o.frequency.setValueAtTime(freq, t);
+        o.frequency.exponentialRampToValueAtTime(freq * 0.4, t + decay);
+        og.gain.setValueAtTime(vol, t);
+        og.gain.exponentialRampToValueAtTime(0.001, t + decay);
+        o.start(t); o.stop(t + decay + 0.01);
+
+        var buf = _ac.createBuffer(1, _ac.sampleRate * 0.04, _ac.sampleRate);
+        var data = buf.getChannelData(0);
+        for (var i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1);
+        var src = _ac.createBufferSource();
+        src.buffer = buf;
+        var f = _ac.createBiquadFilter();
+        f.type = 'bandpass'; f.frequency.value = freq * 2; f.Q.value = 0.8;
+        var ng = _ac.createGain();
+        src.connect(f); f.connect(ng); ng.connect(_ac.destination);
+        ng.gain.setValueAtTime(vol * 0.4, t);
+        ng.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+        src.start(t); src.stop(t + 0.05);
+    }
+
+
+    function soundToc() { _resume(); _woodHit(180, 0.5, 0.12); }
+
+    function soundTic() {
+        _resume();
+        var t = _ac.currentTime;
+        var buf = _ac.createBuffer(1, _ac.sampleRate * 0.002, _ac.sampleRate);
+        var data = buf.getChannelData(0);
+        for (var i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1);
+        var src = _ac.createBufferSource(); src.buffer = buf;
+        var f = _ac.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 2000;
+        var g = _ac.createGain();
+        src.connect(f); f.connect(g); g.connect(_ac.destination);
+        g.gain.setValueAtTime(1.0, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.015);
+        src.start(t); src.stop(t + 0.02);
+        var o = _ac.createOscillator(); var og = _ac.createGain();
+        o.connect(og); og.connect(_ac.destination);
+        o.type = 'sine'; o.frequency.setValueAtTime(900, t);
+        o.frequency.exponentialRampToValueAtTime(400, t + 0.04);
+        og.gain.setValueAtTime(0.3, t);
+        og.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+        o.start(t); o.stop(t + 0.05);
+    }
+
+    function _tac() {
+        var t = _ac.currentTime;
+
+        var o = _ac.createOscillator(); var og = _ac.createGain();
+        o.connect(og); og.connect(_ac.destination);
+        o.type = 'sine'; o.frequency.setValueAtTime(90, t);
+        o.frequency.exponentialRampToValueAtTime(50, t + 0.25);
+        og.gain.setValueAtTime(0.7, t);
+        og.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+        o.start(t); o.stop(t + 0.26);
+
+        var o2 = _ac.createOscillator(); var og2 = _ac.createGain();
+        o2.connect(og2); og2.connect(_ac.destination);
+        o2.type = 'triangle'; o2.frequency.setValueAtTime(420, t);
+        o2.frequency.exponentialRampToValueAtTime(200, t + 0.06);
+        og2.gain.setValueAtTime(0.25, t);
+        og2.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+        o2.start(t); o2.stop(t + 0.07);
+    }
+
+    function soundTacTac() {
+        _resume(); _tac();
+        setTimeout(function(){ _tac(); }, 180);
+    }
+
+    function soundTacTacTac() {
+        _resume(); _tac();
+        setTimeout(function(){ _tac(); }, 180);
+        setTimeout(function(){ _tac(); }, 360);
+    }
+
+    function nx(lastMove) {
+        c ^= 192;
+        F = 0;
+
+        saveState(lastMove);
+        updateHighlights();
+
+        d(b);
+
+        for (var x = 0; x < 8; ++x)
+            for (var y = 0; y < 8; ++y)
+                if (ge(b, x, y) == 6 && sa(b, x, y, c)) {
+                    var kx = x;
+                    var ky = y;
+                }
+        var m = fi(b, c ^ 192);
+        var ic = 0;
+        for (var i = 0; i < m.length; ++i)
+            if (m[i].X == kx && m[i].Y == ky) ic = 1;
+        var m = fi(b, c);
+        var cm = 1;
+        for (var i = 0; i < m.length; ++i) {
+            var u = ma(b, m[i]);
+            for (var x = 0; x < 8; ++x)
+                for (var y = 0; y < 8; ++y)
+                    if (ge(b, x, y) == 6 && sa(b, x, y, c)) {
+                        var kx = x;
+                        var ky = y;
+                    }
+            var om = fi(b, c ^ 192);
+            un(u, b);
+            var hm = 0;
+            for (var j = 0; j < om.length; ++j)
+                if (om[j].X == kx && om[j].Y == ky) hm = 1;
+            cm &= hm;
+        }
+        if (cm) {
+            if (typeof SpeakText === 'function') SpeakText((ic ? "Check" : "Stale") + "mate!");
+            soundTacTacTac();
+            F = 3;
+            return;
+        }
+        if (ic) {
+            soundTacTac();
+        } else if (_wasCapture) {
+            soundTic();
+        } else {
+            soundToc();
+        }
+        if ((cpw && c == 64) || (cpb && c == 128)) {
+            F = 2;
+            setTimeout(function() { cpu(); }, 500);
+        }
+    }
+</script>
+
+<script>
+const presetPositions = {
+    1: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNB1KBNR w - - 0 1",
+    2: "n6k/6r1/8/3b4/5b2/8/1r6/K6n w - - 0 1",
+    3: "2b5/q4p2/3N1p2/1r6/8/k7/p6P/K6n w - - 0 1",
+    4: "4k3/3pp3/2p2p2/1p4p1/p6p/8/8/3QK3 w - - 0 1",
+    5: "q6k/8/8/8/8/1n6/1Kb5/Q6r w - - 0 1",
+    6: "3N4/8/8/8/B2k3B/8/8/K2N4 w - - 0 1"
+};
+
+function loadFEN(fenString) {
+    if (!fenString || fenString.trim() === "") {
+        alert("No FEN defined for this position.");
+        return;
+    }
+
+    b = [];
+    K = "";
+    N = 1;
+    F = 0;
+    history.length = 0;
+    lastHumanMove = null;
+    lastOpponentMove = null;
+
+    for (let i = 0; i <= 7; i++) {
+        const element = document.getElementById(`m${i}`);
+        if (element) element.innerHTML = "";
+    }
+
+    const parts = fenString.split(' ');
+    const rows = parts[0].split('/');
+    
+    const pieceMap = {
+        'P': 65, 'N': 66, 'B': 67, 'R': 68, 'Q': 69, 'K': 70,
+        'p': 129, 'n': 130, 'b': 131, 'r': 132, 'q': 133, 'k': 134
+    };
+    
+    let y = 0;
+    for (let row of rows) {
+        let x = 0;
+        for (let char of row) {
+            if (char >= '1' && char <= '8') {
+                x += parseInt(char);
+            } else if (pieceMap[char]) {
+                Z(b, x, y, pieceMap[char]);
+                x++;
+            }
+        }
+        y++;
+    }
+
+    c = parts[1] === 'w' ? 64 : 128;
+
+    d(b);
+    saveState();
+    
+    console.log("FEN loaded:", fenString);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const links = document.querySelectorAll('.fen-link');
+    links.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const pos = this.getAttribute('data-pos');
+            loadFEN(presetPositions[pos]);
+        });
+    });
+});
+</script>
+
+<script>
+    document.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+    });
+</script>
+
+</body>
+</html>
