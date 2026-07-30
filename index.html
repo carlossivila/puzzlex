@@ -48,11 +48,11 @@
     }
 
     :root {
-      --neon-cyan:  #00fff7;
-      --neon-lime:  #00ff00;
-      --neon-pink:  #ff00cc;
-      --neon-green: #39ff14;
-      --bg:         #000000;
+      --neon-lime:   #00ff00;
+      --neon-cyan:   #00fff7;
+      --neon-yellow: #ffff00;
+      --neon-green:  #39ff14;
+      --bg:          #000000;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -89,8 +89,7 @@
       align-items: center;
       justify-content: flex-start;
       padding: 28px 16px 24px;
-      overflow-y: auto;
-      overflow-x: hidden;
+      overflow: auto;
     }
 
     .header-block {
@@ -327,6 +326,14 @@
      padding: 6px;
     }
 
+   hr {
+     border: none;
+     height: 1px;
+     background: linear-gradient(90deg, transparent, #00ff00, transparent);
+     width: 100%;
+     flex-shrink: 0;
+    }
+
 a:link,a:visited {
 text-decoration: none;
 color: lime;
@@ -383,9 +390,11 @@ color: red;
 </header>
 
 <br>
+<hr>
 <nav>
 <div style="font-size: 24px; font-family: 'font', Arial, monospace;"><a href="index.html"> HTML GAMES </a> // <a href="index2.html"> Flash GAMES </a> // <a href="index3.html"> ABOUT </a></div>
 </nav>
+<hr>
 <br>
 
 <ul class="game-list">
@@ -413,9 +422,9 @@ color: red;
 <br>
 
 <br>
-<nav>
+<hr>
 <div style="font-size: 24px; font-family: 'font', Arial, monospace;"><a href="index.html"> HTML GAMES </a> // <a href="index2.html"> Flash GAMES </a> // <a href="index3.html"> ABOUT </a></div>
-</nav>
+<hr>
 <br>
 
 <div class="video-grid" id="videoGrid">
@@ -439,9 +448,9 @@ color: red;
 <br>
 
 <br>
-<nav>
+<hr>
 <div style="font-size: 24px; font-family: 'font', Arial, monospace;"><a href="index.html"> HTML GAMES </a> // <a href="index2.html"> Flash GAMES </a> // <a href="index3.html"> ABOUT </a></div>
-</nav>
+<hr>
 <br>
 
 </div>
