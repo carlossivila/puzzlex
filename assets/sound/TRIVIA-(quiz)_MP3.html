@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PuzzleX - Trivia (quiz) MP3</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@500;700&display=swap">
+<link href="https://fonts.cdnfonts.com/css/calculator" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+:root {
+  --lime: #aaff00;
+  --cyan: #00eeff;
+  --bg: #0a0a0f;
+}
+
+body {
+  background: radial-gradient(circle at 20% 30%, #0a0a0f, #030305);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  font-family: 'DM Sans', sans-serif;
+  overflow-x: hidden;
+  padding: 0.5rem;
+  gap: 0.6rem;
+}
+
+#header {
+  width: 100%;
+  text-align: center;
+  padding: 4px 0 2px;
+}
+
+#header h1 {
+  color: lime;
+  font-size: 17px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+}
+
+#header hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, lime, transparent);
+  margin-top: 4px;
+}
+
+#screen-ruleta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+#screen-trivia { display: none; width: 100%; }
+
+#ruleta-result {
+  font-family: 'Bebas Neue', cursive;
+  font-size: clamp(2.5rem, 8vw, 2.5rem);
+  letter-spacing: 0.08em;
+  min-height: 2.8rem;
+  text-align: center;
+  padding: 0 0.5rem;
+}
+
+@keyframes ruleta-pop {
+  0%   { transform: scale(0.5); opacity: 0; filter: blur(2px); }
+  70%  { transform: scale(1.1); }
+  100% { transform: scale(1);   opacity: 1; filter: blur(0); }
+}
+
+.ruleta-pop { animation: ruleta-pop 0.4s cubic-bezier(0.2,1.2,0.4,1); }
+
+#ruleta-container {
+  position: relative;
+  width: min(360px, 84vw);
+  height: min(360px, 84vw);
+  margin-top: 1.8rem;
+}
+
+#ruleta-container::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, gray, yellow, orange, lime, cyan, purple, red, gray);
+  filter: blur(14px);
+  opacity: 0.9;
+  z-index: -1;
+  pointer-events: none;
+  animation: aureola-spin 4s linear infinite;
+}
+
+@keyframes aureola-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+#ruleta-pointer {
+  position: absolute;
+  top: -26px; left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 17px solid transparent;
+  border-right: 17px solid transparent;
+  border-top: 40px solid #aaff00;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.45));
+  z-index: 15;
+}
+
+#ruleta-pointer::after {
+  content: '';
+  position: absolute;
+  top: -38px; left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 13px solid transparent;
+  border-right: 13px solid transparent;
+  border-top: 33px solid #333;
+}
+
+#ruleta-canvas {
+  display: block;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(255,255,200,0.18), 0 18px 22px rgba(0,0,0,0.55);
+  width: 100%; height: 100%;
+}
+
+#ruleta-btn {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  z-index: 30;
+  font-family: 'Bebas Neue', cursive;
+  font-size: clamp(0.95rem, 3.8vw, 1.4rem);
+  background: radial-gradient(circle at 35% 25%, #ffec9f, #ffb347);
+  color: #0f0f1c;
+  border: none;
+  border-radius: 50%;
+  width: min(80px, 18vw);
+  height: min(80px, 18vw);
+  cursor: pointer;
+  box-shadow: 0 5px 0 #b45f1b, 0 5px 18px rgba(0,0,0,0.5);
+  transition: transform 0.05s linear, box-shadow 0.05s linear, background 0.05s linear;
+  text-align: center; line-height: 1.2; font-weight: 900;
+}
+
+#ruleta-btn:active  { transform: translate(-50%,-50%) scale(0.93); box-shadow: 0 2px 0 #b45f1b; }
+
+#ruleta-btn:hover   { background: radial-gradient(circle at 30% 25%,#fff2bb,#ffc46b); transform: translate(-50%,-50%) scale(1.03); }
+
+#ruleta-btn:disabled{ background: #3e3e52; box-shadow: 0 4px 0 #1e1e2c; color: #b0b0c0; cursor: not-allowed; transform: translate(-50%,-50%) scale(0.97); }
+
+#trivia-wrap {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.category-name {
+  font-size: 17px;
+  padding: 6px 8px;
+  font-weight: bold;
+  background: lightblue;
+  border: 1px solid gray;
+  border-radius: 5px;
+  color: #111;
+  cursor: pointer;
+}
+
+#question {
+  font-size: 18px;
+  padding: 10px 8px;
+  color: blue;
+  background: beige;
+  border: 1px solid gray;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+}
+
+#question audio {
+  width: 100%;
+}
+
+#answers button {
+  display: block;
+  width: 100%;
+  padding: 7px 8px;
+  font-size: 19px;
+  background: #eee;
+  border: 1px solid gray;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.25s;
+  text-align: left;
+  margin-bottom: 0;
+}
+
+#answers button:hover { background: #ddd; }
+
+.correct   { background: #4CAF50 !important; color: white !important; }
+
+.incorrect { background: #f44336 !important; color: white !important; }
+
+#progress-container { background: black; border-radius: 5px; height: 10px; }
+
+#progress-bar {
+  height: 10px; background: lime;
+  border-radius: 5px;
+  transition: width 0.1s linear;
+  width: 100%;
+}
+
+
+.btn {
+  display: inline-block;
+  font-size: 18px;
+  background-color: #009900;
+  border: 1px solid gray;
+  border-radius: 5px;
+  transition: box-shadow 0.3s ease;
+}
+
+.btn:hover {
+  border: 1px solid cyan;
+  box-shadow: 0 0 15px cyan, 0 0 30px aqua;
+}
+
+
+#trivia-footer {
+  margin-top: 4px;
+}
+
+#trivia-footer hr { border-color: #333; margin: 4px 0; }
+
+#trivia-footer p {
+  color: cyan; font-size: 18px; line-height: 1.4;
+  padding: 4px 0;
+}
+
+#trivia-footer .fire-row { display: flex; flex-wrap: wrap; gap: 2px; align-items: flex-end; }
+
+a:link, a:visited { text-decoration: none; color: lime; }
+
+a:hover { color: red; }
+
+.fade-out { animation: fadeOut 0.35s forwards; }
+
+.fade-in  { animation: fadeIn  0.35s forwards; }
+
+@keyframes fadeOut { to { opacity: 0; transform: scale(0.97); } }
+
+@keyframes fadeIn  { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+</style>
+</head>
+
+<body>
+<div id="header">
+  <h1>PuzzleX by Carlos Sivila</h1>
+  <hr>
+</div>
+
+<div id="screen-ruleta">
+  <div id="ruleta-result"></div>
+  <div id="ruleta-container">
+    <div id="ruleta-pointer"></div>
+    <canvas id="ruleta-canvas"></canvas>
+    <button id="ruleta-btn">CLIC<br>AQUÍ</button>
+  </div>
+</div>
+
+<div id="screen-trivia">
+  <div id="trivia-wrap">
+    <div id="category-display" class="category-name"></div>
+    <div id="question"></div>
+    <div id="answers"></div>
+    <div id="progress-container"><div id="progress-bar"></div></div>
+    <div id="trivia-footer">
+<hr>
+
+<p>No es coincidencia ni suerte<br>
+que siempre sean los mismos<br>
+en obtener mejor puntaje que el resto.<br>
+¿Y tú, qué puntaje obtuviste esta vez?</p>
+<hr>
+
+      <div class="fire-row">
+        <img src="http://www.bbmgif.com/images/if/fire_t.gif" height="55" width="46">
+        <img src="http://www.bbmgif.com/images/if/fire_r.gif" height="55" width="46">
+        <img src="http://www.bbmgif.com/images/if/fire_i.gif" height="55" width="46">
+        <img src="http://www.bbmgif.com/images/if/fire_v.gif" height="55" width="46">
+        <img src="http://www.bbmgif.com/images/if/fire_i.gif" height="55" width="46">
+        <img src="http://www.bbmgif.com/images/if/fire_a.gif" height="55" width="46">
+      </div>
+      <div class="fire-row">
+        <img src="http://www.bbmgif.com/images/if/fire_q.gif" height="55" width="46">
+        <img src="http://www.bbmgif.com/images/if/fire_u.gif" height="55" width="46">
+        <img src="http://www.bbmgif.com/images/if/fire_i.gif" height="55" width="46">
+        <img src="http://www.bbmgif.com/images/if/fire_z.gif" height="55" width="46">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const musicLib = {
+"CLASSIC": [
+"2 Brothers on the 4th Floor - Dreams",
+"2 Eivissa - Oh La La La",
+"2 Unlimited - Get Ready for This",
+"2 Unlimited - No Limit",
+"2 Unlimited - Twilight Zone",
+"20 Fingers feat Roula - Lick It",
+"4 Non Blondes - What's Up",
+"A-ha - Stay on These Roads",
+"A-ha - Take On Me",
+"A-ha - The Sun Always Shines on TV",
+"A-ha - You Are the One",
+"ABBA - Chiquitita",
+"ABBA - Dancing Queen",
+"ABBA - Gimme! Gimme! Gimme!",
+"ABBA - Mamma Mia",
+"Ace of Base - Beautiful Life",
+"Ace of Base - Don't Turn Around",
+"Ace of Base - Happy Nation",
+"Ace of Base - The Sign",
+"Ace of Base - Wheel of Fortune",
+"Activate - Let Rhythm Take Control",
+"Air Supply - All Out of Love",
+"Air Supply - Lost in Love",
+"Air Supply - Making Love Out of Nothing at All",
+"Al Corley - Square Rooms",
+"Alexandra Burke - Hallelujah",
+"Alexia - Uh La La La",
+"Alice Deejay - Better Off Alone",
+"Alisha Chinai - Made in India",
+"Alphaville - Big in Japan",
+"Alphaville - Forever Young",
+"Ambra - Te pertenezco",
+"Amistades Peligrosas - Me quedaré solo",
+"Anita Ward - Ring My Bell",
+"Aqua - Barbie Girl",
+"Aqua - Doctor Jones",
+"Aqua - Lollipop",
+"Aretha Franklin - I Say a Little Prayer",
+"ATC - Around the World (La La La)",
+"Atrium - Doctor Jekyll",
+"Atrium - Weekend",
+"Averead - Jeopardy",
+"B.J. Thomas - Raindrops Keep Fallin' on My Head",
+"Babys Gang - Happy Song",
+"Bad Boys Blue - You're a Woman",
+"Bad Boys Blue - Pretty Young Girl",
+"Baha Men - Who Let the Dogs Out",
+"Baltimora - Tarzan Boy",
+"Baltimora - Woody Boogie",
+"Bananarama - Cruel Summer",
+"Bandolero Team - París Latino",
+"Barbra Streisand - Woman in Love",
+"Barry White - You're the First, the Last, My Everything",
+"Bee Gees - How Deep Is Your Love",
+"Bee Gees - More Than a Woman",
+"Bee Gees - Night Fever",
+"Bee Gees - Stayin' Alive",
+"Belinda Carlisle - Heaven Is a Place on Earth",
+"Ben E. King - Stand by Me",
+"Berlin - Take My Breath Away",
+"Big Mountain - Baby I Love Your Way",
+"Bill Haley and his comets - Rock around the clock",
+"Bill Medley & Jennifer Warnes - (I've Had) The Time of My Life",
+"Billy Joel - Honesty",
+"Billy Joel - Piano Man",
+"Billy Ocean - Caribbean Queen",
+"Black - Wonderful Life",
+"Black Box - Ride on Time",
+"Blondie - Heart of Glass",
+"Blondie - One Way or Another",
+"Bobby Helms - Jingle Bell Rock",
+"Bobby Summer - Yaba Yaba",
+"Boney M. - Daddy Cool",
+"Boney M. - Gotta Go Home",
+"Boney M. - Kalimba de Luna",
+"Boney M. - Ma Baker",
+"Boney M. - Rasputin",
+"Boney M. - Rivers of Babylon",
+"Bonnie Tyler - Holding Out for a Hero",
+"Bonnie Tyler - It's a Heartache",
+"Bonnie Tyler - Total Eclipse of the Heart",
+"Brian Ice - Talking to the Night",
+"Bronski Beat - Smalltown Boy",
+"Bruce Springsteen - Dancing in the Dark",
+"Bryan Adams - (Everything I Do) I Do It for You",
+"Bryan Ferry - Slave to Love",
+"Carl Douglas - Kung Fu Fighting",
+"Carpenters - (They Long to Be) Close to You",
+"C.C. Catch - Cause You Are Young",
+"C.C. Catch - Heartbreak Hotel",
+"C.C. Catch - MegaMix",
+"C.C. Catch - Strangers by Night",
+"Celine Dion - My Heart Will Go On",
+"Celine Dion - The Power of Love",
+"Century - Lover Why",
+"Charles & Eddie - Would I Lie to You",
+"Charles Shaw - I Am Feeling",
+"Cher - Believe",
+"Cher - Strong Enough",
+"Chicago - If You Leave Me Now",
+"Chicago - You're the Inspiration",
+"Chris de Burgh - The Lady in Red",
+"Chris Isaak - Wicked Game",
+"Christopher Cross - All Right",
+"Chubby Checkers - Let us twist again",
+"Chuck Berry - Johnny B Goode",
+"Ciaobella - One Night Stand",
+"Cirque du Soleil - Alegría",
+"Compay Segundo - Guantanamera",
+"Coolio - Gangsta's Paradise",
+"Corona - Baby Baby",
+"Corona - The Rhythm of the Night",
+"Corona - Try Me Out",
+"Creedence Clearwater Revival - Bad moon rising",
+"Creedence Clearwater Revival - Fortunate son",
+"Creedence Clearwater Revival - Have you ever seen the Rain",
+"Crowded House - Don't Dream It's Over",
+"Crystal Waters - Gypsy Woman (She's Homeless)",
+"Culture Beat - Mr. Vain",
+"Culture Club - Karma Chameleon",
+"Cutting Crew - (I Just) Died in Your Arms",
+"Cyndi Lauper - Girls Just Want to Have Fun",
+"Cyndi Lauper - Time After Time",
+"Cyndi Lauper - True Colors"
+],
+
+"CLASSIC_": [
+"Daze - Super hero",
+"Dead Or Alive - You spin me round",
+"Dela - I know why the dog howls at the moon",
+"Den Harrow - Catch The fox (remix)",
+"Den Harrow - Catch the fox",
+"Den Harrow - Future brain",
+"Depeche Mode - Just can not get enough",
+"Depeche Mode - Strangelove",
+"Desireless - Voyage, voyage",
+"Diego Verdaguer - Volveré",
+"Dire Straits - Walk of life",
+"Disco Band - Scotch",
+"DJ Bobo - Everybody",
+"DJ Bobo - Let the dream come true",
+"DJ Bobo - Somebody dance with me",
+"DJ Bobo - Tell me when",
+"DJ Dero - La Modelo",
+"Domenico Modugno - Nel Blu Dipinto Di Blu",
+"Donna Summer - Hot stuff",
+"Donna Summer - On the radio",
+"Double You - Please dont go",
+"Dr Alban - Away from home",
+"Dr Alban - Its my life",
+"Dr Alban - Look who is talking",
+"Dr Alban - reggae gonna ragga",
+"Dschinghis Khan - Moskau",
+"Duran Duran - Ordinary world",
+"Eagles - Hotel California",
+"Earth, Wind & Fire - September",
+"Eddy Huntington - URSS",
+"Edith Piaf - Non, Je ne regrette rien",
+"Electra - Cuando, cuando, cuando",
+"Electric Light Orchestra - Last train to London",
+"Elton John - Nikita",
+"Elton John - Sacrifice",
+"Elvis Costello - She",
+"Elvis Presley -   Hound dog",
+"Elvis Presley - Jailhouse rock",
+"Enigma - Return to innocence",
+"Enigma - Sadeness",
+"Ennio Morricone - The good The bad and The ugly (remix)",
+"Ennio Morricone - The good The bad and the ugly",
+"Enya - Caribbean Blue",
+"Enya - May it be",
+"Enya - Only Time",
+"Enya - Orinoco flow",
+"Era - Ameno",
+"Erasure - A little respect",
+"Erasure - Oh l'amour",
+"Eruption - One way ticket",
+"Europe - Carrie",
+"Europe - The final countdown",
+"Eurythmics - Sweet dreams",
+"Extreme - More than words",
+"F.R David - Words (do not come easy)",
+"Falco - Der Kommissar",
+"Falco - Jeanny",
+"Falco - Rock me Amadeus",
+"Falco - Vienna calling",
+"Fancy - Bolero",
+"Fausto - Susana",
+"Fine Young Cannibals - She drives me crazy",
+"Fleetwood Mac - Everywhere",
+"Foreigner - I want to know what love is",
+"France Gall - Ella, elle, la",
+"Frank Sinatra - My way",
+"Frank Sinatra - New York, New York",
+"Frankie goes to Hollywood - Relax",
+"Fun Factory - Celebration",
+"Fun Factory - Close to you",
+"Fun Factory - I Wanna B With U",
+"Gala - Freed from desire",
+"García - Bamboleo",
+"García - Falencia de amor",
+"Gazebo - I like Chopin",
+"George Benson - Nothing is gonna change my love for you",
+"George Harrison - Got my mind set on you",
+"George Michael - Careless whisper",
+"Gianluca Grignani - Mi historia entre tus dedos",
+"Gianna Nannini & Edoardo Bennato - Un' estate italiana",
+"Gibson Brothers - Cuba",
+"Giorgio Moroder - Expreso de medianoche",
+"Gipsy Kings - Bamboleo",
+"Gipsy Kings - Djobi, Djoba",
+"Gipsy Kings - Volare",
+"Glenn Medeiros - Nothing is gonna change my love for you",
+"Gloria Gaynor - I love you baby",
+"Gloria Gaynor - I will survive",
+"Gloria Gaynor - Never can say goodbye",
+"Greg Kihn Band - Jeopardy",
+"Haddaway - Life",
+"Haddaway - What is love",
+"Hanna y el Japones - Tú",
+"Harry Belafonte - Banana boat",
+"Helen St John - love theme",
+"Herbie Hancock - Rockit",
+"Holliday - Kalimba de amor",
+"Ice MC - It is rainy day",
+"Ice MC - Think about the way",
+"Inner Circle - Bad boys",
+"Inner Circle - Games people play",
+"Inner Circle - Sweat (a la la la la long)",
+"INXS - Need you tonight",
+"INXS - New sensation",
+"INXS - Suicide blonde",
+"Irene Cara - I am gonna live forever",
+"Irene Cara - What a feeling"
+],
+
+"CLASSIC__": [
+"J D Nicholas - Kumm A Klele",
+"Jackson 5 - I want you back",
+"James Brown - Living in America",
+"Jennifer Rush - The power of love",
+"Jerry Lee Lewis - Great balls of fire",
+"Jessica Jay - Broken hearted woman",
+"Jessica Jay - Casablanca",
+"Jim Diamond - I should have know better",
+"Joan Jett and the Blackhearts - I love rock and roll",
+"Joan Osborne - One of us",
+"Jock Hattle Band - To be or not to be",
+"Joe Esposito - Lady, Lady, Lady",
+"Joe Esposito - You are the best",
+"John Lennon - Imagine",
+"John Lennon - Woman",
+"John Paul Young - Love is in the air",
+"John Scatman - Scatman",
+"Joselito - Chica bom bom",
+"Junior Senior - Move your feet",
+"Kabah - La calle de las sirenas",
+"Kabrón Latino - Demuéstrame que me amas",
+"Kaoma - Lambada",
+"Katrina And The Waves - Walking on sunshine",
+"KC and The Sunshine - Give it up",
+"KC and The Sunshine - Please dont go",
+"KC and The Sunshine - Shake your booty",
+"KC and The Sunshine - That is the way (I like it)",
+"Ken Laszlo - 1, 2, 3, 4, 5",
+"Ken Laszlo - hey hey guy",
+"Ken Laszlo - Tonight",
+"Kenny Loggins - Danger zone",
+"Kenny Loggins - Footloose",
+"Kim Carnes - Bette davis eyes",
+"Kiss - I was made for loving you",
+"Kiss - Rock and roll all nite",
+"Kool and The Gang - Celebration",
+"Kool and The Gang - Fresh",
+"Kool and The Gang - Get down on it",
+"Kraftwerk - The model",
+"La Bouche - Be my lover",
+"La Bouche - Sweet dreams",
+"La Bouche - Tonight is the night",
+"Laid Back - Sunshine Reggae",
+"Latin Lover - Casanova action",
+"Laura Branigan - Gloria",
+"Laura Branigan - Power of love",
+"Laura Branigan - Self control",
+"Le click - Tonight",
+"Lee Marrow - Shanghai",
+"Lemon Tree - Fools garden",
+"Lesley Gore - It is my party",
+"Level 42 - Lessons in love",
+"Limahl - Never ending story",
+"Lionel Richie - Say you, say me",
+"Lipps Inc - Funky town",
+"Little Richard - Good golly, miss Molly",
+"Little Richard - Long tall sally",
+"Little Richard - Tutti Frutti",
+"Locomia - Loco Vox",
+"Locomia - Locomia",
+"Locomia - Rumba, Samba, Mambo",
+"Londonbeat - I've been thinking about you",
+"Los Del Río - Macarena (Bayside Boys Remix)",
+"Los Del Río - Macarena",
+"Los Lobos - Donna",
+"Los Lobos - La Bamba",
+"Los Lobos - We belong together",
+"Louis Armstrong - What a wonderful world",
+"Margarita - Coconut dancing",
+"Mariana - Talk about love",
+"Martika - Toy soldiers",
+"Mary - Hablemos de amor",
+"Masterboy - Mister Feeling",
+"Matthew Wilder - Break my stride",
+"Maxx - Get a way",
+"MC Hammer - U can't touch this",
+"Men at Work - Down under",
+"Men at Work - Who can it be now",
+"Men Without Hats - The safety dance",
+"Michael Sembello - Maniac",
+"Mike Oldfield - Moonlight shadow",
+"Miko Mission - How old are you",
+"Mikron - Polynesia",
+"Milli Vanilli - Girl I am gonna miss you",
+"Milli Vanilli - Girl you know It is true",
+"Mirage - No more no war",
+"Miss Kimberly - Dj Girl",
+"Modern Talking - Brother Louie",
+"Modern Talking - Cheri cheri lady",
+"Modern Talking - You are My Heart, You are My Soul",
+"Moloko - Sing it back",
+"Moon Ray - Comanchero",
+"Mr President - Coco Jambo",
+"Natalie Imbruglia - Torn",
+"Nazareth - Love hurts",
+"Neil Sedaka - Oh Carol (remix)",
+"Neil Sedaka - Oh Carol",
+"Nena - 99 Red Balloons",
+"New Kids on the Block - Step by step",
+"New Kids on the Block - Tonight",
+"New Order - Bizarre love triangle",
+"Nik Kershaw - The riddle",
+"No Doubt - Dont speak",
+"No Mercy - Where do you go",
+"No Retreat, No Surrender",
+"Now We Are Free",
+"O-Zone - Dragostea Din Tei",
+"Oasis - Stop crying your heart out",
+"Oasis - Wonderwall",
+"Opus - Live is life",
+"Ottawan - DISCO",
+"P Lion - Happy children",
+"Pandera - Come to me",
+"Paradisio - Bailando",
+"Paul Anka - I love you baby",
+"Paul Anka - Put your head on my shoulder",
+"Paul Hertzog - Bloodsport",
+"Paul Young - Everytime you go away",
+"Pet Shop Boys - Always on my mind",
+"Pet Shop Boys - Domino dancing",
+"Pet Shop Boys - Go west",
+"Peter Cetera - Glory of love",
+"Phil Collins - A groovy kind of love",
+"Phil Collins - Another day in paradise",
+"Phil Collins - I wish it would rain down",
+"Phil Colllins - Against all odds",
+"Pink Floyd - Another brick in the wall",
+"Playahitty - The summer is magic",
+"Pretenders - Dont get me wrong",
+"Queen - friends will be friends"
+],
+
+"CLASSIC___": [
+"Radiorama - Aliens",
+"Raggio di Luna - Comanchero_",
+"Randy Bush - Sounds like a melody",
+"Ray Parker - Ghostbusters",
+"Real McCoy - Another Night",
+"Real McCoy - Run away",
+"RedBone - Come and get your love",
+"Reel 2 Real - I like to move it",
+"REM - Everybody hurts",
+"REM - Losing my religion",
+"Renato Carosone - Tu vuo fa l americano",
+"Rex Abe - I can feel it",
+"Richard Marx - Right here waiting",
+"Rick Astley - Never gonna give you up",
+"Rick Astley - Together forever",
+"Rick James - Super Freak",
+"Right Said Fred - I am too sexy",
+"Rita Pavone - Viva la pappa col pomodoro",
+"Robert Miles - Children",
+"Robert Palmer - Simply irresistible",
+"Robert Tepper - No easy way out",
+"Rocco Granata - Marina",
+"Rockwell - Somebody is watching me",
+"Rod Stewart - Do ya think I am sexy",
+"Rofo - You have got to move it on",
+"Rose - Magic Carillon",
+"Rotic - Help me dr dick",
+"Roxette - It must have been love (remix)",
+"Roxette - It must have been love",
+"Roxette - Listen to your heart (remix)",
+"Roxette - Listen to your heart",
+"Roy Orbison - Pretty woman",
+"Rozalla - Everybody is free",
+"Runaway - Del Shannon",
+"Sabrina - Boys",
+"Sade - Smooth operator",
+"Safri Duo - Played a live",
+"Samantha Fox - Touch me (I want your body)",
+"Sandra - Everlasting love",
+"Sandra - Innocent love",
+"Sandra - Maria Magdalena",
+"Santamaria - Falésia do amor",
+"Savage - Dont cry tonight",
+"Savage - Only you",
+"Scorpions - Still loving you",
+"Scorpions - Wind of change (remix)",
+"Scorpions - Wind of change",
+"September - Cry for you",
+"Shania Twain - Man I feel like a woman",
+"Shania Twain - You are still the one",
+"Shocking Blue - Venus",
+"Silent Circle - Touch in the Night",
+"Silver Pozzoli - Around my dream",
+"Simon and Garfunkel - The sound of silence",
+"Sinead O Connor - Nothing compares to you",
+"Spagna - Easy lady",
+"Spandau Ballet - True",
+"Stage - Ocean of crime",
+"Stan Bush - Fight to survive",
+"Starship - nothing is gonna stop us now",
+"Status Quo - In the army now",
+"Steve Miller Band - Abracadabra",
+"Stevie Wonder - I just called to say I love you",
+"Stevie Wonder - Time lover",
+"Sting - Shape of my heart",
+"Survivor - Eye of the tiger",
+"Sylvester - You make me feel",
+"Talk Talk - It is my life",
+"Tarkan - Simarik",
+"Taylor Dayne - Tell It to my heart",
+"Tears For Fears - Everybody wants To rule the world",
+"Tears For Fears - Shout",
+"Technotronic - Get Up",
+"Technotronic - Pump Up The Jam",
+"The Archies - Sugar Sugar",
+"The Beatles - Dont let me down",
+"The Beatles - Help",
+"The Beatles - Hey Jude",
+"The Beatles - Let it be",
+"The Beatles - Twist and shout",
+"The Beatles - Yesterday",
+"The Cardigans - Lovefool",
+"The Cranberries - Ode to my family",
+"The Cranberries - Zombie",
+"The Cure - Boys dont cry",
+"The exorcist",
+"The Flirts - Helpless",
+"The Human League - Dont you want me",
+"The Kingsmen - Louie Louie",
+"The Mamas and The Papas - California Dreaming",
+"The Michael Zager Band - Let us all chant",
+"The Motels - Footsteps (mientes)",
+"The Outfield - Your love",
+"The Platters - Only you",
+"The Pointer Sisters - I am so excited",
+"The Police - Every breath you take",
+"The Pussycat Dolls - Sway",
+"The Rolling Stones - (I can't get no) Satisfaction",
+"The Rolling Stones - Angie",
+"The Rolling Stones - Anybody seen my baby",
+"The Tokens - The lion dleeps tonight",
+"The Turtles - Happy together",
+"Tina Charles - I love to love",
+"Tina Turner - What is love got to do with it",
+"Tom Jones - It is Not unusual",
+"Tom Jones - She is a lady",
+"Toni Brasil - Mickey",
+"Toni Braxton - Unbreak my heart",
+"Tony Espocito - Kalimba de luna",
+"Toto - Africa",
+"Toto - Hold the line",
+"Toto - Rosanna",
+"Tracy Chapman - Baby can I hold you",
+"Trans-X - Living on video",
+"Two in One - Wave your hnds in ari",
+"UB40 - Red red wine",
+"Unique - Do whats you please",
+"Valeria Dore - The night",
+"Vanessa Paradis - Joe le taxi",
+"Vangelis - Chariots of fire",
+"Vangelis - Conquest of Paradise",
+"Vengaboys - To Brazil",
+"Vengaboys - We like to party",
+"Village People - Macho Man",
+"Village People - Y.M.C.A",
+"Way Maker - Aquí estás",
+"Wham! - Wake me up before you go",
+"Whitesnake - Is this love",
+"Whitney Houston - I wanna dance with somebody",
+"Whitney Houston - I will always love you",
+"Yaki Da - I saw you dancing",
+"Youssou N Dour feat Neneh Cherry - 7 seconds",
+"Yuri - Jesucristo",
+"Zucchero and Paul Young - Senza una donna"
+],
+
+"LATIN": [
+"Airbag - Amor de verano",
+"Alejandro Lerner - Volver a empezar",
+"Alejandro Sanz - Amiga mía",
+"Alejandro Sanz - La fuerza del corazón",
+"Alejandro Sanz feat Alicia Keys - Looking for Paradise",
+"Alejandro Sanz - Mi soledad y yo",
+"Alejandro Sanz - Pisando fuerte",
+"Alex Ubago - Dame tu aire",
+"Alex Ubago - Sin miedo a nada",
+"Ambra - Te pertenezco",
+"Amistades Peligrosas - Me quedaré solo",
+"Andrea Bochelli - Vivo por ella",
+"Axel Fernando - La clave para conquistarte",
+"Axel Fernando - Te equivocas",
+"Axel Fernando - Te voy a amar",
+"Axel Fernando - ¿Qué estás buscando",
+"Bacilos - Caraluna",
+"Bacilos - Mi primer millón",
+"Cabas - Mi Bombón",
+"Café Tacuba - Eres",
+"Camila - Aléjate de mí amor",
+"Camila - Mientes",
+"Carlos Baute - Quien te quiere como yo",
+"Carlos Baute feat Marta Sánchez - Colgado en tus manos",
+"Carlos Mata - Déjame intentar",
+"Chayanne - Completamente enamorados",
+"Chayanne - Dejaría todo",
+"Chayanne - Un siglo sin ti",
+"Chayanne - Y tú te vas",
+"Christina Aguilera - Pero me acuerdo de ti",
+"Cristian Castro - Azul",
+"Cristian Castro - Lloran las rosas",
+"Cristian Castro - Lloviendo estrellas",
+"Cristian Castro - No podrás",
+"Cristian Castro - Volver a amar",
+"Daniela Herrero - Solo tus canciones",
+"David Bisbal - Dígale",
+"Diego Torres - Color esperanza",
+"DLG - La quiero a morir",
+"DLG - Quimbara",
+"Elvis Crespo - Píntame",
+"Elvis Crespo - Suavemente",
+"Emanuel Ortega - A escondidas",
+"Enanitos Verdes - Amigos",
+"Enrique Iglesias - Experiencia religiosa",
+"Enrique Iglesias - No llores por mí",
+"Enrique Iglesias - Por amarte",
+"Enrique Iglesias - Si tú te vas",
+"Eros Ramazzotti - Cosas de la vida",
+"Eros Ramazzotti - La cosa más bella",
+"Eros Ramazzotti - Otra como tú",
+"Eros Ramazzotti - Una emoción para siempre",
+"Fey - Azúcar amargo",
+"Fey - Media naranja",
+"Franco De Vita - Cálido y frío",
+"Franco De Vita - Solo me importas tú",
+"Franco De Vita - Te amo",
+"Gianluca Grignani - Mi historia entre tus dedos",
+"Gloria Estefan - Conga",
+"Gloria Estefan - Hoy",
+"Gloria Estefan - Mi tierra",
+"Gloria Estefan - Oye mi canto",
+"Jarabe de Palo - Depende",
+"Jesse y Joy - Corre corazón",
+"Jesse y Joy - Llorar",
+"Juan Luis Guerra - Bachata Rosa",
+"Juan Luis Guerra - Burbujas de amor",
+"Julieta Venegas - Limón y sal",
+"Julieta Venegas - Me voy",
+"La Oreja de Van Gogh - Rosas",
+"La Sociedad - Nada quedará",
+"Las Ketchup - Aserejé",
+"Laura Pausini - Amores extraños",
+"Laura Pausini - Emergencia de amor",
+"Laura Pausini - La soledad",
+"Laura Pausini - Se fue",
+"Laura Pausini feat James Blunt - Primavera anticipada",
+"Luis Fonsi - Despacito",
+"Luis Fonsi - Imagíname sin ti",
+"Luis Fonsi - No me doy por vencido",
+"Luis Miguel - Ahora te puedes marchar",
+"Luis Miguel - Amor",
+"Luis Miguel - Bésame mucho",
+"Luis Miguel - Dame",
+"Luis Miguel - Entrégate",
+"Luis Miguel - Suave",
+"Luis Miguel - Sueña",
+"Magneto - Mal herido",
+"Magneto - Vuela vuela",
+"Marcela Morelo - Creer",
+"Marcela Morelo - Luz del cielo",
+"Marco Antonio Solís - Si no te hubieras ido",
+"Marta Sánchez - Arena y sol",
+"Marta Sánchez - Desconocida",
+"Marta Sánchez - Desesperada",
+"Marta Sánchez - Dime la verdad",
+"Nek - Amor inmenso",
+"Nek - Laura no está",
+"No Mercy - Cuando yo muera",
+"Noelia - Candela",
+"Noelia - Tú",
+"Obie Bermúdez - Antes",
+"Onda Vaselina - Te quiero tanto",
+"Paulina Rubio - Y yo sigo aquí",
+"Paulina Rubio - Yo no soy esa mujer",
+"RBD - Sálvame",
+"Reik - Noviembre sin ti",
+"Ricardo Arjona - Cuando",
+"Ricardo Arjona - El problema",
+"Ricardo Arjona - Historia de taxi",
+"Ricardo Arjona - Jesús",
+"Ricardo Arjona - Mujeres",
+"Ricardo Arjona - Santo pecado",
+"Ricardo Arjona - Señora de las cuatro décadas",
+"Ricardo Arjona - Te conozco",
+"Ricardo Montaner - Tan enamorados",
+"Ricky Martin - Bella",
+"Ricky Martin - El amor de mi vida",
+"Ricky Martin - Fuego contra fuego",
+"Ricky Martin - La copa de la vida",
+"Ricky Martin - Vive la vida loca",
+"Ricky Martin - María",
+"Ricky Martin - Nobody wants to be lonely",
+"Ricky Martin - Private emotion",
+"Ricky Martin - Te extraño, te olvido, te amo",
+"Ricky Martin - Vuelve",
+"Robi Rosas - Cruzando puertas",
+"Rosana - El talismán",
+"Rubén Rada - Cha cha, muchacha",
+"Shakira - Ciega sordomuda",
+"Shakira - Dónde estás corazón",
+"Shakira - Estoy aquí",
+"Shakira - Hips Don't Lie",
+"Shakira - Pies descalzos",
+"Shakira - Suerte",
+"Shakira - Underneath your clothes",
+"Sig Zag - Tantos deseos de ti",
+"Sin Bandera - Kilómetros",
+"Sin Bandera - Que lloro",
+"Son by Four - A puro dolor",
+"Soraya - De repente",
+"Tam Tam Go - Atrapados en la red",
+"Thalía - Amor a la mexicana",
+"Thalía - Entre el mar y una estrella",
+"Thalía - Gracias a Dios",
+"Thalía - No me enseñaste",
+"Thalía - Piel morena",
+"Tiziano Ferro - Alucinado",
+"Tiziano Ferro - Tardes negras",
+"Vico C - Me acuerdo",
+"Way Maker - Aquí estás"
+],
+
+"LATINREC": [
+"Alejandra Guzmán - Hacer el amor con otro",
+"Amanda Miguel - Él me mintió",
+"Ana Belén - El hombre del piano",
+"Ana Gabriel - Quién como tú",
+"Ana Gabriel - Simplemente amigos",
+"Azúcar Moreno - Devórame otra vez",
+"Azúcar Moreno - Solo se vive una vez",
+"Camilo Sesto - Con el viento a tu favor",
+"Camilo Sesto - El amor de mi vida",
+"Camilo Sesto - Melina",
+"Camilo Sesto - Miénteme",
+"Camilo Sesto - Perdóname",
+"Camilo Sesto - Quiere ser mi amante",
+"Camilo Sesto - Vivir así es morir de amor",
+"Diego Verdaguer - Volveré",
+"Dyango - Corazón mágico",
+"Emmanuel - Bella señora",
+"Emmanuel - La chica de humo",
+"Fabiana Cantilo - Mi enfermedad",
+"Franco Simone - Paisaje",
+"Isabel Pantoja - Así fue",
+"Isabel Pantoja - Marinero de luces",
+"Jeanette - ¿Por qué te vas",
+"Jeanette - Soy rebelde",
+"José José - La nave del olvido",
+"José Luis Perales - Quisiera decir tu nombre",
+"José Luis Perales - Te quiero",
+"José Luis Perales - Un velero llamado Libertad",
+"José Luis Rodríguez - Dueño de nada",
+"José Luis Rodríguez - Agárrense de las manos",
+"Juan Gabriel - Abrázame muy fuerte",
+"Juan Gabriel - Así fue",
+"Juan Gabriel - Hasta que te conocí",
+"Juan Gabriel - Querida",
+"Julio Iglesias - Agua dulce, agua salada",
+"Julio Iglesias - Bacalao con papas",
+"Julio Iglesias - Baila morena",
+"Kano y los Bulldogs - Sobre un vidrio mojado",
+"La Joven Guardia - El extraño de pelo largo",
+"Leo Dan - Cómo poder saber si te amo",
+"Leo Dan - Cómo te extraño mi amor",
+"Leo Dan - Mary es mi amor",
+"Leo Dan - Santiago querido",
+"Leo Dan - Te he prometido",
+"Leonardo Favio - Ella ya me olvidó",
+"Leonardo Favio - Fuiste mía un verano",
+"Leonardo Favio - Llovía como llueve",
+"Los Diablos - Un rayo de sol",
+"Los Golpes - Con la mano en la Biblia",
+"Los Golpes - Olvidarte nunca",
+"Los Iracundos - La lluvia terminó",
+"Los Iracundos - Puerto Montt",
+"Los Iracundos - Y te has quedado sola",
+"Los Náufragos (Safari) - Estoy hecho un demonio",
+"Los Náufragos - De boliche en boliche",
+"Los Náufragos - Otra vez en la vía",
+"Los Náufragos - Te quiero ver bailar",
+"Los Náufragos - Zapatos rotos",
+"Los Pasteles Verdes - El reloj",
+"Manolo Galván - Deja de llorar",
+"Marco Antonio Solís - Si no te hubieras ido",
+"Moris - El oso",
+"Myriam Hernández - Eres",
+"Myriam Hernández - Se me fue",
+"Mónica Naranjo - Sola",
+"Mónica Naranjo - Óyeme",
+"Nino Bravo - Libre",
+"Nino Bravo - Noelia",
+"Nino Bravo - Te quiero, te quiero",
+"Nino Bravo - Un beso y una flor",
+"Patricia Sosa - Endúlzame los oídos",
+"Pedro y Pablo - ¿Dónde va la gente cuando llueve",
+"Pedro y Pablo - Marcha de la bronca",
+"Piero - Mi viejo",
+"Raffaella Carrà - 03 03 456",
+"Raffaella Carrà - Explota mi corazón",
+"Raffaella Carrà - Hay que venir al sur",
+"Raphael - Yo soy aquel",
+"Roberto Carlos - Yo solo quiero un millón de amigos",
+"Rocío Dúrcal - La gata bajo la lluvia",
+"Rubén Mattos - Salta pequeña langosta",
+"Rudy La Scala - Mi vida eres tú",
+"Rudy La Scala - ¿Por qué será",
+"Sergio Dalma - Bailar pegados",
+"Sergio Denis - Nada hará cambiar mi amor por ti",
+"Sergio Denis - Sobre un vidrio mojado",
+"Soraya - De repente",
+"Sui Generis - Canción para mi muerte",
+"Tormenta - Muchacho de blue jeans",
+"Ulises Butrón - Pero el amor es más fuerte",
+"Valeria Lynch - Ámame en cámara lenta",
+"Víctor Heredia - Todavía cantamos"
+],
+
+"POP": [
+"Alizée - J'en ai marre",
+"Backstreet Boys - As Long as You Love Me",
+"Backstreet Boys - I Want It That Way",
+"Backstreet Boys - Shape of My Heart",
+"Backstreet Boys - Show Me the Meaning of Being Lonely",
+"Beyoncé - Crazy in Love",
+"Beyoncé - Single Ladies",
+"Britney Spears - ...Baby One More Time",
+"Britney Spears - Everytime",
+"Britney Spears - From the Bottom of My Broken Heart",
+"Britney Spears - Sometimes",
+"Camila Cabello - Havana",
+"Camila Cabello - Señorita",
+"Cartel de Santa - La Pelotona",
+"Christina Aguilera - Can't Hold Us Down",
+"Christina Aguilera - Genie in a Bottle",
+"Chumbawamba - Tubthumping (I Get Knocked Down)",
+"Destiny's Child - Survivor",
+"Eminem - Lose Yourself",
+"Eminem feat Dido - Stan",
+"Five - Slam Dunk (Da Funk)",
+"Five - When the Lights Go Out",
+"Gwen Stefani - Hollaback Girl",
+"Gwen Stefani - Rich Girl",
+"Imagine Dragons - Believer",
+"James Blunt - You're Beautiful",
+"Jennifer Lopez - Let's Get Loud",
+"Jennifer Lopez - Waiting for Tonight",
+"Jessie J - Price Tag",
+"Justin Bieber feat Ludacris - Baby",
+"Katy Perry - Hot N Cold",
+"Kylie Minogue - Can't Get You Out of My Head",
+"Kylie Minogue - Come into My World",
+"Kylie Minogue - Love at First Sight",
+"Lenny Kravitz - Again",
+"Lenny Kravitz - Fly Away",
+"Madcon y The Police - Just Go with It",
+"Madonna - La Isla Bonita",
+"Madonna - Like a Prayer",
+"Madonna - Material Girl",
+"Madonna - Papa Don't Preach",
+"Madonna - Who's That Girl",
+"Mandy Moore - Candy",
+"Maroon 5 - This Love",
+"Michael Jackson - Beat It",
+"Michael Jackson - Billie Jean",
+"Michael Jackson - Black or White",
+"Michael Jackson - Don't Stop 'Til You Get Enough",
+"Michael Jackson - Earth Song",
+"Michael Jackson feat Janet Jackson - Scream",
+"Michael Jackson - Heal the World",
+"Michael Jackson - Rock with You",
+"Michael Jackson - Smooth Criminal",
+"Michael Jackson - The Way You Make Me Feel",
+"Michael Jackson - They Don't Care About Us",
+"Michael Jackson - Thriller",
+"Michael Jackson - Will You Be There",
+"Michael Jackson - You Are Not Alone",
+"Molotov - Gimme Tha Power",
+"Nelly feat Kelly Rowland - Dilemma",
+"Nelly Furtado - I'm Like a Bird",
+"Nelly Furtado - Turn Off the Light",
+"Nsync - Bye, bye, bye",
+"Nsync - I want you back",
+"OutKast - Hey Ya!",
+"Peter Bjorn and John - Young Folks",
+"Pitbull - Feel This Moment",
+"Pitbull - I Know You Want Me (Calle Ocho)",
+"Porta - La Bella y la Bestia",
+"Rihanna - Diamonds",
+"Rihanna - Umbrella",
+"Robbie Williams - Angels",
+"Robbie Williams - Rock DJ",
+"Santana feat Michelle Branch - The Game of Love",
+"Sean Paul - Get Busy",
+"Sean Paul - Temperature",
+"Spice Girls - Wannabe",
+"Taylor Swift - Shake It Off",
+"The Black Eyed Peas - I Gotta Feeling",
+"The Black Eyed Peas - The Time (Dirty Bit)",
+"The Pussycat Dolls - Hush Hush",
+"Usher feat Lil Jon feat Ludacris - Yeah",
+"Vico C - Me acuerdo",
+"Westlife - Uptown Girl"
+],
+
+"ROCKALT": [
+"AC-DC - Back in Black",
+"AC-DC - Highway to Hell",
+"Aerosmith - Come togheter",
+"Aerosmith - Crazy",
+"Aerosmith - Crying",
+"Aerosmith - Fly away form here",
+"Aerosmith - I do not want to miss a thing",
+"Avril Lavigne - Complicated",
+"Avril Lavigne - Do not tell me",
+"Blink 182 - All the small things",
+"Blink 182 - I miss you",
+"Bloodhound Gang - The bad touch",
+"Bon Jovi - Always",
+"Bon Jovi - Bed of roses",
+"Bon Jovi - Blaze of glory",
+"Bon Jovi - I will be there for you",
+"Bon Jovi - It is my life",
+"Bon Jovi - Living on a prayer",
+"Bon Jovi - You give love a bad name",
+"Coldplay - Fix you",
+"Coldplay - Paradise",
+"Coldplay - Viva la vida",
+"Creep - Radiohead",
+"Dido - Thank you",
+"Dido - White flag",
+"Drowning Pool - Bodies",
+"Evanescence - Bring me to life",
+"Evanescence - Going under",
+"Evanescence - My Immortal",
+"Gorillaz - Clint Eastwood",
+"Green Day - Wake me up when september ends",
+"Green Day feat Oasis - Boulevard of broken dreams",
+"Guns N Roses - Do not cry",
+"Guns N Roses - Knocking on heaven is door",
+"Guns N Roses - November Rain",
+"Guns N Roses - Since I do not have you",
+"Hoobastank - The Reason",
+"Kudai - Déjame gritar",
+"Kudai - Llévame",
+"Limp Bizkit - Rolling",
+"Limp Bizkit - Take a look around",
+"Linkin Park - A place for my head",
+"Linkin Park - Breaking the habit",
+"Linkin Park - Crawling",
+"Linkin Park - Faint",
+"Linkin Park - In the end",
+"Linkin Park - Numb",
+"Linkin Park - One step closer",
+"Linkin Park - Papercut",
+"Linkin Park - Runaway",
+"Linkin Park - Somewhere I belong",
+"Linkin Park - What I have done",
+"Mega & Dia - Monster",
+"Metallica - The unforgiven",
+"My Chemical Romance - The ghost of you",
+"Nickelback - How you remind me",
+"Nirvana - About a girl",
+"Nirvana - Come as you are",
+"Nirvana - Lithium",
+"Nirvana - Smells like teen spirit",
+"Queen - Crazy little thing called love",
+"Queen - I want to break free",
+"Queen - The great pretender",
+"Queen - We are the champions",
+"Queen - We will rock you",
+"Red Hot Chili Peppers - Around The World",
+"Red Hot Chili Peppers - By the way",
+"Red Hot Chili Peppers - Californication",
+"Red Hot Chili Peppers - Give it away",
+"Red Hot Chili Peppers - Otherside",
+"System Of A Down - Chop suey",
+"System of a down - Toxicity",
+"TATU - All about us",
+"TATU - All the things she said",
+"TATU - Not gonna get us",
+"The Offspring - The kids are not alright",
+"The Offspring - Want you bad",
+"The Offspring - Why do not you get a job",
+"The Ramsus - In the shadows",
+"The Verve - Bitter sweet symphony"
+]
+
+};
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function getAnswer(file) {
+  return file.replace(/\.mp3$/i, '');
+}
+
+function buildQuestion(file, category) {
+  const correct = getAnswer(file);
+  let pool = shuffle(musicLib[category].filter(f => f !== file));
+  let distractorFiles = pool.slice(0, 2);
+  if (distractorFiles.length < 2) {
+    const usados = new Set([file, ...distractorFiles]);
+    const otros = shuffle(Object.values(musicLib).flat().filter(f => !usados.has(f)));
+    while (distractorFiles.length < 2 && otros.length) distractorFiles.push(otros.pop());
+  }
+  const options = shuffle([correct, ...distractorFiles.map(getAnswer)]);
+  return { file, category, correct, options };
+}
+
+const RULETA_VARIANTES = {
+  'CLASSIC':    ['CLASSIC'],
+  'CLASSIC_':   ['CLASSIC_'],
+  'CLASSIC__':  ['CLASSIC__'],
+  'ELECTR':     ['ELECTR'],
+  'LATIN':      ['LATIN'],
+  'LATIN_':     ['LATIN_'],
+  'POP':        ['POP'],
+  'ROCK':       ['ROCK']
+};
+const RULETA_LABELS = ['Classic',      'Classic_',     'Classic__',     'Electro',     'Latin',     'Latin_',      'Pop',     'Rock'];
+const RULETA_KEYS   = ['CLASSIC',      'CLASSIC_',     'CLASSIC__',     'ELECTR',      'LATIN',     'LATIN_',      'POP',     'ROCK'];
+const RULETA_COLORS = ['#F4D03F',      '#E67E22',      '#A1887F',       '#3498DB',     '#52BE80',   '#8E44AD',     '#E74C3C', '#E84393'];
+const RULETA_ICONS  = {'CLASSIC':'📼', 'CLASSIC_':'📻', 'CLASSIC__':'🪗', 'ELECTR':'🎧', 'LATIN':'🎤', 'LATIN_':'💃', 'POP':'🎶', 'ROCK':'🎸'};
+const canvas = document.getElementById('ruleta-canvas');
+const ctx    = canvas.getContext('2d');
+let rAngle = 0, spinning = false, audioCtx = null;
+let chosenSubCategory = null;
+
+function getAC() { if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+function playTick(p=1) {
+  try {
+    const ac=getAC(), buf=ac.createBuffer(1,ac.sampleRate*0.04,ac.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/(ac.sampleRate*0.008));
+    const s=ac.createBufferSource(); s.buffer=buf; s.playbackRate.value=p;
+    const f=ac.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1200*p; f.Q.value=2;
+    const g=ac.createGain(); g.gain.value=0.32;
+    s.connect(f); f.connect(g); g.connect(ac.destination); s.start();
+  } catch(e){}
+}
+function playFinal() {
+  try {
+    const ac=getAC(),o=ac.createOscillator(),g=ac.createGain();
+    o.type='sine'; o.frequency.setValueAtTime(880,ac.currentTime);
+    o.frequency.exponentialRampToValueAtTime(660,ac.currentTime+0.3);
+    g.gain.setValueAtTime(0.4,ac.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.6);
+    o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime+0.6);
+  } catch(e){}
+}
+
+function setupCanvas() {
+  const s = Math.round(Math.min(360, canvas.getBoundingClientRect().width || document.documentElement.clientWidth * 0.84));
+  if (s < 10) { requestAnimationFrame(setupCanvas); return; }
+  if (canvas.width === s) return;
+  canvas.width = canvas.height = s;
+  drawWheel();
+}
+
+function lighten(hex) {
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgb(${Math.min(255,r+55)},${Math.min(255,g+55)},${Math.min(255,b+55)})`;
+}
+
+function drawWheel(hi=-1) {
+  const W=canvas.width, cx=W/2, cy=W/2, R=W/2-4, n=RULETA_LABELS.length, arc=(Math.PI*2)/n;
+  ctx.clearRect(0,0,W,W);
+  for(let i=0;i<n;i++){
+    const s=rAngle+i*arc, e=s+arc, mid=s+arc/2;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,s,e); ctx.closePath();
+    ctx.fillStyle = hi===i ? lighten(RULETA_COLORS[i]) : RULETA_COLORS[i];
+    ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.22)'; ctx.lineWidth=1.5; ctx.stroke();
+    const fs=Math.max(9,Math.min(R*0.13,19)), tx=W*0.14;
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(mid); ctx.textAlign='left';
+    ctx.fillStyle='#fff'; ctx.shadowColor='rgba(0,0,0,0.6)'; ctx.shadowBlur=4;
+    ctx.font=`700 ${fs}px 'DM Sans',sans-serif`;
+    ctx.fillText(RULETA_LABELS[i], tx+4, fs*0.37, R-tx-6);
+    ctx.restore();
+  }
+  ctx.beginPath(); ctx.arc(cx,cy,W*0.07,0,Math.PI*2);
+  ctx.fillStyle='#0f0f13'; ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.1)'; ctx.lineWidth=2; ctx.stroke();
+}
+
+document.getElementById('ruleta-btn').addEventListener('click', function(){
+  if(spinning) return;
+  spinning=true; this.disabled=true;
+  try{getAC().resume();}catch(e){}
+  const res=document.getElementById('ruleta-result');
+  res.className=''; res.textContent='';
+
+  const todosLosGrupos = Object.keys(musicLib);
+  chosenSubCategory = todosLosGrupos[Math.floor(Math.random() * todosLosGrupos.length)];
+
+  let targetIdx = 0;
+  for(let k=0; k<RULETA_KEYS.length; k++){
+    const vars = RULETA_VARIANTES[RULETA_KEYS[k]];
+    if(vars && vars.indexOf(chosenSubCategory) !== -1){ targetIdx = k; break; }
+  }
+
+  const n=RULETA_LABELS.length, arcSz=(Math.PI*2)/n;
+  const sectorMid = targetIdx * arcSz + arcSz / 2;
+  const desiredAngle = ((-Math.PI/2) - sectorMid % (Math.PI*2) + Math.PI*2*100) % (Math.PI*2);
+  const from = rAngle % (Math.PI*2);
+  const vueltas = (6 + Math.floor(Math.random()*5)) * Math.PI * 2;
+  const diff = (desiredAngle - from + Math.PI*2*100) % (Math.PI*2);
+  const total = vueltas + diff;
+
+  const dur=4000+Math.random()*1500;
+  const t0=performance.now();
+  function ease(t){return 1-Math.pow(1-t,4);}
+  let lastSeg=-1;
+
+  (function frame(now){
+    const t=Math.min((now-t0)/dur,1);
+    rAngle=from+total*ease(t);
+    drawWheel();
+    const ptr=((-rAngle-Math.PI/2)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+    const seg=Math.floor(ptr/arcSz)%n;
+    if(seg!==lastSeg){ lastSeg=seg; if(t<1) playTick(0.6+4*Math.pow(1-t,3)*2.2); }
+    if(t<1){requestAnimationFrame(frame);return;}
+
+    rAngle=rAngle%(Math.PI*2);
+    spinning=false;
+
+    drawWheel(targetIdx); playFinal();
+
+    const key=RULETA_KEYS[targetIdx];
+    res.textContent=RULETA_ICONS[key]+' '+RULETA_LABELS[targetIdx];
+    res.className='ruleta-pop';
+    res.style.color='#333';
+    res.style.textShadow='0 0 8px lime, 0 0 3px cyan';
+    res.style.fontWeight='bold';
+
+    setTimeout(()=>switchToTrivia(chosenSubCategory), 3000);
+  })(performance.now());
+});
+
+function switchToTrivia(subCat) {
+  const sr=document.getElementById('screen-ruleta');
+  const st=document.getElementById('screen-trivia');
+  sr.classList.add('fade-out');
+  setTimeout(()=>{
+    sr.style.display='none'; sr.classList.remove('fade-out');
+    st.style.display='block'; st.classList.add('fade-in');
+    setTimeout(()=>st.classList.remove('fade-in'),400);
+    startGame(subCat);
+  },320);
+}
+
+function switchToRuleta() {
+  const sr=document.getElementById('screen-ruleta');
+  const st=document.getElementById('screen-trivia');
+
+  cleanupAudioListeners();
+  if(currentAudioEl){ try{ currentAudioEl.pause(); }catch(e){} currentAudioEl=null; }
+  document.getElementById('question').textContent='';
+  document.getElementById('answers').innerHTML='';
+  document.getElementById('category-display').textContent='';
+  document.getElementById('progress-bar').style.width='100%';
+  document.getElementById('ruleta-result').textContent='';
+  chosenSubCategory=null;
+
+  st.classList.add('fade-out');
+  setTimeout(()=>{
+    st.style.display='none'; st.classList.remove('fade-out');
+    sr.style.display='flex'; sr.classList.add('fade-in');
+    setTimeout(()=>sr.classList.remove('fade-in'),400);
+    document.getElementById('ruleta-btn').disabled=false;
+  },320);
+}
+
+window.addEventListener('resize', setupCanvas);
+window.addEventListener('load', setupCanvas);
+
+let currentCategory = null, currentQuestions = [];
+let score = 0, fails = 0, totalQuestions = 0;
+let currentAudioEl = null, answered = false, remainingSeconds = 0;
+const questionElement  = document.getElementById('question');
+const answersElement   = document.getElementById('answers');
+const progressBar      = document.getElementById('progress-bar');
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+}
+
+function playgood() {
+    initAudio();
+    const notas = [523.25, 587.33, 659.25, 783.99];
+    const tiempos = [0, 0.15, 0.3, 0.45];
+    
+    notas.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime + tiempos[i]);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + tiempos[i] + 0.15);
+        
+        osc.start(audioCtx.currentTime + tiempos[i]);
+        osc.stop(audioCtx.currentTime + tiempos[i] + 0.15);
+    });
+}
+
+function playfail() {
+    initAudio();
+    const now = audioCtx.currentTime;
+    [440, 392, 349.23, 293.66].forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.12, now + i * 0.15);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.4);
+        osc.start(now + i * 0.15);
+        osc.stop(now + i * 0.15 + 0.45);
+    });
+}
+
+function playlose() {
+    initAudio();
+    const now = audioCtx.currentTime;
+
+    const notasDescendentes = [392, 349.23, 311.13, 293.66, 261.63];
+    notasDescendentes.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now + i * 0.2);
+        gainNode.gain.setValueAtTime(0.15, now + i * 0.2);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + i * 0.2 + 0.25);
+        
+        osc.start(now + i * 0.2);
+        osc.stop(now + i * 0.2 + 0.25);
+    });
+
+    const oscFinal = audioCtx.createOscillator();
+    const gainFinal = audioCtx.createGain();
+    
+    oscFinal.connect(gainFinal);
+    gainFinal.connect(audioCtx.destination);
+    
+    oscFinal.type = 'sawtooth';
+    oscFinal.frequency.setValueAtTime(130.81, now + 1.2);
+    gainFinal.gain.setValueAtTime(0.2, now + 1.2);
+    gainFinal.gain.exponentialRampToValueAtTime(0.01, now + 1.2 + 0.6);
+    
+    oscFinal.start(now + 1.2);
+    oscFinal.stop(now + 1.2 + 0.6);
+}
+
+function playwin() {
+    initAudio();
+    const now = audioCtx.currentTime;
+
+    const notasIniciales = [523.25, 587.33, 659.25, 783.99];
+    notasIniciales.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.frequency.setValueAtTime(freq, now + i * 0.15);
+        gainNode.gain.setValueAtTime(0.2, now + i * 0.15);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.15);
+        
+        osc.start(now + i * 0.15);
+        osc.stop(now + i * 0.15 + 0.15);
+    });
+
+    const notasFinales = [880, 1046.5];
+    notasFinales.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        const startTime = now + 0.75 + i * 0.15;
+        osc.frequency.setValueAtTime(freq, startTime);
+        gainNode.gain.setValueAtTime(0.25, startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+        
+        osc.start(startTime);
+        osc.stop(startTime + 0.2);
+  });
+}
+
+let remainingPercent = 100;
+function timerColor() {
+  if(remainingPercent>66) return 'green';
+  if(remainingPercent>33) return 'darkgoldenrod';
+  return 'red';
+}
+
+function updateDisplay() {
+  const cd=document.getElementById('category-display');
+cd.innerHTML=`${currentCategory}&nbsp;/&nbsp;<span style="font-size:20px;font-family:'Calculator',monospace;font-weight:bold;">${score}</span> ✅ &nbsp;y&nbsp;<span style="font-size:20px;font-family:'Calculator',monospace;font-weight:bold;">${fails}</span>❌&nbsp;de&nbsp;<span style="font-size:20px;font-family:'Calculator',monospace;font-weight:bold;">${totalQuestions}</span>&nbsp;/&nbsp;<span style="color:${timerColor()};font-size:20px;font-family:'Calculator',monospace;font-weight:bold;">${remainingSeconds}s</span>`;
+}
+
+function startGame(category) {
+  currentCategory=category;
+  currentQuestions=musicLib[category].map(file=>buildQuestion(file, category));
+  score=0; fails=0; totalQuestions=currentQuestions.length;
+  remainingSeconds=0; remainingPercent=100;
+  updateDisplay();
+  showNextQuestion();
+}
+
+function showNextQuestion() {
+  if(currentQuestions.length===0){
+    const mitad=Math.ceil(totalQuestions/2);
+    if(score>=mitad){
+      playwin();
+      setTimeout(()=>{
+        const msg = new SpeechSynthesisUtterance("Gracias por usar PuzzleX by Carlos Sivila");
+        msg.lang = "es-AR";
+        msg.rate = 0.95;
+        msg.pitch = 1;
+        window.speechSynthesis.speak(msg);
+        setTimeout(()=>{
+          alert(`¡GANASTE! \nPuntaje: ${score} aciertos y ${fails} fallos de ${totalQuestions}\nGracias por usar PuzzleX by Carlos Sivila`);
+          switchToRuleta();
+        }, 5000);
+      }, 1000);
+    } else {
+      playlose();
+      setTimeout(()=>{
+        alert(`¡PERDISTE! \nPuntaje: ${score} aciertos y ${fails} fallos de ${totalQuestions}\nGracias por usar PuzzleX by Carlos Sivila`);
+        switchToRuleta();
+      },1000);
+    }
+    return;
+  }
+
+  const ri=Math.floor(Math.random()*currentQuestions.length);
+  const qd=currentQuestions[ri];
+  const correct=qd.correct;
+  currentQuestions.splice(ri,1);
+  answered=false;
+
+  const folder = qd.category;
+  questionElement.innerHTML=`<audio id="game-audio" src="${encodeURIComponent(folder)}/${encodeURIComponent(qd.file)}.mp3" controls autoplay></audio>`;
+  currentAudioEl=document.getElementById('game-audio');
+
+  answersElement.innerHTML='';
+  qd.options.forEach(a=>{
+    const b=document.createElement('button');
+    b.textContent=a;
+    b.addEventListener('click',()=>checkAnswer(b,a,correct));
+    answersElement.appendChild(b);
+  });
+
+  progressBar.style.width='100%';
+  progressBar.style.background='lime';
+  remainingSeconds=0; remainingPercent=100;
+  updateDisplay();
+
+  currentAudioEl.addEventListener('timeupdate', onAudioTimeUpdate);
+  currentAudioEl.addEventListener('ended', onAudioEnded);
+  currentAudioEl.play().catch(()=>{});
+}
+
+function onAudioTimeUpdate() {
+  const dur=currentAudioEl.duration;
+  if(!dur || !isFinite(dur)) return;
+  const remaining=Math.max(0, dur-currentAudioEl.currentTime);
+  remainingPercent=(remaining/dur)*100;
+  remainingSeconds=Math.ceil(remaining);
+  progressBar.style.width=remainingPercent+'%';
+  progressBar.style.background = remainingPercent>66 ? 'lime' : remainingPercent>33 ? 'orange' : 'red';
+  updateDisplay();
+}
+
+function onAudioEnded() {
+  if(answered) return;
+  answered=true;
+  cleanupAudioListeners();
+  playlose();
+  setTimeout(()=>{
+    alert(`¡PERDISTE!, se te acabó el tiempo \nPuntaje: ${score} aciertos y ${fails} fallos de ${totalQuestions}\nGracias por usar PuzzleX by Carlos Sivila`);
+    switchToRuleta();
+  },500);
+}
+
+function cleanupAudioListeners() {
+  if(currentAudioEl){
+    currentAudioEl.removeEventListener('timeupdate', onAudioTimeUpdate);
+    currentAudioEl.removeEventListener('ended', onAudioEnded);
+  }
+}
+
+function checkAnswer(button, sel, correct) {
+  if(answered) return;
+  answered=true;
+  cleanupAudioListeners();
+  if(currentAudioEl){ try{ currentAudioEl.pause(); }catch(e){} }
+  for(let b of answersElement.getElementsByTagName('button')){
+    b.disabled=true;
+    if(b.textContent===correct) b.classList.add('correct');
+  }
+  if(sel===correct){ score++; playgood(); }
+  else { fails++; button.classList.add('incorrect'); playfail(); }
+  updateDisplay();
+  setTimeout(showNextQuestion,1500);
+}
+
+document.addEventListener('contextmenu',e=>e.preventDefault());
+</script>
+</body>
+</html>
