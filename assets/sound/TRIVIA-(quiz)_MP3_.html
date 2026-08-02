@@ -183,7 +183,6 @@ body {
   border-radius: 5px;
   display: flex;
   justify-content: center;
-  /* Oculto visualmente pero presente en el DOM: el audio sigue reproduciéndose en segundo plano */
   position: absolute;
   width: 1px;
   height: 1px;
@@ -228,7 +227,6 @@ body {
   width: 100%;
 }
 
-
 .btn {
   display: inline-block;
   font-size: 18px;
@@ -243,7 +241,6 @@ body {
   box-shadow: 0 0 15px cyan, 0 0 30px aqua;
 }
 
-
 #trivia-footer {
   margin-top: 4px;
 }
@@ -254,8 +251,6 @@ body {
   color: cyan; font-size: 18px; line-height: 1.4;
   padding: 4px 0;
 }
-
-#trivia-footer .fire-row { display: flex; flex-wrap: wrap; gap: 2px; align-items: flex-end; }
 
 a:link, a:visited { text-decoration: none; color: lime; }
 
@@ -273,50 +268,33 @@ a:hover { color: red; }
 
 <body>
 <div id="header">
-  <h1>PuzzleX by Carlos Sivila</h1>
-  <hr>
-</div>
-
-<div id="screen-ruleta">
-  <div id="ruleta-result"></div>
-  <div id="ruleta-container">
-    <div id="ruleta-pointer"></div>
-    <canvas id="ruleta-canvas"></canvas>
-    <button id="ruleta-btn">CLIC<br>AQUÍ</button>
-  </div>
-</div>
-
-<div id="screen-trivia">
-  <div id="trivia-wrap">
-    <div id="category-display" class="category-name"></div>
-    <div id="question"></div>
-    <div id="answers"></div>
-    <div id="progress-container"><div id="progress-bar"></div></div>
-    <div id="trivia-footer">
+<h1>PuzzleX by Carlos Sivila</h1>
 <hr>
-
+</div>
+<div id="screen-ruleta">
+<div id="ruleta-result"></div>
+<div id="ruleta-container">
+<div id="ruleta-pointer"></div>
+<canvas id="ruleta-canvas"></canvas>
+<button id="ruleta-btn">CLIC<br>AQUÍ</button>
+</div>
+</div>
+<div id="screen-trivia">
+<div id="trivia-wrap">
+<div id="category-display" class="category-name"></div>
+<div id="question"></div>
+<div id="answers"></div>
+<div id="progress-container"><div id="progress-bar"></div></div>
+<div id="trivia-footer">
+<hr>
 <p>No es coincidencia ni suerte<br>
 que siempre sean los mismos<br>
 en obtener mejor puntaje que el resto.<br>
 ¿Y tú, qué puntaje obtuviste esta vez?</p>
 <hr>
-
-      <div class="fire-row">
-        <img src="http://www.bbmgif.com/images/if/fire_t.gif" height="55" width="46">
-        <img src="http://www.bbmgif.com/images/if/fire_r.gif" height="55" width="46">
-        <img src="http://www.bbmgif.com/images/if/fire_i.gif" height="55" width="46">
-        <img src="http://www.bbmgif.com/images/if/fire_v.gif" height="55" width="46">
-        <img src="http://www.bbmgif.com/images/if/fire_i.gif" height="55" width="46">
-        <img src="http://www.bbmgif.com/images/if/fire_a.gif" height="55" width="46">
-      </div>
-      <div class="fire-row">
-        <img src="http://www.bbmgif.com/images/if/fire_q.gif" height="55" width="46">
-        <img src="http://www.bbmgif.com/images/if/fire_u.gif" height="55" width="46">
-        <img src="http://www.bbmgif.com/images/if/fire_i.gif" height="55" width="46">
-        <img src="http://www.bbmgif.com/images/if/fire_z.gif" height="55" width="46">
-      </div>
-    </div>
-  </div>
+<img src="https://ov19-engine.flamingtext.com/netfu/tmp28000/flamingtext_com-4178987285.gif">
+</div>
+</div>
 </div>
 
 <script>
