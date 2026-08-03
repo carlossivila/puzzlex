@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index,follow" />
+    <meta name="description" content="Play lights out online in your browser." />
+    <title>PuzzleX - lamparitas</title>
+
+    <style>
+        body {
+            background-color: #111;
+            color: lime;
+            font-family: Arial, sans-serif;
+            margin: 4px;
+            padding: 4px;
+        }
+        
+        #wrapper {
+            margin-left: 0px;
+            padding-left: 0px;
+        }
+        
+        #container {
+            margin-left: 0px;
+        }
+        
+        #moves, #timer {
+            color: red;
+            font-weight: bold;
+        }
+        
+        td {
+            text-align: center;
+        }
+        
+        #contain table td {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+            border: 2px solid #333;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        #contain table {
+            border-collapse: separate;
+            border-spacing: 1px;
+            margin: 4px;
+        }
+
+        #contain table td:hover {
+            border-color: lime;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+        
+        td.tools {
+            vertical-align: top;
+        }
+        
+        a:link, a:visited {
+            text-decoration: none;
+            color: lime;
+        }
+        
+        a:hover {
+            text-decoration: none;
+            color: red;
+        }
+
+        #toggleButton, #hintButton {
+            background-color: black;
+            color: lime;
+            font-size: 16px;
+            border: 1px solid cyan;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            margin: 5px;
+        }
+
+        #toggleButton:hover, #hintButton:hover {
+            background-color: #050505;
+            color: red;
+            border: 1px solid gray;
+        }
+
+        #toggleButton:active, #hintButton:active {
+            background-color: #33F033;
+            color: red;
+            border: 1px solid black;
+        }
+
+        #hintButton:disabled {
+            background-color: #222;
+            color: #666;
+            border-color: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .game-stats {
+            display: flex;
+            justify-content: left;
+            gap: 40px;
+            margin: 4px;
+            font-size: 18px;
+        }
+        
+        .game-area {
+            text-align: center;
+        }
+
+        .hint-cell {
+            background-color: #b3e5fc !important;
+        }
+
+@media (max-width: 600px) {
+  body {
+    font-size: 20px;
+    transform: scale(1.0);
+    transform-origin: top left;
+  }
+}
+
+    </style>
+
+    <script type="text/javascript">
+        var width = 5;
+        var height = 5;
+        var puzzle = "  #   # # # # # # #   #  ";
+        var curpuz = puzzle;
+        var targetMoves = 20;
+        var movesCount = 0;
+        var startTime;
+        var currentMode = "5x5"; // Por defecto 5x5
+
+        // Matrices de solución
+        var solutions = {
+            "5x5": [
+                [0, 1, 0, 0, 1],
+                [0, 0, 1, 0, 0],
+                [1, 0, 0, 1, 0],
+                [1, 0, 0, 0, 1],
+                [1, 1, 1, 0, 0]
+            ],
+            "9x9": [
+                [0, 0, 0, 1, 0, 1, 0, 0, 1],
+                [1, 1, 0, 1, 0, 1, 0, 0, 0],
+                [0, 0, 0, 1, 1, 1, 1, 0, 1],
+                [0, 0, 0, 1, 1, 0, 1, 1, 0],
+                [0, 0, 1, 0, 0, 0, 1, 0, 0],
+                [1, 0, 0, 0, 1, 1, 1, 1, 1],
+                [1, 1, 1, 0, 1, 0, 0, 1, 0],
+                [0, 0, 1, 0, 0, 0, 1, 1, 1],
+                [1, 0, 0, 0, 0, 0, 0, 0, 0]
+            ]
+        };
+
+        var hintTimeout = null;
+
+        function puzzleDone() {}
+
+        // Variables del juego
+        var curCell = -1;
+        var celltds = new Array(width*height);
+        var backColors = new Array(width*height);
+        var moveArr = new Array();
+        var prevClick = -1;
+        var curMoves = 0;
+
+        var req;
+        function recordScore() {
+            // FunciÃ³n para guardar puntajes (opcional)
+        }
+
+        function processReqChange() {
+        }
+
+        function createTd(idx) {
+            celltds[idx] = document.createElement('td');
+            celltds[idx].id = "c" + idx;
+            celltds[idx].style.fontSize = "14pt";
+            celltds[idx].style.height = "35px";
+            celltds[idx].style.width = "35px";
+            celltds[idx].style.border = "2px solid #333";
+            celltds[idx].style.textAlign = "center";
+            celltds[idx].style.cursor = "pointer";
+            celltds[idx].onmouseover = mouseOver;
+            celltds[idx].onmouseout = mouseOut;
+            celltds[idx].onmousedown = mouseClick;
+            celltds[idx].onselectstart = function(){return false};
+            celltds[idx].onmouseup = function(){return false};
+            celltds[idx].innerHTML = "&nbsp;";
+
+            if (puzzle.charAt(idx) == '#') {
+                celltds[idx].style.backgroundColor = "#999";
+                backColors[idx] = "#999";
+            } else {
+                celltds[idx].style.backgroundColor = "#FFF";
+                backColors[idx] = "#FFF";
+            }
+        }
+
+        // create the table with all the cells
+        function initLightsOutGrid() {
+            // Limpiar contenido anterior
+            var mydiv = document.getElementById('contain');
+            mydiv.innerHTML = '';
+            
+            // Reinitializar arrays para el nuevo tamaÃ±o
+            celltds = new Array(width*height);
+            backColors = new Array(width*height);
+            moveArr = new Array();
+            curMoves = 0;
+            prevClick = -1;
+            
+            var tbl = document.createElement('table');
+            var tbody = document.createElement('tbody');
+
+            for (var i = 0; i < height; i++) {
+                var newtr = document.createElement('tr');
+                for (var j = 0; j < width; j++) {
+                    createTd(i*width+j);
+                    newtr.appendChild(celltds[i*width+j]);
+                }
+                tbody.appendChild(newtr);
+            }
+            tbl.appendChild(tbody);
+            mydiv.appendChild(tbl);
+
+            initAfterGrid();
+        }
+
+        function getEventId(e) {
+            var targ;
+            if (!e) var e = window.event;
+            if (e.target) targ = e.target;
+            else if (e.srcElement) targ = e.srcElement;
+            if (targ.nodeType == 3) targ = targ.parentNode;
+            return parseInt(targ.id.substring(1));
+        }
+
+        function mouseOver(e) {
+            var idx = getEventId(e);
+            curCell = idx;
+        }
+
+        function mouseOut(e) {
+            var idx = getEventId(e);
+            curCell = -1;
+        }
+
+        var timerID = 0;
+        var tstart = null;
+        var killTimer = false;
+
+        function updateTimer() {
+            if (timerID) clearTimeout(timerID);
+            if (!tstart) tstart = new Date();
+            if (killTimer) return;
+
+            var tdate = new Date();
+            var tdiff = tdate.getTime() - tstart.getTime();
+
+            var min = Math.floor(tdiff/60000), sec = Math.floor(tdiff/1000-60*min);
+            var frmt = min + (sec > 9 ? ":" : ":0") + sec;
+            document.getElementById('timer').innerHTML = "Time " + frmt;
+
+            timerID = setTimeout("updateTimer()", 1000);
+        }
+
+        function initAfterGrid() {
+            tstart = new Date();
+            timerID = setTimeout("updateTimer()", 1000);
+        }
+
+        function toggleState(idx) {
+            var ch;
+            if (idx < 0) return false;
+            if (idx >= width*height) return false;
+            if (curpuz.charAt(idx) == ' ') {
+                backColors[idx] = "#999";
+                ch = '#';
+            } else {
+                backColors[idx] = "#FFF";
+                ch = ' ';
+            }
+            celltds[idx].style.backgroundColor = backColors[idx];
+            curpuz = curpuz.substr(0, idx) + ch + curpuz.substr(idx+1);
+
+            return curpuz.indexOf(' ') == -1;
+        }
+
+        function mouseClick(e) {
+            var idx = getEventId(e);
+            if (curCell != idx) return true;
+            if (idx == prevClick) {
+                curMoves--;
+                prevClick = -1;
+            } else {
+                moveArr[curMoves++] = idx;
+                prevClick = idx;
+            }
+            document.getElementById('moves').innerHTML = "Moves: " + curMoves;
+            if (idx >= width) toggleState(idx-width);
+            if (idx%width >= 1) toggleState(idx-1);
+            if (idx%width <= width-2) toggleState(idx+1);
+            if (idx+width < height*width) toggleState(idx+width);
+            if (toggleState(idx)) {
+                killTimer = true;
+                puzzleDone();
+                setTimeout(function() {
+                    alert("Ganaste");
+                }, 2000);
+            }
+            return false;
+        }
+
+        function toggleSize() {
+            killTimer = true;
+            if (timerID) clearTimeout(timerID);
+            
+            if (currentMode === "5x5") {
+                // Cambiar a 9x9
+                currentMode = "9x9";
+                width = 9;
+                height = 9;
+                puzzle = "   ###   ###   ###   ###   ###   ###   ###   ###   ###   ###   ###   ###   ###   ";
+                curpuz = puzzle;
+                document.getElementById("toggleButton").innerText = "9x9 / 5x5";
+            } else {
+                currentMode = "5x5";
+                width = 5;
+                height = 5;
+                puzzle = "  #   # # # # # # #   #  ";
+                curpuz = puzzle;
+                document.getElementById("toggleButton").innerText = "5x5 / 9x9";
+            }
+            
+            killTimer = false;
+            initLightsOutGrid();
+
+            document.getElementById("moves").innerText = "Moves: 0";
+            document.getElementById("timer").innerText = "Time 0:00";
+        }
+
+        function showHint() {
+            clearHint();
+
+            var hintBtn = document.getElementById('hintButton');
+            hintBtn.disabled = true;
+
+            var solution = solutions[currentMode];
+
+            for (var i = 0; i < height; i++) {
+                for (var j = 0; j < width; j++) {
+                    if (solution[i][j] === 1) {
+                        var idx = i * width + j;
+                        celltds[idx].classList.add('hint-cell');
+                    }
+                }
+            }
+
+            hintTimeout = setTimeout(function() {
+                clearHint();
+                hintBtn.disabled = false;
+            }, 3000);
+        }
+
+        function clearHint() {
+            if (hintTimeout) {
+                clearTimeout(hintTimeout);
+                hintTimeout = null;
+            }
+
+            for (var i = 0; i < width * height; i++) {
+                if (celltds[i]) {
+                    celltds[i].classList.remove('hint-cell');
+                }
+            }
+        }
+    </script>
+
+</head>
+
+<body onload="initLightsOutGrid()">
+
+<h4 style class="class">PuzzleX by Carlos Sivila</h4>
+
+    <div id="wrapper">
+        <div class="game-area">
+            <div id="contain"></div>
+        </div>
+
+        <div class="game-stats">
+            <div id="moves">Moves: 0</div>
+            <div id="timer">Time 0:00</div>
+        </div>
+
+        <div style="text-align: left; margin: 2px;">
+            <button id="toggleButton" onclick="toggleSize()">5x5 / 9x9</button>
+            <button id="hintButton" onclick="showHint()">Pista</button>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('contextmenu', function(e) {
+e.preventDefault();
+});
+</script>
+
+</body>
+</html>
