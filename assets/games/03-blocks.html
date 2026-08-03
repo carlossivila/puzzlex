@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<title>PuzzleX - Blocks</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    background-color: #111;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    background: #222;
+    color: #fff;
+    font-family: monospace;
+    font-size: 16px;
+    line-height: 18px;
+    padding: 5px;
+    text-align: center;
+}
+
+#vectrex-container {
+    font-size: 0;
+    flex: 1;
+    line-height: 0;
+    position: relative;
+}
+
+.toggle-container {
+    padding: 10px;
+    text-align: center;
+    background: #222;
+}
+
+.toggle-btn {
+    display: inline-block;
+    font-size: 20px;
+    background-color: black;
+    color: lime;
+    border: 1px solid cyan;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.toggle-btn:hover {
+    background-color: #050505;
+    color: red;
+    border: 1px solid gray;
+}
+
+.toggle-btn:active {
+    background-color: #33F033;
+    color: red;
+    border: 1px solid black;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+@font-face {
+  font-family: 'font';
+  src: url('font.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+#nivel-info {
+  font-family: 'font', monospace;
+  color: lime;
+  font-size: 20px;
+  margin-left: 16px;
+  vertical-align: middle;
+}
+
+.btn {
+  display: inline-block;
+  font-size: 18px;
+  background-color: #009900;
+  border: 1px solid gray;
+  border-radius: 5px;
+  transition: box-shadow 0.3s ease;
+}
+
+.btn:hover {
+  border: 1px solid cyan;
+  box-shadow: 0 0 15px cyan, 0 0 30px aqua;
+}
+
+#dpad {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+}
+
+#dpad .dpad-row {
+  display: flex;
+  flex-direction: row;
+}
+#dpad button {
+  width: 60px;
+  height: 60px;
+  font-size: 22px;
+  margin: 3px;
+  padding: 0;
+  background-color: lime;
+  color: blue;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+#dpad button:hover {
+  border: solid cyan 1px;
+  background-color: darkgreen;
+}
+
+@media (max-width: 600px) {
+  body {
+    font-size: 22px;
+  }
+  #dpad {
+    display: flex;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="header">
+ <h4 style="color: lime;">PuzzleX by Carlos Sivila</h4>
+ <h4 id="mode-text" style="color: cyan;">versión modificada 50% de tolerancia</h4>
+</div>
+
+<div id="vectrex-container"></div>
+
+ <div class="toggle-container">
+  <button id="toggle-btn" class="toggle-btn">fácil / difícil</button>
+
+&emsp;
+
+  <audio id="audio" src="sound.mp3" preload="auto" loop></audio>
+   <button class="btn" id="sound">🔊</button>
+<script>
+    const audio = document.getElementById("audio");
+    const sound = document.getElementById("sound");
+    sound.addEventListener("click", function() {
+        if (audio.paused) {
+            audio.play();
+            sound.textContent = "🔊";
+        } else {
+            audio.pause();
+            sound.textContent = "🔇";
+        }
+    });
+</script>
+
+&emsp;
+
+  <span id="nivel-info">Nivel: <span id="nivel-actual">1</span> de <span id="nivel-total">1</span></span>
+ </div>
+
+<div id="dpad">
+<div class="dpad-row">
+<button id="btn-up">▲</button>
+</div>
+<div class="dpad-row">
+<button id="btn-left">◀</button>
+<button id="btn-down">▼</button>
+<button id="btn-right">▶</button>
+</div>
+</div>
+
+<script>
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new AudioContext();
+    }
+}
+
+function playTic() {
+    initAudio();
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+    
+    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+    
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.08);
+}
+
+function playFail() {
+    initAudio();
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(493.88, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(293.66, audioCtx.currentTime + 0.2);
+    osc.frequency.setValueAtTime(261.63, audioCtx.currentTime + 0.3);
+    
+    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+    
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.6);
+}
+
+function playGood() {
+    initAudio();
+    const notas = [523.25, 587.33, 659.25, 783.99];
+    const tiempos = [0, 0.15, 0.3, 0.45];
+    
+    notas.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime + tiempos[i]);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + tiempos[i] + 0.15);
+        
+        osc.start(audioCtx.currentTime + tiempos[i]);
+        osc.stop(audioCtx.currentTime + tiempos[i] + 0.15);
+    });
+}
+
+function playWin() {
+    initAudio();
+    const now = audioCtx.currentTime;
+
+    const notasIniciales = [523.25, 587.33, 659.25, 783.99];
+    notasIniciales.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.frequency.setValueAtTime(freq, now + i * 0.15);
+        gainNode.gain.setValueAtTime(0.2, now + i * 0.15);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.15);
+        
+        osc.start(now + i * 0.15);
+        osc.stop(now + i * 0.15 + 0.15);
+    });
+
+    const notasFinales = [880, 1046.5];
+    notasFinales.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        const startTime = now + 0.75 + i * 0.15;
+        osc.frequency.setValueAtTime(freq, startTime);
+        gainNode.gain.setValueAtTime(0.25, startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+        
+        osc.start(startTime);
+        osc.stop(startTime + 0.2);
+    });
+}
+
+class Vectrex {
+    constructor(containerId, cellSizePx=10, isEasyMode=true) {
+        if (!Vectrex.checkConstructorArguments(containerId, cellSizePx)) return;
+
+        this.setDefaultProperties();
+        this.cellSizePx = cellSizePx;
+        this.container = document.getElementById(containerId);
+        this.isEasyMode = isEasyMode;
+        this.createCanvas();
+        this.setEvents();
+        this.loadLevel(0);
+    }
+    
+    static checkConstructorArguments(containerId, cellSizePx) {
+        let isCorrectFlag = true;
+        if (!document.getElementById(containerId)) isCorrectFlag = false;
+        if (isNaN(cellSizePx) || cellSizePx < 1) isCorrectFlag = false;
+        if (!isCorrectFlag) throw new Error("Incorrect arguments");
+        return true;
+    }
+    
+    calcBaseCoords() {
+        let maxCellPositionX = 0;
+        let maxCellPositionY = 0;
+        for (const cell of this.cells) {
+            maxCellPositionX = Math.max(maxCellPositionX, cell[0]);
+            maxCellPositionY = Math.max(maxCellPositionY, cell[1]);
+        }
+        
+        const fieldWidth = this.calcCellCoords([0, 0], [maxCellPositionX + 1, maxCellPositionY + 1])[0];
+        const fieldHeight = this.calcCellCoords([0, 0], [0, maxCellPositionY + 1])[1] - this.calcCellCoords([0, 0], [maxCellPositionX + 1, 0])[1];
+        
+        const canvas = this.container.firstChild;
+        const baseCoordX = Math.floor((canvas.width - fieldWidth) / 2);
+        const baseCoordY = Math.floor((canvas.height - fieldHeight) / 2) - this.calcCellCoords([0, 0], [maxCellPositionX, 0])[1];
+
+        return [baseCoordX, baseCoordY];
+    }
+    
+    calcCellCoords(baseCoords, cellPosition) {
+        const cellCoordX = baseCoords[0] + (cellPosition[0] * this.settings.cellSprite.width + cellPosition[1] * this.settings.cellSprite.shiftX) * this.cellSizePx;
+        const cellCoordY = baseCoords[1] + (cellPosition[1] * this.settings.cellSprite.height + cellPosition[0] * this.settings.cellSprite.shiftY) * this.cellSizePx;
+        
+        return [cellCoordX, cellCoordY];
+    }
+    
+    checkState() {
+        if (
+            this.shapePlacement === this.dicts.shapePlacements.up && 
+            this.shapePosition[0] === this.cellFinishPosition[0] && 
+            this.shapePosition[1] === this.cellFinishPosition[1]
+        ) {
+            this.state = this.dicts.states.win;
+            playGood();
+            setTimeout(() => {
+                this.nextLevel();
+            }, 1000);
+        } else {
+            let shapeCells = [];
+            shapeCells.push(this.shapePosition);
+            if (this.shapePlacement !== this.dicts.shapePlacements.up) {
+                if (this.shapePlacement === this.dicts.shapePlacements.horizontal) {
+                    shapeCells.push([this.shapePosition[0] + 1, this.shapePosition[1]]);
+                } else if (this.shapePlacement === this.dicts.shapePlacements.vertical) {
+                    shapeCells.push([this.shapePosition[0], this.shapePosition[1] + 1]);
+                }
+            }
+            
+            let counter = 0;
+            for (const shapeCell of shapeCells) {
+                for (const cell of this.cells) {
+                    if (shapeCell[0] === cell[0] && shapeCell[1] === cell[1]) {
+                        counter++;
+                        break;
+                    }
+                }
+            }
+            
+            if (this.isEasyMode) {
+                const requiredCells = Math.ceil(shapeCells.length / 2);
+                if (counter < requiredCells) {
+                    this.state = this.dicts.states.loss;
+                    playFail();
+                    setTimeout(() => {
+                        this.repeatLevel();
+                    }, 1000);
+                }
+            } else {
+                if (counter !== shapeCells.length) {
+                    this.state = this.dicts.states.loss;
+                    playFail();
+                    setTimeout(() => {
+                        this.repeatLevel();
+                    }, 1000);
+                }
+            }
+        }
+    }
+    
+    getShapeCells() {
+        let shapeCells = [];
+        shapeCells.push(this.shapePosition);
+        if (this.shapePlacement !== this.dicts.shapePlacements.up) {
+            if (this.shapePlacement === this.dicts.shapePlacements.horizontal) {
+                shapeCells.push([this.shapePosition[0] + 1, this.shapePosition[1]]);
+            } else if (this.shapePlacement === this.dicts.shapePlacements.vertical) {
+                shapeCells.push([this.shapePosition[0], this.shapePosition[1] + 1]);
+            }
+        }
+        return shapeCells;
+    }
+    
+    createCanvas() {
+        while (this.container.firstChild) {
+            this.container.firstChild.remove();
+        }
+        
+        const canvas = document.createElement("canvas");
+        canvas.id = this.container.id + "-canvas";
+        canvas.width = this.container.offsetWidth;
+        canvas.height = this.container.offsetHeight;
+        
+        this.container.append(canvas);
+    }
+    
+    drawVertexes(normalVertexes, cellCoords, lineColor, lineWidthPx, fillColor = null, glowColor = null) {
+        const context = this.container.firstChild.getContext("2d");
+        
+        for (const groupVertexes of normalVertexes) {
+            context.beginPath();
+            
+            let isFirstVertex = true;
+            for (const vertex of groupVertexes) {
+                const vertexCoordX = cellCoords[0] + vertex[0] * this.cellSizePx;
+                const vertexCoordY = cellCoords[1] + vertex[1] * this.cellSizePx;
+                
+                if (isFirstVertex) {
+                    context.moveTo(vertexCoordX, vertexCoordY);
+                    isFirstVertex = false;
+                } else {
+                    context.lineTo(vertexCoordX, vertexCoordY);
+                }
+            }
+            
+            if (glowColor) {
+                context.shadowBlur = 10;
+                context.shadowColor = glowColor;
+            } else {
+                context.shadowBlur = 0;
+            }
+            
+            if (fillColor) {
+                context.fillStyle = fillColor;
+                context.fill();
+            }
+            
+            context.lineWidth = lineWidthPx;
+            context.lineCap = "round";
+            context.lineJoin = "round";
+            context.strokeStyle = lineColor;
+            context.stroke();
+        }
+        
+        context.shadowBlur = 0;
+    }
+    
+    nextLevel() {
+        const levels = this.isEasyMode ? this.settings.easyLevels : this.settings.hardLevels;
+        const nextIndex = this.currentLevelIndex + 1;
+        
+        if (nextIndex >= levels.length) {
+                playWin();
+                setTimeout(() => {
+                    alert("Ganaste");
+                    this.loadLevel(0);
+                }, 1000);
+        } else {
+            this.loadLevel(nextIndex);
+        }
+    }
+    
+    loadLevel(levelIndex) {
+        this.currentLevelIndex = levelIndex;
+        
+        const levels = this.isEasyMode ? this.settings.easyLevels : this.settings.hardLevels;
+        const level = levels[levelIndex];
+        this.cells = level.cells;
+        this.cellStartPosition = level.cellStartPosition;
+        this.cellFinishPosition = level.cellFinishPosition;
+        
+        this.shapePosition = [level.cellStartPosition[0], level.cellStartPosition[1]];
+        this.shapePlacement = this.dicts.shapePlacements.up;
+        
+        this.state = this.dicts.states.inProgress;
+
+        const nivelActualEl = document.getElementById('nivel-actual');
+        const nivelTotalEl = document.getElementById('nivel-total');
+        if (nivelActualEl) nivelActualEl.textContent = levelIndex + 1;
+        if (nivelTotalEl) nivelTotalEl.textContent = levels.length;
+        
+        this.render();
+    }
+    
+    moveShape(direction) {
+        if (this.state !== this.dicts.states.inProgress) return;
+        
+        playTic();
+            
+        if (direction === this.dicts.stepDirections.top || direction === this.dicts.stepDirections.bottom) {
+            if (this.shapePlacement === this.dicts.shapePlacements.up) {
+                this.shapePlacement = this.dicts.shapePlacements.vertical;
+                this.shapePosition[1] += (direction === this.dicts.stepDirections.top ? -2 : 1);
+            } else if (this.shapePlacement === this.dicts.shapePlacements.vertical) {
+                this.shapePlacement = this.dicts.shapePlacements.up;
+                this.shapePosition[1] += (direction === this.dicts.stepDirections.top ? -1 : 2);
+            } else {
+                this.shapePosition[1] += (direction === this.dicts.stepDirections.top ? -1 : 1);
+            }
+        } else if (direction === this.dicts.stepDirections.right || direction === this.dicts.stepDirections.left) {
+            if (this.shapePlacement === this.dicts.shapePlacements.up) {
+                this.shapePlacement = this.dicts.shapePlacements.horizontal;
+                this.shapePosition[0] += (direction === this.dicts.stepDirections.left ? -2 : 1);
+            } else if (this.shapePlacement === this.dicts.shapePlacements.horizontal) {
+                this.shapePlacement = this.dicts.shapePlacements.up;
+                this.shapePosition[0] += (direction === this.dicts.stepDirections.left ? -1 : 2);
+            } else {
+                this.shapePosition[0] += (direction === this.dicts.stepDirections.left ? -1 : 1);
+            }
+        }
+        
+        this.checkState();
+        this.render();
+    }
+    
+    render() {
+        const canvas = this.container.firstChild;
+        const context = canvas.getContext("2d");
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        
+        this.renderCells();
+        this.renderShape();
+    }
+    
+    renderCells() {
+        const baseCoords = this.calcBaseCoords();
+        const lineWidthPx = 1;
+        const shapeCells = this.getShapeCells();
+        
+        for (const cellPosition of this.cells) {
+            const isStartCell = cellPosition[0] === this.cellStartPosition[0] && cellPosition[1] === this.cellStartPosition[1];
+            const isFinishCell = cellPosition[0] === this.cellFinishPosition[0] && cellPosition[1] === this.cellFinishPosition[1];
+            
+            let isShapeOnCell = false;
+            for (const shapeCell of shapeCells) {
+                if (shapeCell[0] === cellPosition[0] && shapeCell[1] === cellPosition[1]) {
+                    isShapeOnCell = true;
+                    break;
+                }
+            }
+            
+            const cellCoords = this.calcCellCoords(baseCoords, cellPosition);
+            const fillColor = isShapeOnCell ? "rgba(0, 255, 255, 0.3)" : "rgba(255, 255, 255, 0.2)";
+            const glowColor = isShapeOnCell ? "rgba(255, 255, 255, 0.9)" : null;
+            
+            if (isStartCell) {
+                this.drawVertexes(this.settings.cellStartSprite.vertexes, cellCoords, "lime", lineWidthPx, fillColor, glowColor);
+            } else if (isFinishCell) {
+                this.drawVertexes(this.settings.cellFinishSprite.vertexes, cellCoords, "lime", lineWidthPx, fillColor, glowColor);
+            } else {
+                this.drawVertexes(this.settings.cellSprite.vertexes, cellCoords, "lime", lineWidthPx, fillColor, glowColor);
+            }
+        }
+    }
+    
+    renderShape() {
+        const shapeVertexes = (this.shapePlacement === this.dicts.shapePlacements.horizontal ? this.settings.shapeSprite.horizontalVertexes : (this.shapePlacement === this.dicts.shapePlacements.vertical ? this.settings.shapeSprite.verticalVertexes : this.settings.shapeSprite.upVertexes));
+        const shapeCoords = this.calcCellCoords(this.calcBaseCoords(), this.shapePosition);
+        const shapeColor = (this.state === this.dicts.states.win ? this.settings.colors.shapeWin : (this.state === this.dicts.states.loss ? this.settings.colors.shapeLoss : this.settings.colors.shapeInProgress));
+        const lineWidthPx = 1.8;
+        
+        this.drawVertexes(shapeVertexes, shapeCoords, shapeColor, lineWidthPx);
+    }
+    
+    repeatLevel() {
+        this.loadLevel(this.currentLevelIndex);
+    }
+
+    resize() {
+        this.createCanvas();
+        this.render();
+    }
+    
+    toggleMode() {
+        this.isEasyMode = !this.isEasyMode;
+        this.loadLevel(0);
+        return this.isEasyMode;
+    }
+    
+    setDefaultProperties() {
+        this.dicts = {
+            states: {notReady: 0, inProgress: 1, win: 2, loss: 3},
+            shapePlacements: {horizontal: 0, vertical: 1, up: 2},
+            stepDirections: {top: 0, right: 1, bottom: 2, left: 3}
+        };
+        
+        this.settings = {
+            colors: {cell: "#888", cellStart: "#888", cellFinish: "#888", shapeInProgress: "#fff", shapeWin: "#f90", shapeLoss: "#f00"},
+            cellSprite: {
+                width: .6, 
+                height: .5, 
+                shiftX: .3, 
+                shiftY: -.2, 
+                vertexes: [
+                    [[.0, .2], [.6, .0], [.9, .5], [.3, .7], [.0, .2]]
+                ]
+            },
+            cellStartSprite: {
+                vertexes: [
+                    [[.0, .2], [.6, .0], [.9, .5], [.3, .7], [.0, .2]]
+                ]
+            },
+            cellFinishSprite: {
+                vertexes: [
+                    [[.0, .2], [.6, .0], [.9, .5], [.3, .7], [.0, .2]],
+                    [[.0, .2], [.9, .5]],
+                    [[.3, .7], [.6, .0]]
+                ]
+            },
+            shapeSprite: {
+                horizontalVertexes: [
+                    [[.0, .2], [.0, -.5], [1.2, -.9], [1.2, -.2], [.0, .2]],
+                    [[.3, .7], [.3, .0], [1.5, -.4], [1.5, .3], [.3, .7]],
+                    [[.0, .2], [.0, -.5], [.3, .0], [.3, .7], [.0, .2]],
+                    [[1.2, -.2], [1.2, -.9], [1.5, -.4], [1.5, .3], [1.2, -.2]]
+                ],
+                verticalVertexes: [
+                    [[.0, .2], [.0, -.5], [.6, -.7], [.6, .0], [.0, .2]],
+                    [[.6, 1.2], [.6, .5], [1.2, .3], [1.2, 1.0], [.6, 1.2]],
+                    [[.0, .2], [.0, -.5], [.6, .5], [.6, 1.2], [.0, .2]],
+                    [[.6, .0], [.6, -.7], [1.2, .3], [1.2, 1.0], [.6, .0]]
+                ],
+                upVertexes: [
+                    [[.0, .2], [.0, -1.1], [.6, -1.3], [.6, .0], [.0, .2]],
+                    [[.3, .7], [.3, -.6], [.9, -.8], [.9, .5], [.3, .7]],
+                    [[.0, .2], [.0, -1.1], [.3, -.6], [.3, .7], [.0, .2]],
+                    [[.6, .0], [.6, -1.3], [.9, -.8], [.9, .5], [.6, .0]]
+                ]
+            },
+
+
+easyLevels: [
+
+{
+cells: [[0, 0], [3, 0], [0, 1], [3, 1], [3, 2], [0, 3], [3, 3], [0, 4], [3, 4], [0, 5], [0, 6], [1, 6], [2, 6], [3, 6]],
+cellStartPosition: [3, 0],
+cellFinishPosition: [0, 0]
+},
+
+{
+cells: [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1], [3, 2], [1, 3], [3, 3], [1, 4], [3, 4], [3, 5], [3, 6], [3, 7]],
+cellStartPosition: [3, 7],
+cellFinishPosition: [0, 0]
+},
+
+{
+cells: [[1, 0], [2, 0], [3, 0], [1, 1], [2, 1], [3, 1], [3, 2], [3, 3], [0, 4], [3, 4], [0, 5], [3, 5], [2, 6], [3, 6], [0, 7], [1, 7], [2, 7], [3, 7]],
+cellStartPosition: [3, 0],
+cellFinishPosition: [0, 4]
+},
+
+{
+cells: [[0, 0], [1, 0], [0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1]],
+cellStartPosition: [7, 1],
+cellFinishPosition: [6, 1]
+},
+
+{
+cells: [[0, 0], [1, 0], [0, 1], [1, 1], [2, 1], [1, 2], [2, 2]],
+cellStartPosition: [2, 2],
+cellFinishPosition: [0, 0]
+},
+
+{
+cells: [[0, 0], [1, 0], [0, 1], [1, 1]],
+cellStartPosition: [0, 0],
+cellFinishPosition: [1, 0]
+},
+
+{
+cells: [[0, 0], [0, 1], [1, 1], [1, 2], [2, 2], [2, 3], [3, 3], [3, 4], [4, 4], [4, 5], [5, 5]],
+cellStartPosition: [0, 0],
+cellFinishPosition: [5, 5]
+},
+
+{
+cells: [[3, 0], [5, 0], [0, 1], [2, 1], [3, 1], [0, 2], [2, 2], [5, 2], [0, 3], [2, 3], [5, 3], [4, 4], [5, 4], [0, 5], [1, 5], [2, 5], [4, 5]],
+cellStartPosition: [5, 0],
+cellFinishPosition: [0, 3]
+},
+
+{
+cells: [[1, 0], [3, 0], [5, 0], [7, 0], [0, 1], [2, 1], [4, 1], [6, 1], [1, 2], [3, 2], [5, 2], [7, 2], [0, 3], [2, 3], [4, 3], [6, 3], [1, 4], [3, 4], [5, 4], [7, 4], [0, 5], [2, 5], [4, 5], [6, 5], [1, 6], [3, 6], [5, 6], [7, 6], [0, 7], [2, 7], [4, 7], [6, 7]],
+cellStartPosition: [0, 7],
+cellFinishPosition: [7, 0]
+},
+
+{
+  cells: [[1, 0], [7, 0], [0, 1], [2, 1], [3, 1], [5, 1], [6, 1], [8, 1], [0, 2], [2, 2], [4, 2], [8, 2], [4, 3], [5, 3], [2, 4], [4, 4], [8, 4], [0, 5], [1, 5], [7, 5], [8, 5], [4, 6], [1, 7], [2, 7], [4, 7], [6, 7], [7, 7], [0, 8], [3, 8], [5, 8], [8, 8]],
+  cellStartPosition: [4, 4],
+  cellFinishPosition: [5, 3]
+},
+
+{
+  cells: [[1, 0], [2, 0], [3, 0], [0, 1], [1, 1], [2, 1], [3, 1], [0, 2], [1, 2], [2, 2]],
+  cellStartPosition: [1, 1],
+  cellFinishPosition: [2, 1]
+},
+
+{
+  cells: [[1, 0], [2, 0], [0, 1], [1, 1], [2, 1], [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [4, 3], [5, 3], [4, 4], [5, 4], [5, 5], [6, 5], [7, 5], [6, 6], [7, 6], [8, 6], [8, 7], [8, 8], [9, 8], [10, 8], [8, 9], [9, 9], [10, 9], [8, 10], [9, 10]],
+  cellStartPosition: [9, 9],
+  cellFinishPosition: [1, 1]
+},
+
+{
+  cells: [[8, 0], [9, 0], [7, 1], [8, 1], [9, 1], [6, 2], [7, 2], [6, 3], [7, 3], [4, 4], [5, 4], [6, 4], [3, 5], [4, 5], [5, 5], [2, 6], [3, 6], [2, 7], [3, 7], [0, 8], [1, 8], [2, 8], [0, 9], [1, 9]],
+  cellStartPosition: [0, 9],
+  cellFinishPosition: [9, 0]
+},
+
+{
+  cells: [[0, 0], [2, 0], [4, 0], [7, 0], [8, 0], [10, 0], [0, 1], [5, 1], [7, 1], [9, 1], [0, 2], [2, 2], [10, 2], [5, 3], [8, 3], [10, 3], [0, 4], [2, 4], [5, 4], [1, 5], [2, 5], [8, 5], [10, 5], [0, 6], [5, 6], [7, 6], [8, 6], [10, 6], [0, 7], [2, 7], [3, 7], [5, 7], [7, 7], [8, 7], [10, 7], [5, 8], [0, 9], [2, 9], [3, 9], [8, 9], [9, 9], [10, 9], [0, 10], [1, 10], [3, 10], [5, 10], [10, 10]],
+  cellStartPosition: [5, 10],
+  cellFinishPosition: [10, 10]
+},
+
+{
+  cells: [[1, 0], [2, 0], [10, 0], [2, 1], [4, 1], [5, 1], [7, 1], [9, 1], [10, 1], [1, 2], [7, 2], [1, 3], [3, 3], [3, 4], [4, 4], [7, 4], [9, 4], [10, 4], [7, 5], [1, 7], [2, 7], [4, 7], [5, 7], [7, 7], [8, 7], [10, 7], [7, 8], [10, 8], [1, 9], [4, 9], [0, 10], [1, 10], [4, 10], [7, 10], [8, 10], [10, 10]],
+  cellStartPosition: [10, 10],
+  cellFinishPosition: [4, 4]
+},
+
+{
+  cells: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [0, 1], [5, 1], [0, 2], [2, 2], [5, 2], [0, 3], [3, 3], [5, 3], [0, 4], [4, 4], [5, 4], [0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5]],
+  cellStartPosition: [0, 0],
+  cellFinishPosition: [5, 5]
+},
+
+{
+  cells: [[1, 0], [3, 0], [5, 0], [7, 0], [9, 0], [0, 1], [2, 1], [4, 1], [6, 1], [8, 1], [10, 1], [1, 2], [9, 2], [0, 3], [10, 3], [1, 4], [5, 4], [9, 4], [0, 5], [4, 5], [5, 5], [6, 5], [10, 5], [1, 6], [5, 6], [9, 6], [0, 7], [4, 7], [6, 7], [10, 7], [1, 8], [5, 8], [9, 8], [0, 9], [4, 9], [6, 9], [8, 9], [10, 9], [0, 10], [5, 10], [7, 10], [9, 10]],
+  cellStartPosition: [0, 10],
+  cellFinishPosition: [5, 5]
+},
+
+{
+  cells: [[0, 0], [1, 0], [9, 0], [1, 1], [2, 1], [8, 1], [9, 1], [2, 2], [3, 2], [7, 2], [8, 2], [3, 3], [4, 3], [6, 3], [7, 3], [4, 4], [5, 4], [6, 4], [3, 5], [4, 5], [5, 5], [2, 6], [3, 6], [5, 6], [6, 6], [1, 7], [2, 7], [6, 7], [7, 7], [0, 8], [1, 8], [7, 8], [8, 8], [0, 9], [8, 9], [9, 9]],
+  cellStartPosition: [9, 9],
+  cellFinishPosition: [0, 0]
+},
+
+{
+  cells: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [0, 1], [1, 1], [4, 1], [7, 1], [8, 1], [0, 2], [2, 2], [6, 2], [8, 2], [0, 3], [3, 3], [5, 3], [8, 3], [0, 4], [1, 4], [4, 4], [7, 4], [8, 4], [0, 5], [3, 5], [5, 5], [8, 5], [0, 6], [2, 6], [6, 6], [8, 6], [0, 7], [1, 7], [4, 7], [7, 7], [8, 7], [0, 8], [1, 8], [2, 8], [3, 8], [4, 8], [5, 8], [6, 8], [7, 8], [8, 8]],
+  cellStartPosition: [0, 0],
+  cellFinishPosition: [8, 8]
+},
+
+{
+  cells: [[0, 0], [2, 0], [6, 0], [8, 0], [10, 0], [1, 1], [9, 1], [8, 2], [10, 2], [0, 3], [2, 3], [5, 3], [7, 3], [9, 3], [1, 4], [4, 4], [6, 4], [8, 4], [0, 5], [5, 5], [4, 6], [6, 6], [1, 7], [3, 7], [5, 7], [9, 7], [0, 8], [2, 8], [8, 8], [10, 8], [1, 9], [3, 9], [7, 9], [9, 9], [0, 10], [2, 10], [6, 10], [8, 10], [10, 10]],
+  cellStartPosition: [10, 0],
+  cellFinishPosition: [1, 9]
+},
+
+{
+  cells: [[1, 0], [2, 0], [0, 1], [1, 1], [2, 1], [3, 1], [1, 2], [2, 2]],
+  cellStartPosition: [1, 1],
+  cellFinishPosition: [2, 1]
+},
+
+{
+  cells: [[0, 0], [1, 0], [2, 0], [0, 1], [1, 1], [2, 1]],
+  cellStartPosition: [0, 0],
+  cellFinishPosition: [2, 1]
+}
+],
+
+
+hardLevels: [
+{
+cells: [[0, 0], [1, 0], [2, 0], [3, 0], [0, 1], [1, 1], [2, 1], [3, 1], [0, 2], [1, 2], [2, 2], [3, 2], [0, 3], [1, 3], [2, 3], [3, 3]],
+cellStartPosition: [0, 0],
+cellFinishPosition: [3, 3]
+},
+
+{
+cells: [[0, 0], [1, 0], [2, 0], [3, 0], [0, 1], [1, 1], [2, 1], [3, 1], [0, 2], [1, 2], [2, 2], [3, 2], [0, 3], [1, 3], [2, 3]],
+cellStartPosition: [0, 0],
+cellFinishPosition: [2, 3]
+},
+
+{
+cells: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [0, 2], [1, 2], [3, 2], [4, 2], [0, 3], [1, 3], [3, 3], [4, 3], [0, 4], [1, 4], [2, 4], [3, 4], [4, 4]],
+cellStartPosition: [0, 0],
+cellFinishPosition: [4, 4]
+},
+
+{
+cells: [[1, 0], [2, 0], [3, 0], [0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [0, 3], [1, 3], [2, 3], [3, 3], [4, 3], [1, 4], [2, 4], [3, 4]],
+cellStartPosition: [2, 0],
+cellFinishPosition: [2, 4]
+},
+
+{
+cells: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [0, 1], [1, 1], [2, 1], [4, 1], [5, 1], [0, 2], [1, 2], [2, 2], [4, 2], [5, 2], [0, 3], [1, 3], [4, 3], [5, 3], [0, 4], [1, 4], [4, 4], [5, 4], [0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5]],
+cellStartPosition: [0, 0],
+cellFinishPosition: [5, 5]
+},
+
+{
+cells: [[1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [0, 2], [1, 2], [5, 2], [6, 2], [0, 3], [1, 3], [5, 3], [6, 3], [0, 4], [1, 4], [2, 4], [3, 4], [4, 4], [5, 4], [6, 4], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5]],
+cellStartPosition: [3, 0],
+cellFinishPosition: [3, 5]
+},
+
+{
+cells: [[2, 0], [3, 0], [1, 1], [2, 1], [3, 1], [4, 1], [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [0, 3], [1, 3], [2, 3], [3, 3], [4, 3], [5, 3], [1, 4], [2, 4], [3, 4], [4, 4], [2, 5], [3, 5]],
+cellStartPosition: [2, 0],
+cellFinishPosition: [3, 5]
+},
+
+{
+cells: [[4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [10, 0], [2, 1], [3, 1], [4, 1], [7, 1], [8, 1], [9, 1], [10, 1], [1, 2], [2, 2], [8, 2], [9, 2], [10, 2], [1, 3], [2, 3], [6, 3], [7, 3], [10, 3], [1, 4], [5, 4], [6, 4], [7, 4], [10, 4], [0, 5], [1, 5], [3, 5], [4, 5], [5, 5], [6, 5], [9, 5], [10, 5], [0, 6], [1, 6], [3, 6], [4, 6], [5, 6], [9, 6], [10, 6], [0, 7], [2, 7], [7, 7], [8, 7], [9, 7], [0, 8], [2, 8], [4, 8], [5, 8], [6, 8], [7, 8], [8, 8], [0, 9], [1, 9], [2, 9], [3, 9], [4, 9], [5, 9], [7, 9], [8, 9], [9, 9], [0, 10], [1, 10], [2, 10], [7, 10], [8, 10]],
+cellStartPosition: [0, 10],
+cellFinishPosition: [9, 1]
+},
+
+{
+cells: [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1], [3, 2], [0, 3], [1, 3], [2, 3], [3, 3], [0, 4], [0, 5], [0, 6], [1, 6], [2, 6], [3, 6], [3, 7], [3, 8], [0, 9], [1, 9], [2, 9], [3, 9]],
+cellStartPosition: [0, 9],
+cellFinishPosition: [0, 0]
+},
+
+{
+cells: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [0, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [0, 2], [3, 2], [4, 2], [5, 2], [6, 2], [0, 3], [1, 3], [2, 3], [3, 3], [6, 3], [0, 4], [2, 4], [3, 4], [6, 4], [0, 5], [3, 5], [4, 5], [6, 5], [0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6], [0, 7], [3, 7], [6, 7], [0, 8], [3, 8], [6, 8], [0, 9], [1, 9], [2, 9], [3, 9], [4, 9], [5, 9], [6, 9]],
+cellStartPosition: [0, 9],
+cellFinishPosition: [5, 1]
+},
+
+{
+cells: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [0, 1], [1, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [8, 1], [0, 2], [1, 2], [6, 2], [7, 2], [8, 2], [0, 3], [1, 3], [2, 3], [4, 3], [5, 3], [8, 3], [10, 3], [2, 4], [3, 4], [4, 4], [8, 4], [10, 4], [0, 5], [1, 5], [2, 5], [3, 5], [6, 5], [7, 5], [8, 5], [10, 5], [0, 6], [1, 6], [2, 6], [6, 6], [7, 6], [10, 6], [0, 7], [5, 7], [6, 7], [7, 7], [10, 7], [0, 8], [3, 8], [4, 8], [5, 8], [10, 8], [0, 9], [3, 9], [4, 9], [5, 9], [9, 9], [10, 9], [0, 10], [1, 10], [2, 10], [3, 10], [5, 10], [6, 10], [7, 10], [8, 10], [9, 10], [10, 10]],
+cellStartPosition: [0, 10],
+cellFinishPosition: [2, 3]
+},
+
+{
+cells: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [10, 0], [0, 1], [5, 1], [6, 1], [7, 1], [8, 1], [10, 1], [0, 2], [1, 2], [2, 2], [3, 2], [10, 2], [0, 3], [5, 3], [6, 3], [7, 3], [8, 3], [9, 3], [10, 3], [0, 4], [2, 4], [4, 4], [5, 4], [6, 4], [10, 4], [0, 5], [2, 5], [4, 5], [5, 5], [6, 5], [8, 5], [10, 5], [2, 6], [4, 6], [5, 6], [6, 6], [8, 6], [10, 6], [0, 7], [1, 7], [2, 7], [3, 7], [4, 7], [5, 7], [8, 7], [10, 7], [0, 8], [8, 8], [10, 8], [0, 9], [3, 9], [4, 9], [5, 9], [6, 9], [8, 9], [10, 9], [0, 10], [2, 10], [3, 10], [4, 10], [5, 10], [6, 10], [7, 10], [8, 10], [9, 10], [10, 10]],
+cellStartPosition: [0, 10],
+cellFinishPosition: [10, 0]
+},
+
+{
+cells: [[0, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [0, 1], [3, 1], [9, 1], [0, 2], [3, 2], [9, 2], [0, 3], [1, 3], [3, 3], [4, 3], [6, 3], [9, 3], [0, 4], [3, 4], [6, 4], [9, 4], [0, 5], [3, 5], [6, 5], [9, 5], [0, 6], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6], [7, 6], [9, 6], [0, 7], [3, 7], [6, 7], [9, 7], [0, 8], [9, 8], [0, 9], [1, 9], [2, 9], [3, 9], [4, 9], [5, 9], [6, 9], [7, 9], [8, 9], [9, 9]],
+cellStartPosition: [0, 0],
+cellFinishPosition: [6, 3]
+},
+
+{
+cells: [[0, 0], [1, 0], [2, 0], [3, 0], [0, 1], [1, 1], [2, 1], [3, 1], [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [1, 3], [2, 3], [3, 3], [4, 3], [5, 3], [5, 4], [5, 5], [3, 6], [4, 6], [5, 6], [3, 7], [4, 7], [5, 7], [3, 8], [4, 8], [5, 8], [3, 9], [1, 10], [2, 10], [3, 10], [4, 10], [1, 11], [2, 11], [3, 11], [4, 11], [1, 12], [2, 12], [3, 12], [4, 12], [1, 13], [2, 13], [3, 13], [4, 13]],
+cellStartPosition: [2, 12],
+cellFinishPosition: [2, 1]
+},
+
+{
+cells: [[0, 0], [0, 1], [0, 2], [1, 2], [2, 2], [0, 3], [1, 3], [2, 3], [0, 4], [0, 5]],
+cellStartPosition: [0, 0],
+cellFinishPosition: [0, 5]
+},
+
+{
+cells: [[0, 0], [4, 0], [5, 0], [0, 1], [4, 1], [5, 1], [0, 2], [1, 2], [2, 2], [4, 2], [5, 2], [0, 3], [1, 3], [2, 3], [5, 3], [0, 4], [5, 4], [0, 5], [5, 5], [0, 6], [3, 6], [4, 6], [5, 6], [0, 7], [3, 7], [4, 7], [5, 7], [0, 8], [1, 8], [2, 8], [3, 8]],
+cellStartPosition: [0, 0],
+cellFinishPosition: [4, 2]
+},
+
+{
+cells: [[3, 0], [4, 0], [5, 0], [3, 1], [4, 1], [5, 1], [2, 2], [3, 2], [4, 2], [5, 2], [2, 3], [3, 3], [4, 3], [0, 4], [1, 4], [2, 4], [6, 4], [7, 4], [8, 4], [0, 5], [1, 5], [2, 5], [6, 5], [7, 5], [8, 5], [9, 5], [0, 6], [1, 6], [2, 6], [7, 6], [8, 6], [9, 6], [0, 7], [7, 7], [8, 7], [9, 7], [0, 8], [4, 8], [5, 8], [6, 8], [7, 8], [8, 8], [0, 9], [1, 9], [2, 9], [3, 9], [4, 9], [5, 9], [3, 10], [4, 10], [5, 10], [3, 11], [3, 12], [3, 13], [3, 14]],
+cellStartPosition: [3, 14],
+cellFinishPosition: [4, 1]
+},
+
+{
+cells: [[0, 0], [1, 0], [2, 0], [3, 0], [0, 1], [1, 1], [2, 1], [3, 1], [0, 2], [1, 2], [2, 2], [3, 2]],
+cellStartPosition: [1, 1],
+cellFinishPosition: [2, 1]
+},
+
+{
+cells: [[0, 0], [1, 0], [2, 0], [0, 1], [1, 1], [2, 1], [3, 1], [0, 2], [1, 2], [2, 2], [3, 2]],
+cellStartPosition: [1, 1],
+cellFinishPosition: [2, 1]
+},
+
+{
+cells: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [2, 1], [3, 1], [8, 1], [2, 2], [3, 2], [8, 2], [6, 3], [7, 3], [8, 3], [6, 4], [7, 4], [8, 4], [9, 4], [7, 5], [8, 5], [9, 5]],
+cellStartPosition: [0, 0],
+cellFinishPosition: [8, 4]
+},
+
+{
+cells: [[1, 0], [2, 0], [3, 0], [3, 1], [0, 2], [1, 2], [2, 2], [3, 2], [1, 3], [2, 3], [3, 3], [3, 4], [0, 5], [1, 5], [2, 5], [3, 5], [3, 6], [1, 7], [2, 7], [3, 7], [3, 8], [0, 9], [1, 9], [2, 9], [3, 9]],
+cellStartPosition: [3, 0],
+cellFinishPosition: [0, 5]
+}
+]
+};
+
+        
+        this.cells = [];
+        this.cellStartPosition = [];
+        this.cellFinishPosition = [];
+        this.cellSizePx = 0;
+        this.container = null;
+        this.currentLevelIndex = 0;
+        this.shapePosition = [];
+        this.shapePlacement = null;
+        this.state = this.dicts.states.notReady;
+    }
+    
+    setEvents() {
+        this.container.addEventListener("click", (event) => {
+            if (this.state === this.dicts.states.inProgress) {
+                const rect = this.container.getBoundingClientRect();
+                const coordX = event.clientX - rect.left;
+                const coordY = event.clientY - rect.top;
+                const ratio = rect.height / rect.width;
+                
+                let direction;
+                if (coordY > ratio * coordX) {
+                    if (coordY > -ratio * coordX + rect.height) {
+                        direction = this.dicts.stepDirections.bottom;
+                    } else {
+                        direction = this.dicts.stepDirections.left;
+                    }
+                } else {
+                    if (coordY > -ratio * coordX + rect.height) {
+                        direction = this.dicts.stepDirections.right;
+                    } else {
+                        direction = this.dicts.stepDirections.top;
+                    }
+                }
+                
+                this.moveShape(direction);
+            }
+        });
+        
+        document.addEventListener("keydown", (event) => {
+            if (this.state === this.dicts.states.inProgress) {
+                let direction;
+                if (event.code === "ArrowUp") {
+                    direction = this.dicts.stepDirections.top;
+                } else if (event.code === "ArrowRight") {
+                    direction = this.dicts.stepDirections.right;
+                } else if (event.code === "ArrowDown") {
+                    direction = this.dicts.stepDirections.bottom;
+                } else if (event.code === "ArrowLeft") {
+                    direction = this.dicts.stepDirections.left;
+                }
+                
+                if (direction !== undefined) {
+                    this.moveShape(direction);
+                }
+            }
+        });
+    }
+}
+
+let vectrex = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+    const cellSizePx = 30;
+    const containerId = "vectrex-container";
+    vectrex = new Vectrex(containerId, cellSizePx, true);
+    
+    const toggleBtn = document.getElementById('toggle-btn');
+    const modeText = document.getElementById('mode-text');
+    
+    // D-pad para celular
+    function addDpadListener(id, dir) {
+      ['click', 'touchstart'].forEach(evt => {
+        document.getElementById(id).addEventListener(evt, (e) => {
+          e.preventDefault();
+          if (vectrex) vectrex.moveShape(vectrex.dicts.stepDirections[dir]);
+        });
+      });
+    }
+    addDpadListener('btn-up',    'top');
+    addDpadListener('btn-down',  'bottom');
+    addDpadListener('btn-left',  'left');
+    addDpadListener('btn-right', 'right');
+
+    toggleBtn.addEventListener('click', () => {
+        const isEasyMode = vectrex.toggleMode();
+        
+        if (isEasyMode) {
+            toggleBtn.textContent = 'fácil / difícil';
+            modeText.textContent = 'versión modificada 50% de tolerancia';
+            modeText.style.color = 'cyan';
+        } else {
+            toggleBtn.textContent = 'difícil / fácil';
+            modeText.textContent = 'versión original 0% de tolerancia';
+            modeText.style.color = 'yellow';
+        }
+    });
+});
+
+window.addEventListener("resize", () => {
+    if (vectrex != null) vectrex.resize();
+});
+</script>
+
+<script>
+document.addEventListener('contextmenu', function(e) {
+e.preventDefault();
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PuzzleX - checked</title>
+<style>
+
+body {
+background-color: #111;
+    margin-top: 10px;
+}
+
+.tablero {
+    display: grid;
+    grid-template-columns: repeat(3, 60px);
+    gap: 5px;
+    margin: 20px;
+    width: fit-content;
+    background-color: #222;
+}
+
+.celda {
+    width: 60px;
+    height: 60px;
+    border: 2px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: black;
+    position: relative;
+}
+
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #0ff;
+    filter: drop-shadow(0 0 2px #0ff);
+}
+
+input[type="checkbox"]:checked {
+    box-shadow: 0 0 10px #0ff;
+}
+
+.numero-oculto {
+    position: absolute;
+    font-size: 16px;
+    color: lime;
+    margin-top: -35px;
+    display: none;
+}
+
+.solve, .reset {
+            background-color: black;
+            color: lime;
+            border: 1px solid cyan;
+            border-radius: 5px;
+            padding: 10px 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px #0ff,
+                0 0 20px #0ff,
+                inset 0 0 10px #0ff;
+            text-shadow: 0 0 5px #0ff;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.solve:hover, .reset:hover {
+            background-color: #33F033;
+            color: red;
+            border: 1px solid black;
+            box-shadow: 0 0 15px #0ff,
+                0 0 30px #0ff,
+                inset 0 0 15px #0ff;
+}
+
+.solve:active, .reset:active {
+            background-color: #33F033;
+            color: red;
+            border: 1px solid black;
+            box-shadow: 0 0 15px #0ff,
+                0 0 30px #0ff,
+                inset 0 0 15px #0ff;
+}
+
+.contador {
+    color: cyan;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: left;
+    margin: 20px;
+    text-shadow: 0 0 10px #0ff;
+}
+
+a:link,a:visited {
+text-decoration: none;
+color: lime;
+}
+a:hover {
+text-decoration: none;
+color: red;
+}
+
+@media (max-width: 600px) {
+  body {
+    font-size: 20px;
+    transform: scale(1.0);
+    transform-origin: top left;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<p style="display: flex; justify-content: left; align-items: left;">
+<h3 style="color: lime; text-align: left; margin: 25px;">PuzzleX by Carlos Sivila</h3>
+
+    <div class="tablero" id="tablero"></div>
+    <div style="margin: 0 auto;">&ensp;&ensp;&ensp;
+    <button class="solve" onclick="mostrarSolucion()">solución</button>&ensp;
+</div>
+</p>
+
+<p style="text-align: left; color: white; font-size: 16px; margin-left: 10px;">Encuentra un camino (un orden) del 1 al 9</p>
+
+<div class="contador" id="contador">0 aciertos de 5 </div>
+
+<script>
+let aciertos = 0;
+let audioCtx = null;
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+}
+
+function playgood() {
+    initAudio();
+    const notas = [523.25, 587.33, 659.25, 783.99];
+    const tiempos = [0, 0.15, 0.3, 0.45];
+    
+    notas.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime + tiempos[i]);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + tiempos[i] + 0.15);
+        
+        osc.start(audioCtx.currentTime + tiempos[i]);
+        osc.stop(audioCtx.currentTime + tiempos[i] + 0.15);
+    });
+}
+
+function playwin() {
+    initAudio();
+    const now = audioCtx.currentTime;
+    const notasIniciales = [523.25, 587.33, 659.25, 783.99];
+    notasIniciales.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.frequency.setValueAtTime(freq, now + i * 0.15);
+        gainNode.gain.setValueAtTime(0.2, now + i * 0.15);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.15);
+        
+        osc.start(now + i * 0.15);
+        osc.stop(now + i * 0.15 + 0.15);
+    });
+    const notasFinales = [880, 1046.5];
+    notasFinales.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        const startTime = now + 0.75 + i * 0.15;
+        osc.frequency.setValueAtTime(freq, startTime);
+        gainNode.gain.setValueAtTime(0.25, startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+        
+        osc.start(startTime);
+        osc.stop(startTime + 0.2);
+    });
+}
+
+const crearTablero = () => {
+    const tablero = document.getElementById('tablero');
+    tablero.innerHTML = '';
+    const numeros = Array.from({length: 9}, (_, i) => i + 1);
+
+    for (let i = numeros.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [numeros[i], numeros[j]] = [numeros[j], numeros[i]];
+    }
+    
+    for (let i = 0; i < 9; i++) {
+        const celda = document.createElement('div');
+        celda.className = 'celda';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.dataset.orden = numeros[i];
+
+        const numeroOculto = document.createElement('div');
+        numeroOculto.className = 'numero-oculto';
+        numeroOculto.textContent = numeros[i];
+        
+        celda.appendChild(numeroOculto);
+        celda.appendChild(checkbox);
+        tablero.appendChild(celda);
+    }
+};
+
+const mostrarSolucion = () => {
+    const numerosOcultos = document.querySelectorAll('.numero-oculto');
+    numerosOcultos.forEach(numero => {
+        numero.style.display = numero.style.display === 'block' ? 'none' : 'block';
+    });
+};
+
+const actualizarContador = () => {
+    document.getElementById('contador').textContent = `${aciertos} aciertos de 5 `;
+};
+
+const iniciarJuego = () => {
+    crearTablero();
+    let numerosSeleccionados = new Set();
+    
+    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const numeroActual = parseInt(this.dataset.orden);
+            
+            if (numeroActual === 1) {
+                numerosSeleccionados.clear();
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                    cb.checked = false;
+                });
+                this.checked = true;
+                numerosSeleccionados.add(1);
+            } else if (numerosSeleccionados.has(numeroActual - 1)) {
+                this.checked = true;
+                numerosSeleccionados.add(numeroActual);
+            } else {
+                numerosSeleccionados.clear();
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                    if (cb !== this) {
+                        cb.checked = false;
+                    }
+                });
+                this.checked = true;
+                numerosSeleccionados.add(numeroActual);
+            }
+
+            if (numerosSeleccionados.size === 9) {
+                   aciertos++;
+                   actualizarContador();
+                   setTimeout(() => {
+                   playgood();
+        
+            if (aciertos >= 5) {
+                   playwin();
+                   setTimeout(() => {
+                   alert('Ganaste');
+                   aciertos = 0;
+                   actualizarContador();
+                   iniciarJuego();
+                   }, 1000);
+           } else {
+                   setTimeout(() => {
+                   iniciarJuego();
+                   }, 1000);
+                   }
+                   }, 1000);
+                   }
+        });
+    });
+};
+
+iniciarJuego();
+</script>
+
+<script>
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+});
+</script>
+
+</body>
+</html>

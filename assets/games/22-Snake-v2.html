@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<title>PuzzleX - Snake-v2</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0a0a0f;
+    overflow: hidden;
+    font-family: 'Orbitron', monospace;
+    touch-action: none;
+    user-select: none;
+  }
+
+  canvas { display: block; }
+
+  #hud {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    padding: 14px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .hud-box {
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 8px 18px;
+    color: #fff;
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+
+  .hud-val {
+    font-size: 22px;
+    font-weight: 900;
+    color: #00ffc8;
+    text-shadow: 0 0 12px #00ffc8;
+  }
+
+  #rank-box { text-align: right; }
+
+  #minimap {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    width: 120px;
+    height: 120px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    background: rgba(0,0,0,0.5);
+    z-index: 10;
+  }
+
+  #boostBar { display: none; }
+
+  /* touch joystick */
+  #joystick-zone {
+    position: fixed;
+    bottom: 0; left: 0;
+    width: 50%;
+    height: 45%;
+    z-index: 5;
+    display: none;
+  }
+  @media (pointer: coarse) {
+    #joystick-zone { display: flex; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<div id="hud">
+  <div class="hud-box">
+    LONGITUD<br><span class="hud-val" id="hLen">5</span>
+  </div>
+  <div class="hud-box" id="rank-box">
+    RANK<br><span class="hud-val" id="hRank">—</span>
+  </div>
+</div>
+
+<canvas id="minimap"></canvas>
+
+<div id="boostBar"><div id="boostFill"></div></div>
+
+<div id="joystick-zone"></div>
+
+<script>
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+const WORLD_W = 3000, WORLD_H = 3000;
+const SEGMENT_DIST = 8;
+const MIN_RADIUS = 7;
+const FOOD_COUNT = 300;
+const BOOST_MAX = 1.0;
+const BOOST_DRAIN = 0.003;
+const BOOST_REGEN = 0.0015;
+const TURN_SPEED = 0.09;
+const BASE_SPEED = 2.5;
+const BOOST_SPEED = 5.0;
+const BOT_SPEED = 1.6;
+const BOT_TARGET_COUNT = 42;
+const GRACE_DURATION = 4000;
+const RING_INTERVAL = 10;
+
+// ─── CANVAS SETUP ────────────────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const miniCanvas = document.getElementById('minimap');
+const mctx = miniCanvas.getContext('2d');
+miniCanvas.style.cssText = 'position:fixed;bottom:16px;right:16px;width:120px;height:120px;border:1px solid rgba(255,255,255,0.1);border-radius:6px;background:rgba(0,0,0,0.5);z-index:10;';
+miniCanvas.width = 120; miniCanvas.height = 120;
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ─── CAMERA ──────────────────────────────────────────────────────────────────
+let cam = { x: 0, y: 0, zoom: 1 };
+
+function worldToScreen(wx, wy) {
+  return {
+    x: (wx - cam.x) * cam.zoom + canvas.width / 2,
+    y: (wy - cam.y) * cam.zoom + canvas.height / 2
+  };
+}
+
+// ─── INPUT ───────────────────────────────────────────────────────────────────
+let input = { mouseX: 0, mouseY: 0, boost: false, arrowAngle: null, usingArrows: false };
+
+let lastClickTime = 0;
+function activateBoost() {
+  const now = Date.now();
+  if (now - lastClickTime < 350) {
+    input.boost = true;
+  }
+  lastClickTime = now;
+}
+
+window.addEventListener('mousemove', e => {
+  input.mouseX = e.clientX;
+  input.mouseY = e.clientY;
+  input.usingArrows = false;
+});
+window.addEventListener('mousedown', e => { if (e.button === 0) activateBoost(); });
+
+const keys = {};
+window.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
+    input.usingArrows = true;
+    e.preventDefault();
+  }
+  if (e.key === ' ') activateBoost();
+});
+window.addEventListener('keyup', e => {
+  keys[e.key] = false;
+});
+
+let touchPos = { active: false, x: 0, y: 0 };
+let lastTouchAngle = null;
+let lastTapTime = 0;
+let tapStartX = 0, tapStartY = 0;
+let tapMoved = false;
+const TAP_MOVE_THRESHOLD = 12;
+const DOUBLE_TAP_DELAY = 300;
+
+document.addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  tapStartX = t.clientX;
+  tapStartY = t.clientY;
+  tapMoved = false;
+  touchPos.active = true;
+  touchPos.x = t.clientX;
+  touchPos.y = t.clientY;
+}, { passive: true });
+
+document.addEventListener('touchmove', e => {
+  const t = e.touches[0];
+  touchPos.x = t.clientX;
+  touchPos.y = t.clientY;
+  if (Math.hypot(t.clientX - tapStartX, t.clientY - tapStartY) > TAP_MOVE_THRESHOLD) {
+    tapMoved = true;
+  }
+}, { passive: true });
+
+document.addEventListener('touchend', e => {
+  touchPos.active = false;
+  if (!tapMoved) {
+    const now = Date.now();
+    if (now - lastTapTime < DOUBLE_TAP_DELAY) {
+      input.boost = true;
+      lastTapTime = 0;
+    } else {
+      lastTapTime = now;
+    }
+  }
+});
+
+let touchJoy = { active: false, dx: 0, dy: 0 };
+const joyZone = document.getElementById('joystick-zone');
+
+// ─── GRACE PERIOD (COMPLETAMENTE OCULTO) ────────────────────────────────────
+let graceEndTime = 0;
+let graceActive = false;
+
+function isGracePeriod() {
+  return Date.now() < graceEndTime;
+}
+
+function updateGraceState() {
+  const now = Date.now();
+  const wasGraceActive = graceActive;
+  graceActive = now < graceEndTime;
+  
+  if (wasGraceActive && !graceActive) {
+    if (player) {
+      player.invincible = false;
+      player.invTimer = 0;
+    }
+    if (bots) {
+      for (const bot of bots) {
+        bot.invincible = false;
+        bot.invTimer = 0;
+      }
+    }
+  }
+}
+
+// ─── FOOD ─────────────────────────────────────────────────────────────────────
+class Food {
+  constructor(x, y) {
+    this.x = x !== undefined ? x : Math.random() * WORLD_W;
+    this.y = y !== undefined ? y : Math.random() * WORLD_H;
+    this.hue = Math.random() * 360;
+    this.r = Math.random() * 4 + 3;
+    this.pulse = Math.random() * Math.PI * 2;
+  }
+  update() { this.pulse += 0.05; }
+  draw() {
+    const s = worldToScreen(this.x, this.y);
+    const pr = this.r * cam.zoom * (1 + 0.2 * Math.sin(this.pulse));
+    if (s.x < -20 || s.x > canvas.width + 20 || s.y < -20 || s.y > canvas.height + 20) return;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, pr, 0, Math.PI * 2);
+    ctx.fillStyle = `hsl(${this.hue},100%,60%)`;
+    ctx.shadowColor = `hsl(${this.hue},100%,60%)`;
+    ctx.shadowBlur = 12;
+    ctx.fill();
+    ctx.globalAlpha = 0.3;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, pr * 1.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+// ─── SNAKE BASE ───────────────────────────────────────────────────────────────
+class Snake {
+  constructor(x, y, color, length) {
+    this.x = x; this.y = y;
+    this.angle = Math.random() * Math.PI * 2;
+    this.speed = BASE_SPEED;
+    this.hue = color !== undefined ? color : Math.floor(Math.random() * 360);
+    this.color = `hsl(${this.hue},100%,55%)`;
+    this.colorBright = `hsl(${this.hue},100%,72%)`;
+    // Anillo: mismo tono, misma saturación, luminosidad 45% (más claro que antes pero aún más oscuro que el cuerpo)
+    this.ringColor = `hsl(${this.hue},100%,45%)`;
+    this.radius = MIN_RADIUS;
+    this.segments = [];
+    this.targetLength = length || 40;
+    this.alive = true;
+    this.isBoosting = false;
+    this.boostEnergy = BOOST_MAX;
+    this.invincible = true;
+    this.invTimer = 0;
+  }
+
+  get segRadius() { return MIN_RADIUS + (this.targetLength - 40) * 0.04; }
+
+  _move(speed) {
+    this.x += Math.cos(this.angle) * speed;
+    this.y += Math.sin(this.angle) * speed;
+    this.x = Math.max(this.radius, Math.min(WORLD_W - this.radius, this.x));
+    this.y = Math.max(this.radius, Math.min(WORLD_H - this.radius, this.y));
+
+    this.segments.unshift({ x: this.x, y: this.y });
+    while (this.segments.length > this.targetLength + 5) this.segments.pop();
+  }
+
+  draw(isPlayer) {
+    if (!this.alive) return;
+    const n = Math.min(this.segments.length, this.targetLength);
+    if (n < 2) return;
+
+    // 1. Dibujar el cuerpo como línea continua (estilo original)
+    for (let pass = 0; pass < (this.isBoosting ? 2 : 1); pass++) {
+      ctx.beginPath();
+      const s0 = worldToScreen(this.segments[0].x, this.segments[0].y);
+      ctx.moveTo(s0.x, s0.y);
+      for (let i = 1; i < n; i++) {
+        const s = worldToScreen(this.segments[i].x, this.segments[i].y);
+        ctx.lineTo(s.x, s.y);
+      }
+      ctx.strokeStyle = pass === 0 ? this.color : this.colorBright;
+      ctx.lineWidth = this.segRadius * 2 * cam.zoom;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      
+      if (this.isBoosting) {
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = pass === 0 ? 18 : 8;
+      } else {
+        ctx.shadowBlur = isPlayer ? 6 : 0;
+        ctx.shadowColor = this.color;
+      }
+      ctx.stroke();
+    }
+
+    // 2. Dibujar líneas anilladas CADA 10 UNIDADES DE LONGITUD
+    ctx.save();
+    ctx.shadowBlur = 0;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = Math.max(2, this.segRadius * 0.5 * cam.zoom);
+    ctx.strokeStyle = this.ringColor;
+    
+    // Recorremos los segmentos y dibujamos anillo cada RING_INTERVAL unidades
+    for (let i = RING_INTERVAL; i < n; i += RING_INTERVAL) {
+      if (i >= n) break;
+      
+      // Punto actual y punto anterior
+      const p1 = worldToScreen(this.segments[i-1].x, this.segments[i-1].y);
+      const p2 = worldToScreen(this.segments[i].x, this.segments[i].y);
+      
+      // Punto medio (donde va el anillo)
+      const midX = (p1.x + p2.x) / 2;
+      const midY = (p1.y + p2.y) / 2;
+      
+      // Dirección del segmento
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const len = Math.hypot(dx, dy);
+      if (len < 0.01) continue;
+      
+      // Vector perpendicular (para la línea transversal)
+      const perpX = -dy / len;
+      const perpY = dx / len;
+      
+      // Tamaño del anillo (proporcional al radio)
+      const ringSize = this.segRadius * 0.9 * cam.zoom;
+      
+      // Dibujar línea transversal (anillo)
+      ctx.beginPath();
+      ctx.moveTo(midX - perpX * ringSize, midY - perpY * ringSize);
+      ctx.lineTo(midX + perpX * ringSize, midY + perpY * ringSize);
+      ctx.stroke();
+      
+      // Pequeño círculo central para dar efecto de anillo
+      ctx.beginPath();
+      ctx.arc(midX, midY, Math.max(1.5, this.segRadius * 0.25 * cam.zoom), 0, Math.PI * 2);
+      ctx.fillStyle = this.ringColor;
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // 3. Dibujar ojos (cabeza con MISMO diámetro que el cuerpo)
+    const head = worldToScreen(this.x, this.y);
+    const rPx = this.segRadius * cam.zoom;
+    const eyeR = rPx * 0.35;
+    const eyeOffset = rPx * 0.5;
+    const perpAngle = this.angle + Math.PI / 2;
+
+    for (const side of [-1, 1]) {
+      const ex = head.x + Math.cos(perpAngle) * side * eyeOffset;
+      const ey = head.y + Math.sin(perpAngle) * side * eyeOffset;
+      ctx.beginPath();
+      ctx.arc(ex, ey, eyeR, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff';
+      ctx.shadowBlur = 0;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(ex + Math.cos(this.angle) * eyeR * 0.4, ey + Math.sin(this.angle) * eyeR * 0.4, eyeR * 0.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#111';
+      ctx.fill();
+    }
+  }
+
+  spawnFoodOnDeath(foods, multiplier = 1) {
+    const count = Math.floor(this.targetLength * multiplier);
+    for (let i = 0; i < count; i++) {
+      const seg = this.segments[Math.floor(Math.random() * this.segments.length)];
+      foods.push(new Food(
+        seg.x + (Math.random() - 0.5) * 30,
+        seg.y + (Math.random() - 0.5) * 30
+      ));
+    }
+  }
+}
+
+// ─── PLAYER SNAKE ─────────────────────────────────────────────────────────────
+class PlayerSnake extends Snake {
+  constructor() {
+    super(WORLD_W / 2, WORLD_H / 2, 140, 40);
+    this.score = 5;
+  }
+
+  update() {
+    let targetAngle;
+
+    if (touchPos.active) {
+      const sx = canvas.width / 2, sy = canvas.height / 2;
+      targetAngle = Math.atan2(touchPos.y - sy, touchPos.x - sx);
+      lastTouchAngle = targetAngle;
+    } else if (lastTouchAngle !== null) {
+      targetAngle = lastTouchAngle;
+    } else if (input.usingArrows) {
+      let da = 0;
+      if (keys['ArrowLeft'])  da = -TURN_SPEED * 2;
+      if (keys['ArrowRight']) da =  TURN_SPEED * 2;
+      if (keys['ArrowUp'])    targetAngle = this.angle - Math.PI / 2;
+      if (keys['ArrowDown'])  targetAngle = this.angle + Math.PI / 2;
+      if (da !== 0) { this.angle += da; targetAngle = this.angle; }
+      if (!targetAngle) targetAngle = this.angle;
+    } else {
+      const sx = canvas.width / 2, sy = canvas.height / 2;
+      targetAngle = Math.atan2(input.mouseY - sy, input.mouseX - sx);
+    }
+
+    if (targetAngle !== undefined) {
+      let diff = targetAngle - this.angle;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      this.angle += Math.sign(diff) * Math.min(Math.abs(diff), TURN_SPEED);
+    }
+
+    if (input.boost && this.boostEnergy <= 0.05) {
+      input.boost = false;
+    }
+    this.isBoosting = input.boost;
+    if (this.isBoosting) {
+      this.boostEnergy = Math.max(0, this.boostEnergy - BOOST_DRAIN);
+    } else {
+      this.boostEnergy = Math.min(BOOST_MAX, this.boostEnergy + BOOST_REGEN);
+    }
+
+    const spd = this.isBoosting ? BOOST_SPEED : BASE_SPEED;
+    this._move(spd);
+  }
+}
+
+// ─── BOT SNAKE ────────────────────────────────────────────────────────────────
+class BotSnake extends Snake {
+  constructor(x, y, color, length) {
+    super(x, y, color, length);
+    this.trendTimer = 0;
+    this.trend = (Math.random() - 0.5) * 0.04;
+    this.targetFood = null;
+    this.speed = BOT_SPEED;
+  }
+
+  update(foods, snakes) {
+    this.trendTimer--;
+    if (this.trendTimer <= 0) {
+      this.trendTimer = 30 + Math.floor(Math.random() * 90);
+      if (Math.random() < 0.5 && foods.length > 0) {
+        let best = null, bestD = Infinity;
+        const sample = foods.length > 30 ? 30 : foods.length;
+        for (let i = 0; i < sample; i++) {
+          const f = foods[Math.floor(Math.random() * foods.length)];
+          const d = Math.hypot(f.x - this.x, f.y - this.y);
+          if (d < bestD) { bestD = d; best = f; }
+        }
+        this.targetFood = best;
+      } else {
+        this.targetFood = null;
+        this.trend = (Math.random() - 0.5) * 0.08;
+      }
+    }
+
+    if (this.targetFood) {
+      const ta = Math.atan2(this.targetFood.y - this.y, this.targetFood.x - this.x);
+      let diff = ta - this.angle;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      this.angle += Math.sign(diff) * Math.min(Math.abs(diff), 0.07);
+    } else {
+      this.angle += this.trend;
+    }
+
+    const margin = 100;
+    if (this.x < margin) this.angle += 0.08;
+    if (this.x > WORLD_W - margin) this.angle -= 0.08;
+    if (this.y < margin) this.angle += 0.08;
+    if (this.y > WORLD_H - margin) this.angle -= 0.08;
+
+    this._move(this.speed);
+  }
+}
+
+// ─── GAME STATE ───────────────────────────────────────────────────────────────
+let player, bots, foods, running, frame, bestRank;
+
+function initGame() {
+  player = new PlayerSnake();
+  bestRank = BOT_TARGET_COUNT + 1;
+  foods = [];
+  for (let i = 0; i < FOOD_COUNT; i++) foods.push(new Food());
+
+  bots = [];
+  // 30 small bots (length 40)
+  for (let i = 0; i < 30; i++) {
+    const x = Math.random() * WORLD_W, y = Math.random() * WORLD_H;
+    const b = new BotSnake(x, y, Math.floor(Math.random()*360), 40);
+    bots.push(b);
+  }
+  // 10 colossal bots (length 400)
+  for (let i = 0; i < 10; i++) {
+    const x = Math.random() * WORLD_W, y = Math.random() * WORLD_H;
+    const b = new BotSnake(x, y, Math.floor(Math.random()*360), 400);
+    b.radius = MIN_RADIUS * 2.6;
+    b.speed = BOT_SPEED * 0.6;
+    bots.push(b);
+  }
+  // 2 MEGA bots (length 800)
+  for (let i = 0; i < 2; i++) {
+    const x = Math.random() * WORLD_W, y = Math.random() * WORLD_H;
+    const b = new BotSnake(x, y, Math.floor(Math.random()*360), 800);
+    b.radius = MIN_RADIUS * 3.5;
+    b.speed = BOT_SPEED * 0.45;
+    bots.push(b);
+  }
+  
+  graceEndTime = Date.now() + GRACE_DURATION;
+  graceActive = true;
+  
+  player.invincible = true;
+  for (const bot of bots) {
+    bot.invincible = true;
+  }
+}
+
+// ─── GRID BACKGROUND ─────────────────────────────────────────────────────────
+function drawBackground() {
+  const gridSize = 60 * cam.zoom;
+  const offX = (-cam.x * cam.zoom + canvas.width / 2) % gridSize;
+  const offY = (-cam.y * cam.zoom + canvas.height / 2) % gridSize;
+
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let x = offX; x < canvas.width; x += gridSize) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+  }
+  for (let y = offY; y < canvas.height; y += gridSize) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+  }
+  ctx.restore();
+
+  const tl = worldToScreen(0, 0);
+  const br = worldToScreen(WORLD_W, WORLD_H);
+  ctx.save();
+  ctx.strokeStyle = 'rgba(0,255,200,0.25)';
+  ctx.shadowColor = '#00ffc8';
+  ctx.shadowBlur = 15;
+  ctx.lineWidth = 3;
+  ctx.strokeRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+  ctx.restore();
+}
+
+// ─── MINIMAP ──────────────────────────────────────────────────────────────────
+function drawMinimap() {
+  mctx.clearRect(0, 0, 120, 120);
+  const sx = 120 / WORLD_W, sy = 120 / WORLD_H;
+  for (const b of bots) {
+    mctx.beginPath();
+    mctx.arc(b.x * sx, b.y * sy, 2, 0, Math.PI * 2);
+    mctx.fillStyle = `hsl(${b.hue},100%,60%)`;
+    mctx.fill();
+  }
+  mctx.beginPath();
+  mctx.arc(player.x * sx, player.y * sy, 4, 0, Math.PI * 2);
+  mctx.fillStyle = '#fff';
+  mctx.shadowColor = '#fff';
+  mctx.shadowBlur = 6;
+  mctx.fill();
+  mctx.shadowBlur = 0;
+}
+
+// ─── COLLISION DETECTION ──────────────────────────────────────────────────────
+function dist2(ax, ay, bx, by) {
+  const dx = ax - bx, dy = ay - by;
+  return dx*dx + dy*dy;
+}
+
+function checkCollisions() {
+  if (isGracePeriod()) return;
+  if (player.invincible) return;
+
+  const margin = player.radius;
+  if (player.x <= margin || player.x >= WORLD_W - margin ||
+      player.y <= margin || player.y >= WORLD_H - margin) {
+    endGame('PERDISTE, chocaste contra el borde');
+    return;
+  }
+
+  for (let bi = bots.length - 1; bi >= 0; bi--) {
+    const bot = bots[bi];
+    if (bot.invincible) continue;
+    
+    const threshold = (player.radius + bot.segRadius) ** 2;
+
+    const checkFrom = 5;
+    for (let si = checkFrom; si < bot.segments.length; si++) {
+      if (dist2(player.x, player.y, bot.segments[si].x, bot.segments[si].y) < threshold) {
+        endGame('PERDISTE, chocaste');
+        return;
+      }
+    }
+
+    const pThreshold = (player.radius + bot.segRadius) ** 2;
+    for (let si = 5; si < player.segments.length; si++) {
+      if (dist2(bot.x, bot.y, player.segments[si].x, player.segments[si].y) < pThreshold) {
+        bot.spawnFoodOnDeath(foods);
+        bots.splice(bi, 1);
+        break;
+      }
+    }
+  }
+
+  for (let i = bots.length - 1; i >= 0; i--) {
+    const a = bots[i];
+    if (a.invincible) continue;
+    let died = false;
+    for (let j = 0; j < bots.length; j++) {
+      if (i === j) continue;
+      const b = bots[j];
+      if (b.invincible) continue;
+      const thr = (a.segRadius + b.segRadius) ** 2;
+      for (let si = 5; si < b.segments.length; si++) {
+        if (dist2(a.x, a.y, b.segments[si].x, b.segments[si].y) < thr) {
+          a.spawnFoodOnDeath(foods);
+          bots.splice(i, 1);
+          died = true;
+          break;
+        }
+      }
+      if (died) break;
+    }
+  }
+}
+
+// ─── FOOD COLLECTION ─────────────────────────────────────────────────────────
+function collectFood() {
+  for (let i = foods.length - 1; i >= 0; i--) {
+    const f = foods[i];
+    if (dist2(player.x, player.y, f.x, f.y) < (player.radius + f.r) ** 2) {
+      player.targetLength += 0.25;
+      player.score++;
+      foods.splice(i, 1);
+      continue;
+    }
+    let eaten = false;
+    for (const bot of bots) {
+      if (dist2(bot.x, bot.y, f.x, f.y) < (bot.segRadius + f.r) ** 2) {
+        bot.targetLength += 0.25;
+        eaten = true;
+        break;
+      }
+    }
+    if (eaten) foods.splice(i, 1);
+  }
+  while (foods.length < FOOD_COUNT) {
+    foods.push(new Food());
+  }
+}
+
+// ─── HUD ─────────────────────────────────────────────────────────────────────
+function updateHUD() {
+  document.getElementById('hLen').textContent = player.score;
+
+  let rankPos = 1;
+  for (const b of bots) if (b.targetLength > player.targetLength) rankPos++;
+  document.getElementById('hRank').textContent = `#${rankPos} / ${bots.length + 1}`;
+
+  document.getElementById('boostFill').style.width = (player.boostEnergy * 100) + '%';
+
+  cam.zoom = 0.9;
+  cam.x += (player.x - cam.x) * 0.12;
+  cam.y += (player.y - cam.y) * 0.12;
+  
+  updateGraceState();
+}
+
+// ─── END GAME ────────────────────────────────────────────────────────────────
+function endGame(reason) {
+  running = false;
+  player.spawnFoodOnDeath(foods);
+  setTimeout(() => {
+    alert(reason);
+    startGame();
+  }, 50);
+}
+
+function checkWin() {
+  if (bots.length === 0) {
+    running = false;
+    setTimeout(() => {
+      alert('GANASTE');
+      startGame();
+    }, 50);
+  }
+}
+
+// ─── MAIN LOOP ───────────────────────────────────────────────────────────────
+function loop() {
+  if (!running) return;
+  frame = requestAnimationFrame(loop);
+
+  ctx.fillStyle = '#0a0a0f';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  drawBackground();
+
+  player.update();
+  for (const bot of bots) bot.update(foods, bots);
+  for (const f of foods) f.update();
+  collectFood();
+  checkCollisions();
+  checkWin();
+
+  ctx.save();
+  for (const f of foods) f.draw();
+  ctx.restore();
+
+  for (const bot of bots) { ctx.save(); bot.draw(false); ctx.restore(); }
+
+  ctx.save();
+  player.draw(true);
+  ctx.restore();
+
+  updateHUD();
+  drawMinimap();
+}
+
+// ─── UI WIRING ───────────────────────────────────────────────────────────────
+function startGame() {
+  if (frame) cancelAnimationFrame(frame);
+  initGame();
+  cam.x = player.x; cam.y = player.y; cam.zoom = 0.9;
+  running = true;
+  loop();
+}
+
+window.addEventListener('load', startGame);
+</script>
+</body>
+</html>
