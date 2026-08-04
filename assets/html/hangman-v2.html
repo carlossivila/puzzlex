@@ -154,7 +154,7 @@ input {
     width: 28px;
     height: 28px;
     border: 3px solid #333;
-    border-top-color: lime;
+    border-top-color: #999;
     border-radius: 50%;
 }
 
@@ -572,13 +572,16 @@ hiddenInput.addEventListener('input', () => {
     processingInput = false;
 });
 
-document.addEventListener('click', () => {
-    if (gameActive) hiddenInput.focus();
+document.addEventListener('click', e => {
+    if (!gameActive) return;
+    if (e.target.closest('#difficultyToggle')) return;
+    if (document.activeElement === hiddenInput) {
+        hiddenInput.blur();
+    } else {
+        hiddenInput.value = '';
+        hiddenInput.focus();
+    }
 });
-
-document.addEventListener('touchstart', () => {
-    if (gameActive) { hiddenInput.value = ''; hiddenInput.focus(); }
-}, { passive: true });
 
 document.addEventListener('contextmenu', e => e.preventDefault());
 
@@ -612,11 +615,6 @@ document.addEventListener('contextmenu', e => e.preventDefault());
         if (dy > 0 && atTop()) {
             const pull = Math.min(dy, MAX_PULL);
             indicator.style.marginTop = (pull - 60) + 'px';
-            if (dy > THRESHOLD) {
-                spinner.style.borderTopColor = '#33F033';
-            } else {
-                spinner.style.borderTopColor = 'lime';
-            }
         }
     }, { passive: true });
 
