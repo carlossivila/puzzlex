@@ -77,7 +77,7 @@ h3 {
 
 #timer {
     color: cyan;
-    font-size: 24px;
+    font-size: 20px;
     margin: 3px 0;
 }
 
@@ -87,13 +87,13 @@ h3 {
 
 #counter {
     color: orange;
-    font-size: 22px;
+    font-size: 20px;
     margin: 3px 0;
 }
 
 #fail {
     color: red;
-    font-size: 22px;
+    font-size: 20px;
     margin: 3px 0;
 }
 
@@ -105,7 +105,7 @@ h3 {
     padding: 5px 8px;
     cursor: pointer;
     font-weight: bold;
-    font-size: 20px;
+    font-size: 16px;
     transition: background-color 0.3s, color 0.3s, border-color 0.3s;
     margin-top: 4px;
 }
@@ -131,44 +131,12 @@ input {
 
 @media (max-width: 600px) {
     body {
-        font-size: 22px;
+        font-size: 20px;
     }
-}
-
-#ptr-indicator {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 60px;
-    margin-top: -60px;
-    z-index: 100;
-    pointer-events: none;
-    transition: margin-top 0.2s ease;
-}
-
-#ptr-spinner {
-    width: 28px;
-    height: 28px;
-    border: 3px solid #333;
-    border-top-color: #999;
-    border-radius: 50%;
-}
-
-#ptr-spinner.spinning {
-    animation: ptr-spin 0.7s linear infinite;
-}
-
-@keyframes ptr-spin {
-    to { transform: rotate(360deg); }
 }
     </style>
 </head>
 <body>
-<div id="ptr-indicator"><div id="ptr-spinner"></div></div>
 <h3 style="color: lime;">PuzzleX by Carlos Sivila</h3>
 <br>
 <div id="game-content">
@@ -572,68 +540,15 @@ hiddenInput.addEventListener('input', () => {
     processingInput = false;
 });
 
-document.addEventListener('click', e => {
-    if (!gameActive) return;
-    if (e.target.closest('#difficultyToggle')) return;
-    if (document.activeElement === hiddenInput) {
-        hiddenInput.blur();
-    } else {
-        hiddenInput.value = '';
-        hiddenInput.focus();
-    }
+document.addEventListener('click', () => {
+    if (gameActive) hiddenInput.focus();
 });
 
+document.addEventListener('touchstart', () => {
+    if (gameActive) { hiddenInput.value = ''; hiddenInput.focus(); }
+}, { passive: true });
+
 document.addEventListener('contextmenu', e => e.preventDefault());
-
-// --- Pull-to-refresh ---
-(function () {
-    const indicator = document.getElementById('ptr-indicator');
-    const spinner = document.getElementById('ptr-spinner');
-    const THRESHOLD = 70;
-    const MAX_PULL = 100;
-    let startY = 0;
-    let pulling = false;
-    let refreshing = false;
-
-    function atTop() {
-        return window.scrollY === 0 && document.getElementById('game-content').scrollTop === 0;
-    }
-
-    document.addEventListener('touchstart', e => {
-        if (refreshing) return;
-        if (atTop()) {
-            startY = e.touches[0].clientY;
-            pulling = true;
-        } else {
-            pulling = false;
-        }
-    }, { passive: true });
-
-    document.addEventListener('touchmove', e => {
-        if (!pulling || refreshing) return;
-        const dy = e.touches[0].clientY - startY;
-        if (dy > 0 && atTop()) {
-            const pull = Math.min(dy, MAX_PULL);
-            indicator.style.marginTop = (pull - 60) + 'px';
-        }
-    }, { passive: true });
-
-    document.addEventListener('touchend', e => {
-        if (!pulling || refreshing) return;
-        pulling = false;
-        const dy = (e.changedTouches[0].clientY - startY);
-        if (dy > THRESHOLD) {
-            refreshing = true;
-            indicator.style.marginTop = '10px';
-            spinner.classList.add('spinning');
-            setTimeout(() => {
-                location.reload();
-            }, 400);
-        } else {
-            indicator.style.marginTop = '-60px';
-        }
-    });
-})();
 
 resetGame();
 </script>
