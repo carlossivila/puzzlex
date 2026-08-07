@@ -108,14 +108,14 @@ body {
 </style>
 </head>
 <body>
-<h4 style="color: lime;">PuzzleX by Carlos Sivila</h4><br>
+<h3 style="color: lime;">PuzzleX by Carlos Sivila</h3><br>
 <div id="board"></div>
 <div id="stats">
   <span>Aciertos</span>
   <span id="hits">0</span> de 99 
   <span>&mdash;</span>
   <span>Intentos</span>
-  <span id="tries">9</span>
+  <span id="tries">6</span>
 </div>
 <div id="flash">&nbsp;</div>
 
@@ -207,7 +207,7 @@ let grid = [];
 let revealedLetters = new Set();
 let usedLetters    = new Set();
 let hits     = 0;
-let tries    = 9;
+let tries    = 6;
 let gameOver = false;
 let totalLetters = 0;
 
@@ -397,7 +397,7 @@ let handleGuess;
 function startRound() {
   revealedLetters = new Set();
   usedLetters     = new Set();
-  tries = 9;
+  tries = 6;
   placeWords(pickWords());
   totalLetters = countTotal();
   renderBoard();
@@ -436,11 +436,8 @@ handleGuess = function(rawLetter) {
   let anyUsed = false;
   for (const eq of equivalents) { if (usedLetters.has(eq)) anyUsed = true; }
   if (anyUsed || usedLetters.has(letter)) return;
-
-  // Agregar todas las formas al set de usadas
   usedLetters.add(letter);
   for (const eq of equivalents) usedLetters.add(eq);
-
   let found = false;
   for (const eq of equivalents) {
     for (let r = 0; r < ROWS; r++)
@@ -471,7 +468,6 @@ handleGuess = function(rawLetter) {
       setTimeout(startRound, 2500);
       return;
     }
-    // letra correcta pero ronda no completada: sin sonido
   } else {
     playfail();
     tries--;
@@ -490,13 +486,10 @@ hiddenInput.addEventListener('input', () => {
   const raw = hiddenInput.value;
   hiddenInput.value = '';
   const up = raw.toUpperCase();
-  // Tomar el último carácter válido
   for (let i = up.length - 1; i >= 0; i--) {
     if (VALID_LETTER.test(up[i])) { handleGuess(up[i]); break; }
   }
 });
-
-
 
 document.addEventListener('keydown', (e) => {
   const l = e.key.toUpperCase();
