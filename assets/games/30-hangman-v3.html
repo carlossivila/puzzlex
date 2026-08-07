@@ -112,7 +112,7 @@ body {
 <div id="board"></div>
 <div id="stats">
   <span>Aciertos</span>
-  <span id="hits">0</span>
+  <span id="hits">0</span> de 99 
   <span>&mdash;</span>
   <span>Intentos</span>
   <span id="tries">9</span>
@@ -392,7 +392,7 @@ function playwin() {
     });
 }
 
-let handleGuess; // definida más abajo con soporte de acentos
+let handleGuess;
 
 function startRound() {
   revealedLetters = new Set();
@@ -406,22 +406,16 @@ function startRound() {
 }
 
 const hiddenInput = document.getElementById('letter-input');
-// Mapa de equivalencias: letra con tilde → sin tilde (para lookup cruzado)
 const ACCENT_MAP = { 'Á':'A','É':'E','Í':'I','Ó':'O','Ú':'U','Ü':'U' };
 // Conjunto de letras válidas del español (A-Z + Ñ + tildes)
 const VALID_LETTER = /^[A-ZÁÉÍÓÚÜÑ]$/;
 
-// Dado lo que escribe el usuario, devuelve la letra canónica a buscar en la grilla.
-// Si la grilla tiene "Á" y el usuario escribe "A", queremos hacer match. Por eso
-// normalizamos AMBOS lados: buscamos si en la grilla existe la versión acentuada
-// y si el usuario escribió la versión sin acento (o al revés).
 function resolveGuess(raw) {
   const up = raw.toUpperCase();
   if (!VALID_LETTER.test(up)) return null;
   return up;
 }
 
-// Sobreescribir handleGuess para comparar sin acento
 // handleGuess con soporte de acentos y ñ
 handleGuess = function(rawLetter) {
   const letter = resolveGuess(rawLetter);
@@ -430,7 +424,6 @@ handleGuess = function(rawLetter) {
 
   // Construir el set de letras equivalentes (con y sin acento)
   const base = ACCENT_MAP[letter] || letter;
-  // Todas las letras de la grilla que son equivalentes a esta
   const equivalents = new Set();
   for (let r = 0; r < ROWS; r++)
     for (let c = 0; c < COLS; c++) {
@@ -440,7 +433,6 @@ handleGuess = function(rawLetter) {
       if (gb === base || gl === letter) equivalents.add(gl);
     }
 
-  // Marcar todas las equivalentes como "ya usadas" para no repetir
   let anyUsed = false;
   for (const eq of equivalents) { if (usedLetters.has(eq)) anyUsed = true; }
   if (anyUsed || usedLetters.has(letter)) return;
