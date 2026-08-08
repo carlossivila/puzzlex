@@ -17,6 +17,12 @@ body {
     margin: 0;
 }
 
+h2 {
+   color: lime;
+   text-align: left;
+   margin: 5px 15px;
+}
+
 .cuadr input { 
     color: black; 
     margin: 0; 
@@ -56,11 +62,11 @@ body {
 }   
 
 #btn { 
-    padding: 10px 20px; 
+    padding: 10px; 
     border: 1px solid gray; 
-    margin: 20px auto; 
+    margin: 10px auto; 
     border-radius: 5px; 
-    font-size: 16px; 
+    font-size: 18px; 
     background-color: #003300; 
     color: lime; 
     transition: all 0.3s ease;
@@ -114,7 +120,7 @@ body {
 <body>
 
 <div class="game-container">
-<h3 style="color: lime; text-align: left; margin-bottom: 20px;">PuzzleX by Carlos Sivila</h3>
+<h2>PuzzleX by Carlos Sivila</h2>
     
 <form class="cuadr" style="background-color: #000; padding: 1em;">     
 <table class="matrix">
@@ -144,9 +150,9 @@ body {
             </tr>
 </table>
 
-<div style="display: flex; align-items: center; gap: 15px;">
+<div style="display: flex; align-items: center; gap: 10px;">
 <button type="button" id="btn" onclick="checkAnswer()">Comprobar</button>
-<span id="scoreCounter" style="font-size: 1em; color: lime;">ACIERTOS: 0 de 5</span>
+<span id="scoreCounter" style="font-size: 1.2em; color: lime;">ACIERTOS: 0 de 5</span>
 </div>
 </form>
 </div>
