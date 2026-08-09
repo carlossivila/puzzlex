@@ -115,7 +115,7 @@
 <div class="container">
 <h3>PuzzleX by Carlos Sivila</h3>
 <div class="word-container" id="wordContainer"></div>
-<div class="counter" id="counter">0 de 9</div>
+<div class="counter" id="counter">0 de 99</div>
 </div>
 
 <script>
@@ -271,7 +271,7 @@ function selectRandomWords() {
         const j = Math.floor(Math.random() * (i + 1));
         [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
-    gameWords = shuffled.slice(0, Math.min(9, words.length));
+    gameWords = shuffled.slice(0, Math.min(99, words.length));
 }
 
 const VOWELS = 'AEIOUÁÉÍÓÚaeiouáéíóú';
