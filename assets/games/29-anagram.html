@@ -22,6 +22,14 @@
             overflow-x: hidden;
         }
 
+       h3 {
+       color: lime; 
+       text-align: left; 
+       padding: 2px; 
+       border: 1px solid: black; 
+       margin: 22px 8px;
+       }
+
         .container {
             text-align: left;
             padding: 20px 15px;
@@ -100,29 +108,17 @@
             text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
             margin-bottom: 22px;
         }
-
-        .message {
-            font-size: 1.35em;
-            margin-top: 15px;
-            height: 30px;
-            color: #00ff00;
-            text-shadow: 0 0 10px #00ff00;
-            font-weight: bold;
-        }
-    </style>
+</style>
 </head>
 <body>
 
-    <div class="container">
-<h3 style="color: lime; text-align: left; padding: 2px; border: 1px solid: black; margin: 6px;">PuzzleX &ensp; by &ensp; Carlos Sivila</h3>
-        <div class="word-container" id="wordContainer"></div>
-        
-        <div class="counter" id="counter">0 de 99</div>
-        
-        <div class="message" id="message"></div>
-    </div>
+<div class="container">
+<h3>PuzzleX by Carlos Sivila</h3>
+<div class="word-container" id="wordContainer"></div>
+<div class="counter" id="counter">0 de 9</div>
+</div>
 
-    <script>
+<script>
 let audioCtx = null;
 
 function initAudio() {
@@ -196,7 +192,7 @@ const words = [
 'ANHELO','ANILLO','ANIMAL','ANÍS','ANONADADO','ANOREXIA','ANSIA','ANTAGONISTA','ANTAGÓNICO','ANTOLOGÍA','ANTONOMASIA','ANTÓNIMO','ANVERSO','ANZUELO','AÑIL','APÉNDICE','APOCALIPSIS',
 'APICULTURA','APÓCRIFO','APOGEO','APÓSITO','APRENDIZAJE','ÁRBOL','ARCAICO','ARGUMENTO','ARISTA','ARISTÓCRATA','ARISTOCRACIA','ARLEQUÍN','ARMAGEDÓN','ARQUETIPO','ARMERÍA','ARPA',
 'ARPÍA','ARRITMIA','ARTILUGIO','ARTISTA','ARTRÓPODOS','ASCENDER','ASFIXIA','ASESINO','ASERTIVIDAD','ASISTENTE','ASMA','ASOMBROSO','ASPERGER','ASOCIAR','ASTENIA','ASTIGMATISMO',
-'ATAQUE','ATAÚD','ATENCIÓN','ÁTICO','ATRIBUTO','ÁTOMO','AUGE','AURORA','AUSENCIA','AUSENTE','AUTODIDACTA','AUTÓNOMO','AUXILIO','AVALANCHA','AVATAR','AVÍCOLA','AVISPA','AZÚCAR','BABEL',
+'ATAQUE','ATAÚD','ATENCIÓN','ÁTICO','ATRIBUTO','ÁTOMO','AURORA','AUSENCIA','AUSENTE','AUTODIDACTA','AUTÓNOMO','AUXILIO','AVALANCHA','AVATAR','AVÍCOLA','AVISPA','AZÚCAR','BABEL',
 'BACTERIA','BAJO','BALA','BALADA','BALANZA','BALDE','BALLESTA','BANDADA','BARRILETE','BASILAR','BASILISCO','BÁSCULA','BAÚL','BEATBOX','BEIGE','BELLEZA','BESTIA','BINARIO','BINGO',
 'BITÁCORA','BLASFEMIA','BLUSA','BOCETO','BOCINA','BODEGA','BOICOT','BOLETO','BOMBO','BORCEGO','BRAHMÁN','BROCHA','BRONCE','BRÚJULA','BUCLE','BUDA','BUFÓN','BUQUE','BUROCRACIA','BÓVEDA',
 'BYTE','CABELLO','CABLE','CADÁVER','CADENA','CAIMÁN','CALAVERA','CALENDARIO','CALISTENIA','CALUMNIA','CAMAROTE','CANARIO','CÁNCER','CANDELABRO','CANDELARIO','CANDADO','CANJE','CANGREJO',
@@ -223,7 +219,7 @@ const words = [
 'GIGANTOGRAFÍA','GINEBRA','GLOBO','GNOMO','GOBIERNO','GOLONDRINA','GÓTICO','GRAFFITI','GRAMÁTICA','GRAMO','GRANIZO','GRAVE','GRIPE','GRÚA','GRUTA','GULA','GÚGOL','HABILIDAD','HAMACA',
 'HARDWARE','HARÉN','HECATOMBE','HECHIZO','HELIO','HEMORRAGIA','HEPATITIS','HEREJE','HERENCIA','HERMÉTICO','HERPES','HEXADECIMAL','HIATO','HIDROCEFALIA','HIDRÓGENO','HÍBRIDO','HIERRO',
 'HIPOCAMPO','HIPOCONDRÍA','HIPOCRESÍA','HIPOPÓTAMO','HIPOTÁLAMO','HIPOXIA','HISTOLOGÍA','HISTORIA','HOLOGRAMA','HOLOCAUSTO','HOMÓFONO','HORCA','HORIZONTE','HORTALIZA','HORTENSIAS',
-'HOSPEDAJE','HOYO','HUECO','HUELLA','HUMOR','HUERTA','HUESO','HUÉSPED','ICOSAEDRO','IDEA','IDEOGRAMA','IDIOMA','IDIOSINCRASIA','IGLESIA','ILUMINACIÓN','ILLUMINATI','ILUSIÓN','IMÁN',
+'HOSPEDAJE','HOYO','HUECO','HUELLA','HUMOR','HUERTA','HUESO','HUÉSPED','ICOSAEDRO','IDEOGRAMA','IDIOMA','IDIOSINCRASIA','IGLESIA','ILUMINACIÓN','ILLUMINATI','ILUSIÓN','IMÁN',
 'IMPERIO','IMPRUDENCIA','INCERTIDUMBRE','INCONGRUENCIA','INCONSCIENTE','INDÍGENA','ÍNDIGO','INDUCCIÓN','INERTE','INFIERNO','INFINITO','INFLAMACIÓN','INFRAMUNDO','INFRARROJO','INHERENTE',
 'INJURIA','INMINENTE','INSECTO','INSOMNIO','INSULINA','INSTINTO','INTELIGENCIA','INTENSIDAD','INTEMPERIE','INTERFERENCIA','INTRUSO','INTUICIÓN','INVEROSÍMIL','IRONÍA','ITERAR','JACTANCIA',
 'JALEA','JAMAICA','JAQUECA','JAURÍA','JAZMÍN','JENGIBRE','JERGA','JERARQUÍA','JEROGLÍFICO','JUDO','JUEGO','JUEVES','JUVENTUD','JUSTICIA','KARMA','KATANA','KIWI','LABERINTO','LACAYO',
@@ -235,8 +231,8 @@ const words = [
 'METEORITO','METEORO','MEZCLA','MEZQUITA','MICRÓFONO','MICROSCOPIO','MICRÓN','MIGRAÑA','MIMBRE','MIMO','MIOPÍA','MISÓGINO','MITÓMANO','MITO','MODELO','MODISMO','MOLÉCULA','MOLINO','MOLOTOV',
 'MOLUSCOS','MONEDA','MONOTRIBUTO','MONTAJE','MORALEJA','MORGUE','MOCASÍN','MUCHEDUMBRE','MUCOSA','MUEBLE','MUGIDO','MÚSCULO','MÚSICA','NANOTECNOLOGÍA','NAPALM','NARCISISMO','NARCISISTA',
 'NAVE','NAVEGANTE','NAZI','NEBRASKA','NECROLÓGICA','NEGLIGENCIA','NERD','NERVIO','NESSY','NEUMÁTICO','NEURONA','NIEBLA','NIEVE','NINFÓMANA','NIRVANA','NICTOFOBIA','NOBLE','NOCTURNO',
-'NORMA','NOSTALGIA','NUDO','NÁUSEAS','NÓMADE','NUEZ','OBEDIENCIA','OASIS','OBITUARIO','OBISPO','OBVIO','OBSEQUIO','OBSECUENTE','OBSOLETO','OCIO','OGRO','OHMIO','OMBLIGO','OMNISCIENTE',
-'OMNISCIENCIA','ONDA','OPENING','OPIO','ORATORIA','ORCA','ORDEN','ORÉGANO','ORFEBRE','ORGANIZACIÓN','ÓRGANO','ORIGAMI','ORTODOXO','ORTOGRAFÍA','OSCURO','OTAKU','OTHELLO','OUIJA',
+'NORMA','NOSTALGIA','NUDO','NÁUSEAS','NÓMADE','NUEZ','OBEDIENCIA','OASIS','OBITUARIO','OBISPO','OBVIO','OBSEQUIO','OBSECUENTE','OBSOLETO','OGRO','OHMIO','OMBLIGO','OMNISCIENTE',
+'OMNISCIENCIA','ONDA','OPENING','ORATORIA','ORCA','ORDEN','ORÉGANO','ORFEBRE','ORGANIZACIÓN','ÓRGANO','ORIGAMI','ORTODOXO','ORTOGRAFÍA','OSCURO','OTAKU','OTHELLO','OUIJA',
 'OVILLO','OXÍGENO','PAÍS','PANEL','PANDEMÓNIUM','PANDEMIA','PANFLETO','PANTALLA','PANTANO','PAPIRO','PAPIROFLEXIA','PARARRAYOS','PARAGUAS','PARADIGMA','PARADOJA','PARÁBOLA','PARÁLISIS',
 'PARÁSITO','PARCA','PARKINSON','PARLANTE','PARQUE','PASTA','PASTILLA','PATENTE','PATOLOGÍA','PATRIARCA','PAUPÉRRIMO','PAUTA','PERNOCTAR','PECULIAR','PEDAGOGÍA','PEDAGÓGICO','PEGAMENTO',
 'PEGASO','PELDAÑO','PELIGRO','PELO','PENA','PENDIENTE','PÉNDULO','PENTÁGONO','PENTAGRAMA','PENTATEUCO','PENUMBRA','PERCEPTIVO','PERDÓN','PEREZA','PERGAMINO','PERFIDIA','PERIFERIA',
@@ -269,10 +265,13 @@ let correctCount = 0;
 let usedWords = [];
 let gameWords = [];
 
-// Seleccionar 99 palabras aleatorias al inicio
 function selectRandomWords() {
-    const shuffled = [...words].sort(() => Math.random() - 0.5);
-    gameWords = shuffled.slice(0, Math.min(99, words.length));
+    const shuffled = [...words];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    gameWords = shuffled.slice(0, Math.min(9, words.length));
 }
 
 const VOWELS = 'AEIOUÁÉÍÓÚaeiouáéíóú';
@@ -282,12 +281,9 @@ function isVowel(char) {
 }
 
 function shuffle(word) {
-    // Solo mezclar consonantes; las vocales se quedan en su lugar
     const arr = word.split('');
     const consonantIndices = arr.map((c, i) => i).filter(i => !isVowel(arr[i]));
     const consonantLetters = consonantIndices.map(i => arr[i]);
-
-    // Mezclar las consonantes
     let shuffledConsonants;
     do {
         shuffledConsonants = consonantLetters.slice();
@@ -297,7 +293,6 @@ function shuffle(word) {
         }
     } while (shuffledConsonants.join('') === consonantLetters.join('') && consonantLetters.length > 1);
 
-    // Reconstruir array con vocales fijas y consonantes mezcladas
     const result = arr.slice();
     consonantIndices.forEach((pos, i) => {
         result[pos] = shuffledConsonants[i];
@@ -330,10 +325,8 @@ function renderWord() {
         cell.textContent = letter;
 
         if (isVowel(letter)) {
-            // Vocal: amarilla, fija, no clickeable
             cell.className = 'letter-cell vowel';
         } else {
-            // Consonante: cyan, movible
             cell.className = 'letter-cell';
             cell.onclick = () => selectLetter(index);
         }
@@ -343,7 +336,6 @@ function renderWord() {
 }
 
 function selectLetter(index) {
-    // Solo interactuar con consonantes
     if (isVowel(scrambledWord[index])) return;
 
     const cells = document.querySelectorAll('.letter-cell');
@@ -378,11 +370,12 @@ function checkSolution() {
         correctCount++;
         usedWords.push(currentWord);
         
-        // Reproducir sonido apropiado
+
         if (correctCount === gameWords.length) {
-            playwin(); // Sonido de victoria al completar todos
+            playwin();
+            alert("Ganaste");
         } else {
-            playgood(); // Sonido de acierto
+            playgood();
         }
         
         document.getElementById('counter').textContent = correctCount + ' de ' + gameWords.length;
@@ -395,6 +388,6 @@ function checkSolution() {
 
 selectRandomWords();
 loadWord();
-    </script>
+</script>
 </body>
 </html>
