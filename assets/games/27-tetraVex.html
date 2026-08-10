@@ -124,8 +124,6 @@ let cnf = {
 };
 
 var SOLUTION = [], UNPLACED = [], ASSEMBLY = [];
-const BOARDS_TO_SAVE = [ SOLUTION, UNPLACED, ASSEMBLY ];
-const TILES_SIDES = [ "top", "right", "bottom", "left" ];
 
 var BOARDS = [
     { board: ASSEMBLY, pos: cnf.assembly_pos },
@@ -365,7 +363,7 @@ function update_winingness () {
     if (winingness === "win" && prev_winingness !== "win" && !win_alert_shown) {
         win_alert_shown = true;
 setTimeout(function() {
-    alert("Ganaste");
+    alert("Ganaste 🏆");
     location.reload();
 }, 1500);
     }
@@ -558,7 +556,6 @@ function handle_mouseup (ev) {
         dragging_tile_board[dragging_tile_yi][dragging_tile_xi] = dragging_tile;
         dragging_tile = null;
         update_winingness();
-        save_boards();
     }
     window.requestAnimationFrame(anim_frame);
 }
@@ -583,7 +580,6 @@ function handle_keypress (ev) {
         create_solution();
         create_starting_board();
         draw_everything(boards_cnv, boards_ctx);
-        save_boards();
     }
 }
 
@@ -599,53 +595,6 @@ function handle_btn_solution () {
         solution_timer = null;
         window.requestAnimationFrame(anim_frame);
     }, 3000);
-}
-
-function save_boards () {
-    var tiles = [];
-    for (var bi = 0; bi < BOARDS_TO_SAVE.length; ++bi) {
-        var board = BOARDS_TO_SAVE[bi];
-        for (var yi = 0; yi < cnf.cells_y; ++yi) {
-            var row = board[yi];
-            for (var xi = 0; xi < cnf.cells_x; ++xi) {
-                var tile = row[xi];
-                if (tile === null) { tiles.push("."); continue; }
-                for (var si = 0; si < TILES_SIDES.length; ++si)
-                    tiles.push(tile[TILES_SIDES[si]]);
-            }
-        }
-    }
-    document.cookie = "tetravex_boards=" + cnf.cells_x + "," + cnf.cells_y + "," + tiles.join("") +
-                      "; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/";
-}
-
-function load_boards () {
-    var match = document.cookie.match(/(?:^|;\s*)tetravex_boards=([.,0-9]+)(?:;|$)/);
-    if (!match) return false;
-    match = match[1].match(/^(\d+),(\d+),([.0-9]+)$/);
-    if (!match) return false;
-    cnf.cells_x = +match[1];
-    cnf.cells_y = +match[2];
-    var tiles = match[3], pos = 0;
-    for (var bi = 0; bi < BOARDS_TO_SAVE.length; ++bi) {
-        var board = BOARDS_TO_SAVE[bi];
-        board.length = 0;
-        for (var yi = 0; yi < cnf.cells_y; ++yi) {
-            var row = [];
-            board.push(row);
-            for (var xi = 0; xi < cnf.cells_x; ++xi) {
-                var c = tiles[pos];
-                if (c === ".") { row.push(null); ++pos; continue; }
-                var tile = {};
-                for (var si = 0; si < TILES_SIDES.length; ++si)
-                    tile[TILES_SIDES[si]] = +tiles[pos + si];
-                row.push(tile);
-                pos += 4;
-            }
-        }
-    }
-    update_winingness();
-    return true;
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
@@ -670,14 +619,11 @@ set_button_status(null, null);
 document.documentElement.classList.remove("no-js");
 document.documentElement.classList.add("js");
 
-if (!load_boards()) {
-    create_solution();
-    create_starting_board();
-}
+create_solution();
+create_starting_board();
 init_colours();
 set_canvas_size(boards_cnv, true);
 draw_everything(boards_cnv, boards_ctx);
-save_boards();
 
 var event_options = { passive: true };
 add_listeners_to_all(["touchstart", "mousedown"],            [boards_cnv],    handle_mousedown, event_options);
