@@ -122,13 +122,13 @@
       gap: 4px 16px;
       padding: 8px 18px;
       text-decoration: none;
-      color: var(--neon-cyan);
+      color: var(--neon-yellow);
       font-family: Arial, sans-serif;
       font-size: clamp(1.25rem, 3.5vw, 1.5rem);
       letter-spacing: 0.18em;
       /*text-transform: uppercase;*/
       border: 1px solid #1a1a1a;
-      border-left: 3px solid var(--neon-cyan);
+      border-left: 3px solid var(--neon-yellow);
       transition: all 0.18s ease;
       position: relative;
       overflow: hidden;
@@ -139,7 +139,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: var(--neon-cyan);
+      background: var(--neon-yellow);
       opacity: 0;
       transition: opacity 0.18s;
     }
@@ -150,11 +150,11 @@
     .game-list a:hover,
     .game-list a:active {
       color: #fff;
-      border-left-color: var(--neon-cyan);
+      border-left-color: var(--neon-yellow);
       border-color: #333;
       text-shadow:
-        0 0 6px var(--neon-cyan),
-        0 0 16px var(--neon-cyan);
+        0 0 6px var(--neon-yellow),
+        0 0 16px var(--neon-yellow);
       box-shadow: 0 0 14px rgba(0,255,247,0.15);
     }
 
@@ -205,7 +205,7 @@
    hr {
      border: none;
      height: 1px;
-     background: linear-gradient(90deg, transparent, #00ffff, transparent);
+     background: linear-gradient(90deg, transparent, #ffff00, transparent);
      width: 100%;
      flex-shrink: 0;
     }
@@ -218,7 +218,7 @@
 
 a:link,a:visited {
 text-decoration: none;
-color: cyan;
+color: yellow;
 }
 a:hover {
 text-decoration: none;
@@ -280,47 +280,87 @@ color: red;
 <br>
 
 <ul class="game-list">
-<li><a href="assets/flash/01_3ranas.html">3 ranas<span class="game-hint">ranas cruzando el río</span></a></li>
-<li><a href="assets/flash/02_pastor.html">pastor<span class="game-hint">lechuga oveja lobo</span></a></li>
-<li><a href="assets/flash/03_misioneros.html">misioneros<span class="game-hint">misioneros y caníbales</span></a></li>
-<li><a href="assets/flash/04_mecano.html">mecano<span class="game-hint">mecanografía</span></a></li>
-<li><a href="assets/flash/05_doodle-jump.html">doodle-jump<span class="game-hint">doodle-jump</span></a></li>
-<li><a href="assets/flash/06_bejeweled.html">bejeweled<span class="game-hint">combina joyas</span></a></li>
-<li><a href="assets/flash/07_tic-tac-toe.html">tic-tac-toe<span class="game-hint">3 en línea TA-TE-TI</span></a></li>
-<li><a href="assets/flash/08_4 en raya.html">4 en raya<span class="game-hint">4 en línea</span></a></li>
-<li><a href="assets/flash/09_pacman.html">pacman<span class="game-hint">retro arcade classic</span></a></li>
-<li><a href="assets/flash/10_Pool.html">Pool<span class="game-hint">Pool Billar</span></a></li>
-<li><a href="assets/flash/11_dados.html">dice<span class="game-hint">dados</span></a></li>
-<li><a href="assets/flash/12_ranas.html">frogs<span class="game-hint">ranas</span></a></li>
-<li><a href="assets/flash/13_ranas_.html">frogs_<span class="game-hint">ranas_</span></a></li>
-<li><a href="assets/flash/14_domino.html">domino<span class="game-hint">dominó</span></a></li>
-<li><a href="assets/flash/15_fifteen.html">fifteen<span class="game-hint">slide-puzzle</span></a></li>
-<li><a href="assets/flash/16_math.html">match<span class="game-hint">mate</span></a></li>
-<li><a href="assets/flash/17_maze.html">maze<span class="game-hint">laberinto</span></a></li>
-<li><a href="assets/flash/18_simon.html">simon-dice<span class="game-hint">simon-dice</span></a></li>
-<li><a href="assets/flash/19_towers.html">towers<span class="game-hint">torres-de-hanoi</span></a></li>
-<li><a href="assets/flash/20_carsRacing.html">cars<span class="game-hint">Cars-Racing</span></a></li>
-<li><a href="assets/flash/21_8reinas.html">8 queens<span class="game-hint">8 reinas</span></a></li>
-<li><a href="assets/flash/22_tetris.html">tetris<span class="game-hint">tetris</span></a></li>
-<li><a href="assets/flash/23_rubik.html">rubik<span class="game-hint">rubik</span></a></li>
-<li><a href="assets/flash/24_memory.html">memory<span class="game-hint">parejas</span></a></li>
-<li><a href="assets/flash/25_damas.html">damas<span class="game-hint">damas</span></a></li>
-<li><a href="assets/flash/26_chess.html">chess<span class="game-hint">ajedrez</span></a></li>
-<li><a href="assets/flash/27_euler.html">euler<span class="game-hint">recorrido del caballo</span></a></li>
-<li><a href="assets/flash/28_euler_.html">euler_<span class="game-hint">recorrido del caballo_</span></a></li>
-<li><a href="assets/flash/29_staries.html">staries<span class="game-hint">estrellas</span></a></li>
-<li><a href="assets/flash/30_bloxorz.html">bloxorz<span class="game-hint">encaja el bloque</span></a></li>
-<li><a href="assets/flash/31_Cube3D.html">Cube3D<span class="game-hint">cubo en 3D</span></a></li>
-<li><a href="assets/flash/32_mastermind.html">MasterMind<span class="game-hint">adivina el código</span></a></li>
-<li><a href="assets/flash/33_fourSquare.html">FourSquare<span class="game-hint">4 cuadrados</span></a></li>
-<li><a href="assets/flash/34_candyCrush.html">CandyCrush<span class="game-hint">parejas de golosinas</span></a></li>
-<li><a href="assets/flash/35_sameColors.html">SameColors<span class="game-hint">colores iguales</span></a></li>
-<li><a href="assets/flash/36_lightsOut.html">LightsOut<span class="game-hint">apaga las lamparitas</span></a></li>
-<li><a href="assets/flash/37_OpenDoors.html">OpenDoors<span class="game-hint">abre las puertas</span></a></li>
-<li><a href="assets/flash/38_cubox.html">cubox<span class="game-hint">cubox</span></a></li>
-<li><a href="assets/flash/39_tetravex.html">TetraVex<span class="game-hint">TetraVex</span></a></li>
-<li><a href="assets/flash/40_motoRacing.html">moto<span class="game-hint">moto-Racing</span></a></li>
+<li><a href="assets/mp3/sampleMP3_1.mp3">MP3<span class="game-hint">muestra MP3</span></a></li>
+<li><a href="assets/mp3/sampleMP3_2.mp3">MP3<span class="game-hint">muestra MP3</span></a></li>
+<li><a href="assets/mp3/sampleMP3_3.mp3">MP3<span class="game-hint">muestra MP3</span></a></li>
+<li><a href="assets/mp3/sampleMP3_4.mp3">MP3<span class="game-hint">muestra MP3</span></a></li>
+<li><a href="assets/mp4/sampleMP4_1.mp4">MP4<span class="game-hint">muestra MP4</span></a></li>
+<li><a href="assets/mp4/sampleMP4_2.mp4">MP4<span class="game-hint">muestra MP4</span></a></li>
+<li><a href="assets/mp4/sampleMP4_3.mp4">MP4<span class="game-hint">muestra MP4</span></a></li>
+<li><a href="assets/swf/bejeweled.html">SWF<span class="game-hint">muestra flash</span></a></li>
+<li><a href="assets/swf/bloxorz.html">SWF<span class="game-hint">muestra flash</span></a></li>
+<li><a href="assets/swf/Cube3D.html">SWF<span class="game-hint">muestra flash</span></a></li>
+<li><a href="assets/swf/fourSquare.html">SWF<span class="game-hint">muestra flash</span></a></li>
+<li><a href="assets/html/chess.pdf">PDF<span class="game-hint">muestra PDF</span></a></li>
+<li><a href="assets/html/historia.pdf">PDF<span class="game-hint">muestra PDF</span></a></li>
+<li><a href="assets/html/mate.pdf">PDF<span class="game-hint">muestra PDF</span></a></li>
+<li><a href="assets/html/flags.html">HTML<span class="game-hint">muestra HTML</span></a></li>
+<li><a href="assets/html/hangman-v2.html">HTML<span class="game-hint">muestra HTML</span></a></li>
+<li><a href="assets/html/Spanish.html">HTML<span class="game-hint">muestra HTML</span></a></li>
+<li><a href="assets/html/jpg.jpg">JPG<span class="game-hint">muestra JPG</span></a></li>
+<li><a href="assets/html/txt.txt">TXT<span class="game-hint">muestra TXT</span></a></li>
 </ul>
+<br>
+
+<br>
+<hr>
+<div class="menu"><a href="index.html"> HTML </a> // <a href="index2.html"> VIDEO </a> // <a href="index3.html"> FLASH </a> // <a href="index4.html"> ABOUT </a></div>
+<hr>
+<br>
+
+<div class="box">
+<p><span style="font-size: 18px; color: yellow;">About : </span><br>
+El presente proyecto sin fines de lucro<br>
+no solo está pensado para aficionados<br>
+de juegos retro del género puzzle<br>
+como el ajedrez, sudoku, o sokoban,<br>
+sino también para los que deseen<br>
+aprender a crearlos con "desarrollo web",<br>
+y de esta forma aprender a<br>
+crecer como personas mejorando tu<br>
+capacidad cognitiva, y expandir tu<br>
+conocimiento de manera autodidacta,<br>
+a la vez que funciona también<br>
+como estimulación temprana<br>
+en el caso de los niños en su infancia.<br>
+Porque no solo se trata de<br>
+buenas prácticas con desarrollo web<br>
+sino que además hablamos de<br>
+cultivar cultura general, optimizar<br>
+el rendimiento del razonamiento,<br>
+pulir o refinar la inteligencia,<br>
+y agudizar la memoria, de manera<br>
+intuitiva, lúdica, e interactiva,<br>
+y con metodología pedagógica y didáctica.<br>
+Por ejemplo, en una entrevista laboral:<br>
+Algo de inglés americano A1 y A2?<br>
+o marketing digital con redes sociales?<br>
+Quizás tal vez algo de finanzas?<br>
+o IA para código de desarrollo web?<br>
+Hoy en día esto puede ser útil en tu CV<br>
+junto a habilidades blandas como la oratoria.<br>
+En pocas palabras este trabajo<br>
+es una invitación a sumergirte<br>
+en este nuevo mundo de<br>
+programación asistida con la IA,<br>
+donde aprenderás una nueva habilidad<br>
+en este caso DESARROLLO WEB<br>
+con el que no solo podrás crear<br>
+páginas web plublicitarias<br>
+para marketing digital<br>
+sino también videojuegos<br>
+o hasta sistemas o base de datos.<br>
+Si yo pude aprender tanto,<br>
+en tan poco tiempo (2023/2024),<br>
+con 40 años, tú también puedes!<br>
+"nunca es tarde para aprender".<br>
+Con este proyecto, fomentando la educación<br>
+en todas las edades, con orgullo dejo<br>
+mi granito de arena en la sociedad.<br>
+Y a la espera de que resulte de tu interés<br>
+te saluda muy atte<br>
+<span style="font-size: 18px;"> Carlos Sivila.</span>
+</p></div>
 <br>
 
 <hr>
