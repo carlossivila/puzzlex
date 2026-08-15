@@ -609,10 +609,6 @@ color: red;
   </div>
 </section>
 
-<audio id="bgAudio" loop>
-<source src="sound.mp3" type="audio/mpeg">
-</audio>
-
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-content">
     <button class="modal-close" id="modalClose">✕ Cerrar</button>
@@ -865,7 +861,9 @@ refreshBtn.addEventListener("click", () => {
   location.reload();
 });
 
-// ===== RESTO DE FUNCIONALIDAD =====
+
+
+
 document.addEventListener('contextmenu', function(e) {
     e.preventDefault();
 });
