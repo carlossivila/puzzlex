@@ -434,7 +434,7 @@ color: red;
   filter: brightness(1.5);
 }
 
-/* ===== ESTILOS DEL MODAL (clonados del grid) ===== */
+/* ===== ESTILOS DEL MODAL ===== */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -463,6 +463,7 @@ color: red;
   overflow: hidden;
 }
 
+/* EL IFRAME DEL MODAL OCUPA TODO EL ANCHO Y ALTO */
 .modal-content iframe {
   width: 100%;
   height: 100%;
@@ -833,6 +834,8 @@ const modalPlayer = document.getElementById("modalPlayer");
 const modalClose = document.getElementById("modalClose");
 
 function openModal(videoID) {
+  // El iframe se inserta dentro de modalPlayer, y este está dentro de modal-content
+  // modal-content tiene width: 90vw y aspect-ratio: 16/9, y su iframe ocupa 100% x 100%
   modalPlayer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoID}?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
   modalOverlay.classList.add("active");
 }
