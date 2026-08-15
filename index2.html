@@ -17,12 +17,8 @@ body {
   min-height: 100vh;
   width: 100vw;
   background: black;
-  padding: 20px 0;
-  overflow-y: auto;
   overflow-x: hidden;
 }
-
-/* Resto de estilos igual que antes, pero con algunos ajustes */
 
     @font-face {
       font-family: 'font';
@@ -72,10 +68,9 @@ body {
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      padding: 28px 16px 24px;
-      overflow: visible;
+      padding: 5px 16px 24px;
+      overflow: auto;
       width: 100%;
-      max-width: 1200px;
     }
 
     .header-block {
@@ -340,7 +335,7 @@ color: red;
     }
 
     @media (max-width: 480px) {
-      #menu-screen { padding: 20px 12px 20px; }
+      #menu-screen { padding: 5px 12px 20px; }
       .header-block { margin-bottom: 12px; }
       .divider { margin-bottom: 10px; }
       .game-list { gap: 6px; }
