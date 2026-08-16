@@ -144,7 +144,7 @@ a:hover {
   color: red;
 }
 
-/* ===== GRID DE VIDEOS ===== */
+/* ===== GRID DE VIDEOS (tal cual lo tienes) ===== */
 .video-grid {
   width: 100%;
   max-width: 700px;
@@ -177,64 +177,88 @@ a:hover {
   box-shadow: 0 0 14px rgba(0,255,247,0.15);
 }
 
-/* ===== CARRUSEL (versión simplificada y funcional) ===== */
-.carrusel-section {
-  width: 100%;
-  max-width: 1200px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px 20px;
-  margin-top: 20px;
-  border-top: 1px solid rgba(0,255,0,0.3);
-}
-
-.carrusel-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 12px;
-  width: 100%;
-  max-width: 900px;
-  margin: 20px 0;
-}
-
-.carrusel-item {
-  aspect-ratio: 16 / 9;
-  background: #0a0a0a;
-  border: 1px solid #1a1a1a;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: border 0.3s, box-shadow 0.3s;
+/* ======================================== */
+/* CARRUSEL 3D (tal cual lo tienes) */
+/* ======================================== */
+.image-container {
   position: relative;
+  width: 100px;
+  height: 100px;
+  transform-style: preserve-3d;
+  transform: perspective(600px) rotateY(0deg);
+  transition: transform 0.7s;
+  margin-bottom: 30px;
 }
 
-.carrusel-item img {
+.image-container span {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  display: block;
+  transform: rotateY(calc(var(--i) * 45deg)) translateZ(120px);
+  cursor: pointer;
 }
 
-.carrusel-item:hover {
-  border-color: var(--neon-cyan);
-  box-shadow: 0 0 14px rgba(0,255,247,0.15);
+.image-container span img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  border-radius: 5px;
 }
 
-.carrusel-item .play-icon {
+.video-label {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 3rem;
+  background: rgba(0, 0, 0, 0.8);
   color: white;
-  text-shadow: 0 0 20px rgba(0,0,0,0.8);
-  opacity: 0.7;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: bold;
   pointer-events: none;
+  z-index: 10;
 }
 
-.carrusel-item:hover .play-icon {
-  opacity: 1;
+.btn-container {
+  position: relative;
+  width: 80%;
+  max-width: 500px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  box-sizing: border-box;
+  gap: 10px;
+}
+
+.btn {
+  background: green;
+  color: lime;
+  border: 1px solid green;
+  padding: 10px 20px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.btn:hover {
+  background: lime;
+  color: red;
+  border: 1px solid cyan;
+  filter: brightness(1.5);
+}
+
+.btn:active {
+  background: lime;
+  color: blue;
+  border: 1px solid yellow;
+  filter: brightness(1.5);
 }
 
 /* ======================================== */
@@ -329,10 +353,19 @@ a:hover {
     width: 100vw;
     height: 100vh;
   }
+
+  .image-container {
+    width: 80px;
+    height: 80px;
+  }
   
-  .carrusel-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 8px;
+  .image-container span {
+    transform: rotateY(calc(var(--i) * 45deg)) translateZ(80px);
+  }
+  
+  .btn {
+    padding: 12px 20px;
+    font-size: 16px;
   }
 }
 
@@ -340,11 +373,6 @@ a:hover {
   .video-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 3px;
-  }
-  
-  .carrusel-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 6px;
   }
 }
 
@@ -355,6 +383,24 @@ a:hover {
     width: 40px;
     height: 40px;
     font-size: 24px;
+  }
+
+  .image-container {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .image-container span {
+    transform: rotateY(calc(var(--i) * 45deg)) translateZ(200px);
+  }
+  
+  .btn-container {
+    max-width: 600px;
+  }
+  
+  .btn {
+    padding: 15px 30px;
+    font-size: 18px;
   }
 }
 
@@ -412,23 +458,23 @@ a:hover {
   <!-- GRID DE VIDEOS (17 videos: OK.ru + YouTube) -->
   <!-- ======================================== -->
   <div class="video-grid" id="videoGrid">
-    <div class="video-cell" data-url="https://ok.ru/videoembed/4055745694421"><iframe src="https://ok.ru/videoembed/4055745694421" allowfullscreen></iframe></div>
-    <div class="video-cell" data-url="https://ok.ru/videoembed/4055729834709"><iframe src="https://ok.ru/videoembed/4055729834709" allowfullscreen></iframe></div>
-    <div class="video-cell" data-url="https://ok.ru/videoembed/4055670459093"><iframe src="https://ok.ru/videoembed/4055670459093" allowfullscreen></iframe></div>
-    <div class="video-cell" data-url="https://ok.ru/videoembed/2101613693653"><iframe src="https://ok.ru/videoembed/2101613693653" allowfullscreen></iframe></div>
-    <div class="video-cell" data-url="https://ok.ru/videoembed/2101603863253"><iframe src="https://ok.ru/videoembed/2101603863253" allowfullscreen></iframe></div>
-    <div class="video-cell" data-url="https://ok.ru/videoembed/4055706372821"><iframe src="https://ok.ru/videoembed/4055706372821" allowfullscreen></iframe></div>
-    <div class="video-cell" data-url="https://ok.ru/videoembed/2119381355221"><iframe src="https://ok.ru/videoembed/2119381355221" allowfullscreen></iframe></div>
-    <div class="video-cell" data-url="https://ok.ru/videoembed/2119398394581"><iframe src="https://ok.ru/videoembed/2119398394581" allowfullscreen></iframe></div>
-    <div class="video-cell" data-url="https://ok.ru/videoembed/4571037567701"><iframe src="https://ok.ru/videoembed/4571037567701" allowfullscreen></iframe></div>
-    <div class="video-cell" data-url="https://ok.ru/videoembed/5062147181269"><iframe src="https://ok.ru/videoembed/5062147181269" allowfullscreen></iframe></div>
-    <div class="video-cell" data-url="https://ok.ru/videoembed/3789279857365"><iframe src="https://ok.ru/videoembed/3789279857365" allowfullscreen></iframe></div>
-    <div class="video-cell" data-url="https://ok.ru/videoembed/3790552697557"><iframe src="https://ok.ru/videoembed/3790552697557" allowfullscreen></iframe></div>
-    <div class="video-cell" data-url="https://ok.ru/videoembed/7550601857739"><iframe src="https://ok.ru/videoembed/7550601857739" allowfullscreen></iframe></div>
-    <div class="video-cell" data-url="https://www.youtube.com/embed/wyXftCua16k?si=ssTY7kzhHuEhpXmB"><iframe src="https://www.youtube.com/embed/wyXftCua16k?si=ssTY7kzhHuEhpXmB" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
-    <div class="video-cell" data-url="https://www.youtube.com/embed/UFi6s6HrGsg?si=ePPUqMyDHVlvwN7z"><iframe src="https://www.youtube.com/embed/UFi6s6HrGsg?si=ePPUqMyDHVlvwN7z" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
-    <div class="video-cell" data-url="https://www.youtube.com/embed/6XojB2tyWIM?si=XYHRdTvoVEwNZE5x"><iframe src="https://www.youtube.com/embed/6XojB2tyWIM?si=XYHRdTvoVEwNZE5x" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
-    <div class="video-cell" data-url="https://www.youtube.com/embed/CIJgAlNwweI?si=ejRKgIexdDQk0At9"><iframe src="https://www.youtube.com/embed/CIJgAlNwweI?si=ejRKgIexdDQk0At9" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+    <div class="video-cell"><iframe src="https://ok.ru/videoembed/4055745694421" allowfullscreen></iframe></div>
+    <div class="video-cell"><iframe src="https://ok.ru/videoembed/4055729834709" allowfullscreen></iframe></div>
+    <div class="video-cell"><iframe src="https://ok.ru/videoembed/4055670459093" allowfullscreen></iframe></div>
+    <div class="video-cell"><iframe src="https://ok.ru/videoembed/2101613693653" allowfullscreen></iframe></div>
+    <div class="video-cell"><iframe src="https://ok.ru/videoembed/2101603863253" allowfullscreen></iframe></div>
+    <div class="video-cell"><iframe src="https://ok.ru/videoembed/4055706372821" allowfullscreen></iframe></div>
+    <div class="video-cell"><iframe src="https://ok.ru/videoembed/2119381355221" allowfullscreen></iframe></div>
+    <div class="video-cell"><iframe src="https://ok.ru/videoembed/2119398394581" allowfullscreen></iframe></div>
+    <div class="video-cell"><iframe src="https://ok.ru/videoembed/4571037567701" allowfullscreen></iframe></div>
+    <div class="video-cell"><iframe src="https://ok.ru/videoembed/5062147181269" allowfullscreen></iframe></div>
+    <div class="video-cell"><iframe src="https://ok.ru/videoembed/3789279857365" allowfullscreen></iframe></div>
+    <div class="video-cell"><iframe src="https://ok.ru/videoembed/3790552697557" allowfullscreen></iframe></div>
+    <div class="video-cell"><iframe src="https://ok.ru/videoembed/7550601857739" allowfullscreen></iframe></div>
+    <div class="video-cell"><iframe src="https://www.youtube.com/embed/wyXftCua16k?si=ssTY7kzhHuEhpXmB" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+    <div class="video-cell"><iframe src="https://www.youtube.com/embed/UFi6s6HrGsg?si=ePPUqMyDHVlvwN7z" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+    <div class="video-cell"><iframe src="https://www.youtube.com/embed/6XojB2tyWIM?si=XYHRdTvoVEwNZE5x" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+    <div class="video-cell"><iframe src="https://www.youtube.com/embed/CIJgAlNwweI?si=ejRKgIexdDQk0At9" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
   </div>
 
   <br>
@@ -438,22 +484,53 @@ a:hover {
   <br><br>
 
   <!-- ======================================== -->
-  <!-- CARRUSEL (132 videos de YouTube) -->
+  <!-- CARRUSEL 3D (con los 132 videos) -->
   <!-- ======================================== -->
-  <div class="carrusel-section">
-    <h2 style="color: var(--neon-green); font-size: 1.8rem; text-shadow: 0 0 20px var(--neon-green);">
-      🎵 Carrusel de Música
-    </h2>
-    <p style="color: #aaa; margin-bottom: 20px;">Haz clic en cualquier miniatura para reproducir</p>
-    <div class="carrusel-grid" id="carruselGrid">
-      <!-- Se llena con JavaScript -->
-    </div>
+  <div class="image-container" id="carouselContainer">
+    <span style="--i: 1">
+      <img src="" alt="Video thumbnail" />
+      <div class="video-label"></div>
+    </span>
+    <span style="--i: 2">
+      <img src="" alt="Video thumbnail" />
+      <div class="video-label"></div>
+    </span>
+    <span style="--i: 3">
+      <img src="" alt="Video thumbnail" />
+      <div class="video-label"></div>
+    </span>
+    <span style="--i: 4">
+      <img src="" alt="Video thumbnail" />
+      <div class="video-label"></div>
+    </span>
+    <span style="--i: 5">
+      <img src="" alt="Video thumbnail" />
+      <div class="video-label"></div>
+    </span>
+    <span style="--i: 6">
+      <img src="" alt="Video thumbnail" />
+      <div class="video-label"></div>
+    </span>
+    <span style="--i: 7">
+      <img src="" alt="Video thumbnail" />
+      <div class="video-label"></div>
+    </span>
+    <span style="--i: 8">
+      <img src="" alt="Video thumbnail" />
+      <div class="video-label"></div>
+    </span>
+  </div>
+
+  <div class="btn-container">
+    <button class="btn" id="prev">◀</button>
+    <button class="btn" id="refresh">🔄</button>
+    <button class="btn" id="next">▶</button>
   </div>
 
 </div>
 
 <!-- ======================================== -->
-<!-- OVERLAY - VENTANA COMPLETA (LA MISMA LÓGICA QUE FUNCIONÓ) -->
+<!-- OVERLAY - VENTANA COMPLETA -->
 <!-- ======================================== -->
 <div class="video-overlay" id="videoOverlay">
   <button class="close-btn" id="closeOverlay">✕</button>
@@ -463,16 +540,16 @@ a:hover {
 </div>
 
 <!-- ======================================== -->
-<!-- JAVASCRIPT - TODA LA LÓGICA DEL OVERLAY Y CARRUSEL -->
+<!-- JAVASCRIPT -->
 <!-- ======================================== -->
 <script>
 (function() {
   'use strict';
 
   // ======================================== */
-  // LISTA DE VIDEOS DEL CARRUSEL (132)
+  // TODOS LOS VIDEOS DEL CARRUSEL (132)
   // ======================================== */
-  const carruselVideos = [
+  const videos = [
     'https://www.youtube.com/watch?v=FMEsoC2SAFc',
     'https://www.youtube.com/watch?v=CIJgAlNwweI',
     'https://www.youtube.com/watch?v=Sx3xFYU9cZ0',
@@ -628,36 +705,26 @@ a:hover {
   // FUNCIONES UTILITARIAS
   // ======================================== */
 
-  // Extraer ID de YouTube de una URL (watch o embed)
   function getYouTubeID(url) {
     const match = url.match(/[?&]v=([^&]+)/);
     if (match && match[1]) return match[1];
-    // Si ya es embed
     const embedMatch = url.match(/\/embed\/([^?&]+)/);
     if (embedMatch && embedMatch[1]) return embedMatch[1];
     return null;
   }
 
-  // Convertir URL de YouTube a formato embed con autoplay
   function toEmbedUrl(url) {
     const id = getYouTubeID(url);
     if (id) {
       return `https://www.youtube.com/embed/${id}?autoplay=1&controls=1&fs=1&rel=0&modestbranding=1`;
     }
-    // Si ya es embed, añadir autoplay si no lo tiene
     if (url.includes('/embed/')) {
-      if (url.includes('?')) {
-        return url + '&autoplay=1';
-      } else {
-        return url + '?autoplay=1';
-      }
+      return url + (url.includes('?') ? '&' : '?') + 'autoplay=1';
     }
     return url;
   }
 
-  // Extraer información de un iframe (OK.ru o YouTube)
   function extractVideoInfo(iframeSrc) {
-    // YouTube embed
     const ytMatch = iframeSrc.match(/\/embed\/([^?&]+)/);
     if (ytMatch) {
       return {
@@ -666,7 +733,6 @@ a:hover {
         url: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&controls=1&fs=1&rel=0&modestbranding=1`
       };
     }
-    // OK.ru
     const okMatch = iframeSrc.match(/\/videoembed\/(\d+)/);
     if (okMatch) {
       return {
@@ -711,7 +777,6 @@ a:hover {
   const closeOverlayBtn = document.getElementById('closeOverlay');
 
   function openVideoOverlay(url) {
-    // Si ya hay un video abierto, cerrar primero
     if (videoOverlay.classList.contains('active')) {
       closeVideoOverlay();
       setTimeout(function() {
@@ -720,7 +785,6 @@ a:hover {
       return;
     }
 
-    // Determinar la URL correcta
     let finalUrl = url;
     const ytId = getYouTubeID(url);
     if (ytId) {
@@ -731,11 +795,8 @@ a:hover {
 
     overlayIframe.src = finalUrl;
     videoOverlay.classList.add('active');
-
-    // Forzar orientación horizontal en móvil
     forceLandscape();
 
-    // Intentar fullscreen nativo
     try {
       if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen();
@@ -744,9 +805,7 @@ a:hover {
       } else if (document.documentElement.msRequestFullscreen) {
         document.documentElement.msRequestFullscreen();
       }
-    } catch(e) {
-      // Si falla, no pasa nada
-    }
+    } catch(e) {}
   }
 
   function closeVideoOverlay() {
@@ -765,7 +824,6 @@ a:hover {
     } catch(e) {}
   }
 
-  // Eventos del overlay
   closeOverlayBtn.addEventListener('click', closeVideoOverlay);
 
   document.addEventListener('keydown', function(e) {
@@ -784,16 +842,49 @@ a:hover {
   // CLIC EN EL GRID DE VIDEOS
   // ======================================== */
   document.querySelectorAll('.video-cell').forEach(function(cell) {
-    cell.addEventListener('click', function(e) {
-      // Intentar obtener la URL del atributo data-url
-      let url = this.dataset.url;
-      if (!url) {
-        // Si no tiene data-url, obtenerla del iframe
-        const iframe = this.querySelector('iframe');
-        if (iframe && iframe.src) {
-          url = iframe.src;
+    cell.addEventListener('click', function() {
+      const iframe = this.querySelector('iframe');
+      if (iframe && iframe.src) {
+        const info = extractVideoInfo(iframe.src);
+        if (info) {
+          openVideoOverlay(info.url);
         }
       }
+    });
+  });
+
+  // ======================================== */
+  // CARRUSEL 3D - INICIALIZAR CON VIDEOS ALEATORIOS
+  // ======================================== */
+  function initCarousel() {
+    const shuffled = [...videos];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    const selected = shuffled.slice(0, 8);
+
+    const spans = document.querySelectorAll('.image-container span');
+    spans.forEach(function(span, index) {
+      const videoUrl = selected[index % selected.length];
+      const videoId = getYouTubeID(videoUrl);
+      const img = span.querySelector('img');
+      const label = span.querySelector('.video-label');
+
+      if (videoId) {
+        img.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+        label.textContent = `Video ${index + 1}`;
+        span.dataset.videoSrc = videoUrl;
+      }
+    });
+  }
+
+  // ======================================== */
+  // CLIC EN CARRUSEL
+  // ======================================== */
+  document.querySelectorAll('.image-container span').forEach(function(span) {
+    span.addEventListener('click', function() {
+      const url = this.dataset.videoSrc;
       if (url) {
         openVideoOverlay(url);
       }
@@ -801,52 +892,28 @@ a:hover {
   });
 
   // ======================================== */
-  // CARRUSEL - GENERAR MINIATURAS
+  // BOTONES DEL CARRUSEL
   // ======================================== */
-  function initCarrusel() {
-    const grid = document.getElementById('carruselGrid');
-    if (!grid) return;
+  const imageContainer = document.getElementById('carouselContainer');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+  const refreshBtn = document.getElementById('refresh');
 
-    // Mezclar y tomar hasta 50 (para no saturar la página)
-    const shuffled = [...carruselVideos];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    const selected = shuffled.slice(0, 50);
+  let x = 0;
 
-    grid.innerHTML = '';
+  prevBtn.addEventListener('click', function() {
+    x += 45;
+    imageContainer.style.transform = `perspective(600px) rotateY(${x}deg)`;
+  });
 
-    selected.forEach(function(videoUrl) {
-      const videoId = getYouTubeID(videoUrl);
-      if (!videoId) return;
+  nextBtn.addEventListener('click', function() {
+    x -= 45;
+    imageContainer.style.transform = `perspective(600px) rotateY(${x}deg)`;
+  });
 
-      const item = document.createElement('div');
-      item.className = 'carrusel-item';
-      item.dataset.url = videoUrl;
-
-      const img = document.createElement('img');
-      img.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-      img.alt = 'Video thumbnail';
-      img.loading = 'lazy';
-
-      const playIcon = document.createElement('div');
-      playIcon.className = 'play-icon';
-      playIcon.textContent = '▶';
-
-      item.appendChild(img);
-      item.appendChild(playIcon);
-
-      item.addEventListener('click', function() {
-        const url = this.dataset.url;
-        if (url) {
-          openVideoOverlay(url);
-        }
-      });
-
-      grid.appendChild(item);
-    });
-  }
+  refreshBtn.addEventListener('click', function() {
+    location.reload();
+  });
 
   // ======================================== */
   // RELOJ
@@ -866,10 +933,26 @@ a:hover {
   setInterval(updateClock, 1000);
 
   // ======================================== */
-  // INICIALIZAR
+  // ALINEAR SUBTÍTULO
+  // ======================================== */
+  (function alignSubtitle() {
+    const h1 = document.querySelector('h1');
+    const subtitle = document.querySelector('.subtitle');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const style = window.getComputedStyle(h1);
+    ctx.font = style.fontSize + ' ' + style.fontFamily;
+    const emojiWidth = ctx.measureText('🧩 ').width;
+    if (subtitle) {
+      subtitle.style.paddingLeft = emojiWidth + 'px';
+    }
+  })();
+
+  // ======================================== */
+  // INICIALIZAR CARRUSEL
   // ======================================== */
   window.addEventListener('load', function() {
-    setTimeout(initCarrusel, 500);
+    setTimeout(initCarousel, 500);
   });
 
 })();
