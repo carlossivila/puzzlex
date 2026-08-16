@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="screen-orientation" content="landscape">
 <title>PuzzleX by Carlos Sivila</title>
 
 <style>
@@ -387,7 +388,7 @@ a:hover {
   filter: brightness(1.5);
 }
 
-/* REPRODUCTOR FULLSCREEN ÚNICO - CORREGIDO */
+/* REPRODUCTOR FULLSCREEN - CORREGIDO PARA MÓVIL */
 .fullscreen-player {
   display: none;
   position: fixed;
@@ -412,19 +413,21 @@ a:hover {
   background: #000;
 }
 
-/* CORRECCIÓN: En móvil NO rotamos, usamos object-fit o ajuste alternativo */
+/* CORRECCIÓN PARA MÓVIL: Forzar landscape y ocupar toda la pantalla */
 @media (max-width: 768px) {
   .fullscreen-player.active {
     width: 100vw;
     height: 100vh;
-    transform: none; /* Eliminamos la rotación que causaba desborde */
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: none;
   }
   
   .fullscreen-player iframe {
     width: 100vw;
     height: 100vh;
-    /* Opcional: si quieres que el video se ajuste mejor en vertical */
-    object-fit: contain;
+    object-fit: fill;
   }
 }
 
@@ -622,7 +625,6 @@ const videos = [
 'https://www.youtube.com/watch?v=CqzOtQhn2sY',
 'https://www.youtube.com/watch?v=0XdMt-loxiY',
 'https://www.youtube.com/watch?v=xFHvH9FtACg',
-'https://www.youtube.com/watch?v=RxAj2CxpvW0',
 'https://www.youtube.com/watch?v=NeHoIjJJ6W0',
 'https://www.youtube.com/watch?v=6aoTr4N4tg4',
 'https://www.youtube.com/watch?v=ybrY9JWVBv4',
@@ -729,6 +731,18 @@ function getYouTubeID(url) {
   return match ? match[1] : null;
 }
 
+function extractVideoIdFromIframe(src) {
+  // Para YouTube
+  const ytMatch = src.match(/[?&]v=([^&]+)/);
+  if (ytMatch) return ytMatch[1];
+  
+  // Para OK.ru - redirigimos a YouTube con un ID por defecto
+  const okMatch = src.match(/\/videoembed\/(\d+)/);
+  if (okMatch) return 'dQw4w9WgXcQ'; // Video de ejemplo
+  
+  return null;
+}
+
 function getRandomVideos() {
   const indices = [];
   const randomVideos = [];
@@ -747,6 +761,29 @@ function getRandomVideos() {
   return randomVideos;
 }
 
+// ===== FORZAR ORIENTACIÓN HORIZONTAL =====
+function forceLandscape() {
+  try {
+    if (window.screen && window.screen.orientation) {
+      window.screen.orientation.lock('landscape').catch(function(error) {
+        console.log('No se pudo bloquear orientación:', error);
+      });
+    }
+  } catch(e) {
+    console.log('Error al forzar landscape:', e);
+  }
+}
+
+function unlockOrientation() {
+  try {
+    if (window.screen && window.screen.orientation) {
+      window.screen.orientation.unlock().catch(function(error) {
+        console.log('No se pudo desbloquear orientación:', error);
+      });
+    }
+  } catch(e) {}
+}
+
 // ===== REPRODUCTOR FULLSCREEN =====
 const fullscreenPlayer = document.getElementById('fullscreenPlayer');
 const fullscreenIframe = document.getElementById('fullscreenIframe');
@@ -757,11 +794,15 @@ function playFullscreen(videoId) {
   if (fullscreenPlayer.classList.contains('active')) {
     fullscreenIframe.src = '';
     fullscreenPlayer.classList.remove('active');
+    unlockOrientation();
   }
   
   // Abrimos el nuevo video
   fullscreenIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&fs=1&rel=0`;
   fullscreenPlayer.classList.add('active');
+  
+  // FORZAR ORIENTACIÓN HORIZONTAL EN MÓVIL
+  forceLandscape();
   
   // Intentamos entrar en fullscreen nativo
   try {
@@ -780,6 +821,9 @@ function playFullscreen(videoId) {
 function closeFullscreenPlayer() {
   fullscreenIframe.src = '';
   fullscreenPlayer.classList.remove('active');
+  
+  // DESBLOQUEAR ORIENTACIÓN
+  unlockOrientation();
   
   // Salimos del fullscreen nativo
   try {
@@ -809,23 +853,7 @@ document.querySelectorAll('.video-cell:not(.empty)').forEach(cell => {
   cell.addEventListener('click', function(e) {
     const iframe = this.querySelector('iframe');
     if (iframe && iframe.src) {
-      // Extraer ID del video
-      let videoId = null;
-      
-      // Para YouTube
-      const ytMatch = iframe.src.match(/[?&]v=([^&]+)/);
-      if (ytMatch) {
-        videoId = ytMatch[1];
-      }
-      
-      // Para OK.ru (extraer ID del embed)
-      const okMatch = iframe.src.match(/\/videoembed\/(\d+)/);
-      if (okMatch) {
-        // OK.ru no es compatible con YouTube, usamos un enfoque diferente
-        // Enviamos a YouTube con un ID por defecto o mostramos un mensaje
-        videoId = 'dQw4w9WgXcQ'; // ID de ejemplo
-      }
-      
+      const videoId = extractVideoIdFromIframe(iframe.src);
       if (videoId) {
         playFullscreen(videoId);
       }
