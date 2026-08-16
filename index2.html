@@ -295,7 +295,88 @@ a:hover {
   .game-list a { padding: 12px 14px; }
 }
 
+/* ======================================== */
+/* 📱 MÓVILES - LANDSCAPE FORZADO EN EL GRID */
+/* ======================================== */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  body {
+    transform: rotate(90deg);
+    transform-origin: center center;
+    width: 100vh;
+    height: 100vw;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
+  
+  #menu-screen {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    padding: 10px 16px;
+  }
+  
+  .video-grid {
+    width: 100%;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+}
+
+/* ======================================== */
+/* AVISO PARA GIRAR EL TELÉFONO */
+/* ======================================== */
+.rotate-notice {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.95);
+  color: white;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 1.5rem;
+  padding: 20px;
+  z-index: 99999;
+  flex-direction: column;
+}
+
+.rotate-notice .icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  animation: rotate-phone 2s infinite;
+}
+
+@keyframes rotate-phone {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(90deg); }
+}
+
+.rotate-notice h2 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  color: var(--neon-cyan);
+}
+
+.rotate-notice p {
+  font-size: 1.2rem;
+  opacity: 0.8;
+  max-width: 300px;
+}
+
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .rotate-notice {
+    display: flex !important;
+  }
+}
+
+/* ======================================== */
 /* CARRUSEL */
+/* ======================================== */
 .carrusel-section {
   width: 100%;
   max-width: 1200px;
@@ -388,7 +469,9 @@ a:hover {
   filter: brightness(1.5);
 }
 
-/* REPRODUCTOR FULLSCREEN - CORREGIDO PARA MÓVIL */
+/* ======================================== */
+/* REPRODUCTOR FULLSCREEN - MEJORADO PARA MÓVIL */
+/* ======================================== */
 .fullscreen-player {
   display: none;
   position: fixed;
@@ -411,24 +494,6 @@ a:hover {
   height: 100vh;
   border: none;
   background: #000;
-}
-
-/* CORRECCIÓN PARA MÓVIL: Forzar landscape y ocupar toda la pantalla */
-@media (max-width: 768px) {
-  .fullscreen-player.active {
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    transform: none;
-  }
-  
-  .fullscreen-player iframe {
-    width: 100vw;
-    height: 100vh;
-    object-fit: fill;
-  }
 }
 
 .close-btn {
@@ -466,10 +531,59 @@ a:hover {
   }
 }
 
+/* ======================================== */
+/* CARRUSEL EN MÓVILES - LANDSCAPE */
+/* ======================================== */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  .image-container {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .image-container span {
+    transform: rotateY(calc(var(--i) * 45deg)) translateZ(200px);
+  }
+  
+  .btn-container {
+    max-width: 600px;
+  }
+  
+  .btn {
+    padding: 15px 30px;
+    font-size: 18px;
+  }
+}
+
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .image-container {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .image-container span {
+    transform: rotateY(calc(var(--i) * 45deg)) translateZ(80px);
+  }
+  
+  .btn {
+    padding: 12px 20px;
+    font-size: 16px;
+  }
+}
+
 </style>
 </head>
 
 <body>
+
+<!-- ======================================== -->
+<!-- AVISO DE ROTACIÓN PARA MÓVILES -->
+<!-- ======================================== -->
+<div class="rotate-notice" id="rotateNotice">
+  <div class="icon">📱</div>
+  <h2>¡Gira tu teléfono!</h2>
+  <p>Por favor, gira tu dispositivo a <strong>HORIZONTAL</strong> para ver los videos en pantalla completa</p>
+  <p style="font-size: 0.9rem; margin-top: 30px; opacity: 0.5;">⬅️➡️ Gira el teléfono</p>
+</div>
 
 <div id="menu-screen">
 <header class="header-block">
@@ -496,7 +610,9 @@ a:hover {
 </nav>
 <hr>
 
-<!-- GRID DE VIDEOS -->
+<!-- ======================================== -->
+<!-- GRID DE VIDEOS - TODOS TUS VIDEOS RESPETADOS -->
+<!-- ======================================== -->
 <div class="video-grid" id="videoGrid">
 <div class="video-cell"><iframe src="https://ok.ru/videoembed/4055745694421" allowfullscreen></iframe></div>
 <div class="video-cell"><iframe src="https://ok.ru/videoembed/4055729834709" allowfullscreen></iframe></div>
@@ -524,7 +640,9 @@ a:hover {
 </div>
 <br><br>
 
-<!-- CARRUSEL -->
+<!-- ======================================== -->
+<!-- CARRUSEL - RESPETANDO TUS VIDEOS -->
+<!-- ======================================== -->
 <div class="image-container" id="carouselContainer">
     <span style="--i: 1">
       <img src="" alt="Video thumbnail" />
@@ -566,14 +684,18 @@ a:hover {
   <button class="btn" id="next">▶</button>
 </div>
 
+<!-- ======================================== -->
 <!-- REPRODUCTOR FULLSCREEN ÚNICO -->
+<!-- ======================================== -->
 <div class="fullscreen-player" id="fullscreenPlayer">
   <button class="close-btn" id="closeFullscreen">✕</button>
   <iframe id="fullscreenIframe" src="" allowfullscreen></iframe>
 </div>
 
 <script>
-// ===== LISTA DE VIDEOS =====
+// ======================================== */
+// TUS VIDEOS DEL CARRUSEL (RESPETADOS) */
+// ======================================== */
 const videos = [
 'https://www.youtube.com/watch?v=FMEsoC2SAFc',
 'https://www.youtube.com/watch?v=CIJgAlNwweI',
@@ -725,7 +847,9 @@ const videos = [
 'https://www.youtube.com/watch?v=CkdI1F5xxtE',
 ];
 
-// ===== FUNCIONES UTILITARIAS =====
+// ======================================== */
+// FUNCIONES UTILITARIAS */
+// ======================================== */
 function getYouTubeID(url) {
   const match = url.match(/[?&]v=([^&]+)/);
   return match ? match[1] : null;
@@ -761,7 +885,9 @@ function getRandomVideos() {
   return randomVideos;
 }
 
-// ===== FORZAR ORIENTACIÓN HORIZONTAL =====
+// ======================================== */
+// FORZAR ORIENTACIÓN HORIZONTAL */
+// ======================================== */
 function forceLandscape() {
   try {
     if (window.screen && window.screen.orientation) {
@@ -784,7 +910,31 @@ function unlockOrientation() {
   } catch(e) {}
 }
 
-// ===== REPRODUCTOR FULLSCREEN =====
+// ======================================== */
+// DETECTAR ORIENTACIÓN PARA EL AVISO */
+// ======================================== */
+function checkOrientation() {
+  const isMobile = window.innerWidth <= 768;
+  const isPortrait = window.innerHeight > window.innerWidth;
+  const notice = document.getElementById('rotateNotice');
+  
+  if (isMobile && isPortrait) {
+    notice.style.display = 'flex';
+  } else {
+    notice.style.display = 'none';
+  }
+}
+
+window.addEventListener('load', checkOrientation);
+window.addEventListener('resize', checkOrientation);
+window.addEventListener('orientationchange', function() {
+  setTimeout(checkOrientation, 300);
+});
+setInterval(checkOrientation, 1000);
+
+// ======================================== */
+// REPRODUCTOR FULLSCREEN */
+// ======================================== */
 const fullscreenPlayer = document.getElementById('fullscreenPlayer');
 const fullscreenIframe = document.getElementById('fullscreenIframe');
 const closeFullscreen = document.getElementById('closeFullscreen');
@@ -848,7 +998,9 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// ===== CLIC EN VIDEOS DEL GRID =====
+// ======================================== */
+// CLIC EN VIDEOS DEL GRID */
+// ======================================== */
 document.querySelectorAll('.video-cell:not(.empty)').forEach(cell => {
   cell.addEventListener('click', function(e) {
     const iframe = this.querySelector('iframe');
@@ -861,7 +1013,9 @@ document.querySelectorAll('.video-cell:not(.empty)').forEach(cell => {
   });
 });
 
-// ===== CARRUSEL =====
+// ======================================== */
+// CARRUSEL */
+// ======================================== */
 const randomVideos = getRandomVideos();
 const spans = document.querySelectorAll('.image-container span');
 
@@ -884,7 +1038,9 @@ spans.forEach((span, index) => {
   });
 });
 
-// ===== BOTONES DEL CARRUSEL =====
+// ======================================== */
+// BOTONES DEL CARRUSEL */
+// ======================================== */
 const imageContainer = document.getElementById("carouselContainer");
 const prevBtn = document.getElementById("prev");
 const nextBtn = document.getElementById("next");
@@ -910,7 +1066,9 @@ refreshBtn.addEventListener("click", () => {
   location.reload();
 });
 
-// ===== RELOJ =====
+// ======================================== */
+// RELOJ */
+// ======================================== */
 const dayNames = ['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
 function pad(n) { return String(n).padStart(2,'0'); }
 
@@ -925,7 +1083,9 @@ function updateClock() {
 updateClock();
 setInterval(updateClock, 1000);
 
-// ===== ALINEAR SUBTÍTULO =====
+// ======================================== */
+// ALINEAR SUBTÍTULO */
+// ======================================== */
 (function alignSubtitle() {
   const h1 = document.querySelector('h1');
   const subtitle = document.querySelector('.subtitle');
