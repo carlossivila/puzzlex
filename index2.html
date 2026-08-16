@@ -470,9 +470,9 @@ a:hover {
 }
 
 /* ======================================== */
-/* REPRODUCTOR FULLSCREEN - MEJORADO PARA MÓVIL */
+/* REPRODUCTOR OVERLAY - NUEVO DISEÑO */
 /* ======================================== */
-.fullscreen-player {
+.video-overlay {
   display: none;
   position: fixed;
   top: 0;
@@ -483,51 +483,89 @@ a:hover {
   z-index: 10000;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
 }
 
-.fullscreen-player.active {
+.video-overlay.active {
   display: flex;
 }
 
-.fullscreen-player iframe {
+.video-overlay .video-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+.video-overlay iframe {
   width: 100vw;
   height: 100vh;
   border: none;
   background: #000;
+  display: block;
 }
 
-.close-btn {
+/* Botón de cerrar - siempre visible en la esquina superior derecha */
+.video-overlay .close-btn {
   position: absolute;
   top: 20px;
   right: 20px;
   width: 50px;
   height: 50px;
-  background: rgba(0,0,0,0.8);
-  color: var(--neon-cyan);
-  border: 2px solid var(--neon-cyan);
+  background: rgba(0,0,0,0.85);
+  color: #ff4444;
+  border: 2px solid #ff4444;
   border-radius: 50%;
-  font-size: 28px;
+  font-size: 32px;
+  font-weight: bold;
   cursor: pointer;
   z-index: 10001;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
   pointer-events: auto;
+  line-height: 1;
+  text-shadow: 0 0 10px rgba(255,68,68,0.5);
 }
 
-.close-btn:hover {
-  background: var(--neon-cyan);
+.video-overlay .close-btn:hover {
+  background: #ff4444;
   color: #000;
+  transform: scale(1.1);
+  box-shadow: 0 0 30px rgba(255,68,68,0.4);
 }
 
+.video-overlay .close-btn:active {
+  transform: scale(0.9);
+}
+
+/* Para móviles */
 @media (max-width: 768px) {
-  .close-btn {
+  .video-overlay .close-btn {
     top: 10px;
     right: 10px;
+    width: 44px;
+    height: 44px;
+    font-size: 28px;
+  }
+  
+  .video-overlay iframe {
+    width: 100vw;
+    height: 100vh;
+  }
+}
+
+/* Para orientación landscape en móviles */
+@media (max-width: 768px) and (orientation: landscape) {
+  .video-overlay .close-btn {
+    top: 8px;
+    right: 8px;
     width: 40px;
     height: 40px;
-    font-size: 22px;
+    font-size: 24px;
   }
 }
 
@@ -611,7 +649,7 @@ a:hover {
 <hr>
 
 <!-- ======================================== -->
-<!-- GRID DE VIDEOS - TODOS TUS VIDEOS RESPETADOS -->
+<!-- GRID DE VIDEOS - TODOS TUS VIDEOS (17) -->
 <!-- ======================================== -->
 <div class="video-grid" id="videoGrid">
 <div class="video-cell"><iframe src="https://ok.ru/videoembed/4055745694421" allowfullscreen></iframe></div>
@@ -641,7 +679,7 @@ a:hover {
 <br><br>
 
 <!-- ======================================== -->
-<!-- CARRUSEL - RESPETANDO TUS VIDEOS -->
+<!-- CARRUSEL - TODOS TUS VIDEOS (160+) -->
 <!-- ======================================== -->
 <div class="image-container" id="carouselContainer">
     <span style="--i: 1">
@@ -685,18 +723,20 @@ a:hover {
 </div>
 
 <!-- ======================================== -->
-<!-- REPRODUCTOR FULLSCREEN ÚNICO -->
+<!-- REPRODUCTOR OVERLAY - VENTANA COMPLETA -->
 <!-- ======================================== -->
-<div class="fullscreen-player" id="fullscreenPlayer">
-  <button class="close-btn" id="closeFullscreen">✕</button>
-  <iframe id="fullscreenIframe" src="" allowfullscreen></iframe>
+<div class="video-overlay" id="videoOverlay">
+  <button class="close-btn" id="closeOverlay">✕</button>
+  <div class="video-wrapper">
+    <iframe id="overlayIframe" src="" allowfullscreen></iframe>
+  </div>
 </div>
 
 <script>
 // ======================================== */
-// TUS VIDEOS DEL CARRUSEL (RESPETADOS) */
+// TODOS LOS VIDEOS DEL CARRUSEL (160+) */
 // ======================================== */
-const videos = [
+const carruselVideos = [
 'https://www.youtube.com/watch?v=FMEsoC2SAFc',
 'https://www.youtube.com/watch?v=CIJgAlNwweI',
 'https://www.youtube.com/watch?v=Sx3xFYU9cZ0',
@@ -747,6 +787,7 @@ const videos = [
 'https://www.youtube.com/watch?v=CqzOtQhn2sY',
 'https://www.youtube.com/watch?v=0XdMt-loxiY',
 'https://www.youtube.com/watch?v=xFHvH9FtACg',
+'https://www.youtube.com/watch?v=RxAj2CxpvW0',
 'https://www.youtube.com/watch?v=NeHoIjJJ6W0',
 'https://www.youtube.com/watch?v=6aoTr4N4tg4',
 'https://www.youtube.com/watch?v=ybrY9JWVBv4',
@@ -855,34 +896,28 @@ function getYouTubeID(url) {
   return match ? match[1] : null;
 }
 
-function extractVideoIdFromIframe(src) {
+function extractVideoInfo(iframeSrc) {
   // Para YouTube
-  const ytMatch = src.match(/[?&]v=([^&]+)/);
-  if (ytMatch) return ytMatch[1];
-  
-  // Para OK.ru - redirigimos a YouTube con un ID por defecto
-  const okMatch = src.match(/\/videoembed\/(\d+)/);
-  if (okMatch) return 'dQw4w9WgXcQ'; // Video de ejemplo
-  
-  return null;
-}
-
-function getRandomVideos() {
-  const indices = [];
-  const randomVideos = [];
-  
-  while (indices.length < 8) {
-    const randomIndex = Math.floor(Math.random() * videos.length);
-    if (!indices.includes(randomIndex)) {
-      indices.push(randomIndex);
-      randomVideos.push({
-        url: videos[randomIndex],
-        number: randomIndex + 1
-      });
-    }
+  const ytMatch = iframeSrc.match(/[?&]v=([^&]+)/);
+  if (ytMatch) {
+    return {
+      type: 'youtube',
+      id: ytMatch[1],
+      url: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&controls=1&fs=1&rel=0&modestbranding=1`
+    };
   }
   
-  return randomVideos;
+  // Para OK.ru
+  const okMatch = iframeSrc.match(/\/videoembed\/(\d+)/);
+  if (okMatch) {
+    return {
+      type: 'okru',
+      id: okMatch[1],
+      url: `https://ok.ru/videoembed/${okMatch[1]}?autoplay=1`
+    };
+  }
+  
+  return null;
 }
 
 // ======================================== */
@@ -933,23 +968,29 @@ window.addEventListener('orientationchange', function() {
 setInterval(checkOrientation, 1000);
 
 // ======================================== */
-// REPRODUCTOR FULLSCREEN */
+// REPRODUCTOR OVERLAY */
 // ======================================== */
-const fullscreenPlayer = document.getElementById('fullscreenPlayer');
-const fullscreenIframe = document.getElementById('fullscreenIframe');
-const closeFullscreen = document.getElementById('closeFullscreen');
+const videoOverlay = document.getElementById('videoOverlay');
+const overlayIframe = document.getElementById('overlayIframe');
+const closeOverlay = document.getElementById('closeOverlay');
 
-function playFullscreen(videoId) {
+function openVideo(src) {
   // Si ya hay un video abierto, lo cerramos
-  if (fullscreenPlayer.classList.contains('active')) {
-    fullscreenIframe.src = '';
-    fullscreenPlayer.classList.remove('active');
+  if (videoOverlay.classList.contains('active')) {
+    overlayIframe.src = '';
+    videoOverlay.classList.remove('active');
     unlockOrientation();
   }
   
+  const videoInfo = extractVideoInfo(src);
+  if (!videoInfo) {
+    alert('No se pudo cargar el video');
+    return;
+  }
+  
   // Abrimos el nuevo video
-  fullscreenIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&fs=1&rel=0`;
-  fullscreenPlayer.classList.add('active');
+  overlayIframe.src = videoInfo.url;
+  videoOverlay.classList.add('active');
   
   // FORZAR ORIENTACIÓN HORIZONTAL EN MÓVIL
   forceLandscape();
@@ -968,9 +1009,9 @@ function playFullscreen(videoId) {
   }
 }
 
-function closeFullscreenPlayer() {
-  fullscreenIframe.src = '';
-  fullscreenPlayer.classList.remove('active');
+function closeVideoOverlay() {
+  overlayIframe.src = '';
+  videoOverlay.classList.remove('active');
   
   // DESBLOQUEAR ORIENTACIÓN
   unlockOrientation();
@@ -989,12 +1030,20 @@ function closeFullscreenPlayer() {
   }
 }
 
-// Eventos del reproductor fullscreen
-closeFullscreen.addEventListener('click', closeFullscreenPlayer);
+// Eventos del overlay
+closeOverlay.addEventListener('click', closeVideoOverlay);
 
+// Cerrar con Escape
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && fullscreenPlayer.classList.contains('active')) {
-    closeFullscreenPlayer();
+  if (e.key === 'Escape' && videoOverlay.classList.contains('active')) {
+    closeVideoOverlay();
+  }
+});
+
+// Cerrar al hacer clic fuera del video (en el fondo)
+videoOverlay.addEventListener('click', function(e) {
+  if (e.target === this) {
+    closeVideoOverlay();
   }
 });
 
@@ -1005,35 +1054,56 @@ document.querySelectorAll('.video-cell:not(.empty)').forEach(cell => {
   cell.addEventListener('click', function(e) {
     const iframe = this.querySelector('iframe');
     if (iframe && iframe.src) {
-      const videoId = extractVideoIdFromIframe(iframe.src);
-      if (videoId) {
-        playFullscreen(videoId);
-      }
+      openVideo(iframe.src);
     }
   });
 });
 
 // ======================================== */
-// CARRUSEL */
+// CARRUSEL - CON TODOS TUS VIDEOS (160+) */
 // ======================================== */
-const randomVideos = getRandomVideos();
-const spans = document.querySelectorAll('.image-container span');
-
-spans.forEach((span, index) => {
-  const video = randomVideos[index];
-  const videoID = getYouTubeID(video.url);
-  const img = span.querySelector('img');
-  const label = span.querySelector('.video-label');
-
-  if (videoID) {
-    img.src = `https://img.youtube.com/vi/${videoID}/mqdefault.jpg`;
+function getRandomVideos() {
+  const shuffled = [...carruselVideos];
+  // Mezclar array
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
+  // Tomar los primeros 8
+  return shuffled.slice(0, 8);
+}
 
-  label.textContent = `Video ${video.number}`;
+function initCarousel() {
+  const randomVideos = getRandomVideos();
+  const spans = document.querySelectorAll('.image-container span');
   
-  span.addEventListener('click', () => {
-    if (videoID) {
-      playFullscreen(videoID);
+  spans.forEach((span, index) => {
+    const videoUrl = randomVideos[index % randomVideos.length];
+    const videoId = getYouTubeID(videoUrl);
+    const img = span.querySelector('img');
+    const label = span.querySelector('.video-label');
+    
+    if (videoId) {
+      img.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+      label.textContent = `Video ${index + 1}`;
+      // Guardamos la URL completa para el click
+      span.dataset.videoSrc = videoUrl;
+    }
+  });
+}
+
+// ======================================== */
+// CLIC EN CARRUSEL */
+// ======================================== */
+document.querySelectorAll('.image-container span').forEach(span => {
+  span.addEventListener('click', function() {
+    const url = this.dataset.videoSrc;
+    if (url) {
+      // Convertir URL de YouTube a formato embed
+      const videoId = getYouTubeID(url);
+      if (videoId) {
+        openVideo(`https://www.youtube.com/embed/${videoId}`);
+      }
     }
   });
 });
@@ -1096,6 +1166,13 @@ setInterval(updateClock, 1000);
   const emojiWidth = ctx.measureText('🧩 ').width;
   subtitle.style.paddingLeft = emojiWidth + 'px';
 })();
+
+// ======================================== */
+// INICIALIZAR CARRUSEL */
+// ======================================== */
+window.addEventListener('load', function() {
+  setTimeout(initCarousel, 500);
+});
 
 </script>
 
