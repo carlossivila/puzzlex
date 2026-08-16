@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Reproductor Overlay</title>
+    <title>Mis Videos - Grid y Carrusel</title>
     <style>
         /* ===== RESET ===== */
         * {
@@ -16,68 +16,131 @@
             font-family: Arial, sans-serif;
             background: #1e1e2f;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            padding: 2rem 1rem;
         }
 
-        /* ===== CONTENEDOR DE LINKS ===== */
-        .links-container {
-            background: #2a2a40;
-            padding: 2.5rem 2rem;
-            border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+        /* ===== CONTENEDOR PRINCIPAL ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            color: #fff;
             text-align: center;
-            max-width: 600px;
-            width: 90%;
+            font-size: 2.2rem;
+            margin-bottom: 0.3rem;
         }
 
-        .links-container h1 {
-            color: #fff;
-            font-size: 1.8rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .links-container p {
+        .page-subtitle {
             color: #aaa;
-            margin-bottom: 2rem;
+            text-align: center;
             font-size: 1rem;
+            margin-bottom: 2.5rem;
         }
 
-        .link-item {
-            display: block;
-            background: #3a3a55;
+        /* ===== SECCIÓN ===== */
+        .section {
+            background: #2a2a40;
+            border-radius: 16px;
+            padding: 1.5rem 1.2rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .section-title {
             color: #fff;
-            padding: 1rem 1.2rem;
-            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title .badge {
+            font-size: 0.7rem;
+            background: #6c6c9a;
+            padding: 0.15rem 0.8rem;
+            border-radius: 30px;
+            color: #fff;
+            font-weight: 400;
+        }
+
+        .section-subtitle {
+            color: #999;
+            font-size: 0.85rem;
+            margin-bottom: 1.2rem;
+        }
+
+        /* ===== GRID DE VIDEOS ===== */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        /* ===== TARJETA DE VIDEO ===== */
+        .video-card {
+            background: #3a3a55;
             border-radius: 12px;
-            text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 500;
-            transition: background 0.25s, transform 0.15s;
+            overflow: hidden;
             cursor: pointer;
-            border: 1px solid #555577;
-            word-break: break-all;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid transparent;
+            aspect-ratio: 16 / 9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
         }
 
-        .link-item:hover {
-            background: #4f4f70;
-            transform: scale(1.02);
+        .video-card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+            border-color: #6c6c9a;
         }
 
-        .link-item:active {
+        .video-card:active {
             transform: scale(0.97);
         }
 
-        .link-item .badge {
-            display: inline-block;
-            font-size: 0.7rem;
-            background: #6c6c9a;
-            padding: 0.2rem 0.8rem;
-            border-radius: 30px;
-            margin-left: 0.5rem;
+        .video-card iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            pointer-events: none;
+            /* Evita que el iframe capture clics */;
+        }
+
+        .video-card .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            transition: background 0.3s;
+            pointer-events: none;
+        }
+
+        .video-card:hover .play-overlay {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .video-card .play-overlay .play-icon {
+            font-size: 3.5rem;
             color: #fff;
-            font-weight: 400;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
+            opacity: 0.8;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .video-card:hover .play-overlay .play-icon {
+            opacity: 1;
+            transform: scale(1.1);
         }
 
         /* ===== OVERLAY ===== */
@@ -89,14 +152,12 @@
             height: 100vh;
             background: #000;
             z-index: 9999;
-            display: none; /* oculto por defecto */
+            display: none;
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            /* Forzamos landscape en celular vía JS, pero también con CSS */
         }
 
-        /* Contenedor del iframe: ocupa TODO el overlay */
         #video-wrapper {
             width: 100%;
             height: 100%;
@@ -134,7 +195,7 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             user-select: none;
             font-family: Arial, sans-serif;
-            display: none; /* se muestra solo cuando overlay está activo */
+            display: none;
         }
 
         #close-btn:hover {
@@ -146,17 +207,20 @@
             transform: scale(0.9);
         }
 
-        /* ===== RESPONSIVE: Ajustes menores ===== */
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 600px) {
-            .links-container {
-                padding: 1.8rem 1.2rem;
+            .page-title {
+                font-size: 1.6rem;
             }
-            .links-container h1 {
-                font-size: 1.4rem;
+            .section {
+                padding: 1rem 0.8rem;
             }
-            .link-item {
-                font-size: 0.85rem;
-                padding: 0.9rem 1rem;
+            .video-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 0.7rem;
+            }
+            .video-card .play-overlay .play-icon {
+                font-size: 2.5rem;
             }
             #close-btn {
                 width: 44px;
@@ -168,10 +232,18 @@
             }
         }
 
-        /* ===== ORIENTACIÓN: forzamos landscape en móvil ===== */
-        /* Esto es un respaldo CSS, pero la fuerza real la hará JS con screen.orientation.lock() */
+        @media (max-width: 400px) {
+            .video-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 0.5rem;
+            }
+            .section-title {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* ===== AVISO DE ORIENTACIÓN (respaldo CSS) ===== */
         @media (max-width: 768px) and (orientation: portrait) {
-            /* Solo un aviso visual si no se pudiera bloquear por algún motivo */
             #overlay.active-portrait-warning::after {
                 content: "📱 Gira tu celular a horizontal";
                 position: absolute;
@@ -180,7 +252,7 @@
                 width: 100%;
                 text-align: center;
                 color: #fff;
-                background: rgba(0,0,0,0.6);
+                background: rgba(0, 0, 0, 0.6);
                 padding: 12px 0;
                 font-size: 1rem;
                 z-index: 10001;
@@ -192,28 +264,38 @@
 <body>
 
     <!-- ========================================================= -->
-    <!-- CONTENEDOR DE LINKS                                        -->
+    <!-- CONTENEDOR PRINCIPAL                                       -->
     <!-- ========================================================= -->
-    <div class="links-container">
-        <h1>🎬 Mis Videos</h1>
-        <p>Haz clic en cualquier enlace para reproducir en pantalla completa</p>
+    <div class="container">
+        <h1 class="page-title">🎬 Mis Videos</h1>
+        <p class="page-subtitle">Haz clic en cualquier video para reproducir en pantalla completa</p>
 
-        <!-- Link 1: OK.ru -->
-        <div class="link-item" data-url="https://ok.ru/videoembed/4055745694421">
-            ▶️ The Classic Project - Megamix Vol.12 (OK.ru)
-            <span class="badge">OK.ru</span>
+        <!-- ========================================================= -->
+        <!-- SECCIÓN: GRID (5 videos de OK.ru)                          -->
+        <!-- ========================================================= -->
+        <div class="section">
+            <div class="section-title">
+                📂 GRID
+                <span class="badge">5 videos • OK.ru</span>
+            </div>
+            <p class="section-subtitle">Megamixes de los 70s y 80s</p>
+            <div class="video-grid" id="gridContainer">
+                <!-- Los 5 videos del Grid se generarán con JS -->
+            </div>
         </div>
 
-        <!-- Link 2: YouTube embed -->
-        <div class="link-item" data-url="https://www.youtube.com/embed/wyXftCua16k?si=ssTY7kzhHuEhpXmB">
-            ▶️ Video YouTube (embed)
-            <span class="badge">YouTube</span>
-        </div>
-
-        <!-- Link 3: YouTube normal -->
-        <div class="link-item" data-url="https://www.youtube.com/watch?v=FMEsoC2SAFc">
-            ▶️ Otro video YouTube
-            <span class="badge">YouTube</span>
+        <!-- ========================================================= -->
+        <!-- SECCIÓN: CARRUSEL (5 videos de YouTube)                    -->
+        <!-- ========================================================= -->
+        <div class="section">
+            <div class="section-title">
+                📂 CARRUSEL
+                <span class="badge">5 videos • YouTube</span>
+            </div>
+            <p class="page-subtitle" style="text-align:left; margin-bottom:1.2rem; font-size:0.9rem;">Éxitos de los 80s y 90s</p>
+            <div class="video-grid" id="carruselContainer">
+                <!-- Los 5 videos del Carrusel se generarán con JS -->
+            </div>
         </div>
     </div>
 
@@ -226,7 +308,7 @@
         </div>
     </div>
 
-    <!-- Botón Cerrar "X" (fuera del overlay para que esté siempre visible) -->
+    <!-- Botón Cerrar "X" -->
     <div id="close-btn">✕</div>
 
     <!-- ========================================================= -->
@@ -236,95 +318,156 @@
         (function() {
             'use strict';
 
-            // ----- ELEMENTOS -----
+            // ======================================================
+            // LISTAS DE VIDEOS
+            // ======================================================
+
+            // GRID: 5 videos de OK.ru
+            const gridVideos = [
+                'https://ok.ru/videoembed/4055745694421',
+                'https://ok.ru/videoembed/4055729834709',
+                'https://ok.ru/videoembed/4055670459093',
+                'https://ok.ru/videoembed/2101613693653',
+                'https://ok.ru/videoembed/2101603863253'
+            ];
+
+            // CARRUSEL: 5 videos de YouTube (formato watch)
+            const carruselVideos = [
+                'https://www.youtube.com/watch?v=FMEsoC2SAFc',
+                'https://www.youtube.com/watch?v=CIJgAlNwweI',
+                'https://www.youtube.com/watch?v=Sx3xFYU9cZ0',
+                'https://www.youtube.com/watch?v=qw0D_KN2KN8',
+                'https://www.youtube.com/watch?v=Qy4bgf4kG-I'
+            ];
+
+            // ======================================================
+            // FUNCIÓN: convertir URL de YouTube a embed
+            // ======================================================
+            function convertirAEmbed(url) {
+                // Si ya es embed, devolverla tal cual
+                if (url.includes('/embed/')) return url;
+
+                // Si es watch, extraer el ID
+                const match = url.match(/[?&]v=([^&]+)/);
+                if (match && match[1]) {
+                    return 'https://www.youtube.com/embed/' + match[1];
+                }
+
+                // Si no se pudo convertir, devolver la original
+                return url;
+            }
+
+            // ======================================================
+            // FUNCIÓN: generar tarjetas de video
+            // ======================================================
+            function generarTarjetas(videos, contenedorId, esYouTube) {
+                const container = document.getElementById(contenedorId);
+                if (!container) return;
+
+                container.innerHTML = '';
+
+                videos.forEach(function(url) {
+                    const card = document.createElement('div');
+                    card.className = 'video-card';
+
+                    // Determinar la URL a mostrar en el iframe (miniatura)
+                    let embedUrl = url;
+                    if (esYouTube) {
+                        embedUrl = convertirAEmbed(url);
+                        // Añadir autoplay=0 para que no se reproduzca automáticamente en el grid
+                        embedUrl += (embedUrl.includes('?') ? '&' : '?') + 'autoplay=0';
+                    }
+
+                    // Crear iframe para la miniatura (con pointer-events: none)
+                    const iframe = document.createElement('iframe');
+                    iframe.src = embedUrl;
+                    iframe.allow = 'accelerometer; encrypted-media; gyroscope; picture-in-picture';
+                    iframe.allowFullscreen = true;
+                    iframe.loading = 'lazy';
+
+                    // Overlay con icono de play
+                    const overlayIcon = document.createElement('div');
+                    overlayIcon.className = 'play-overlay';
+                    overlayIcon.innerHTML = '<span class="play-icon">▶</span>';
+
+                    card.appendChild(iframe);
+                    card.appendChild(overlayIcon);
+
+                    // Al hacer clic en la tarjeta → abrir overlay
+                    card.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        let urlParaReproducir = url;
+                        if (esYouTube) {
+                            urlParaReproducir = convertirAEmbed(url);
+                        }
+                        openOverlay(urlParaReproducir);
+                    });
+
+                    container.appendChild(card);
+                });
+            }
+
+            // ======================================================
+            // FUNCIONES DEL OVERLAY
+            // ======================================================
+
             const overlay = document.getElementById('overlay');
             const closeBtn = document.getElementById('close-btn');
             const iframe = document.getElementById('player-iframe');
-            const linkItems = document.querySelectorAll('.link-item');
-
-            // Variable para controlar si estamos en overlay
             let isOpen = false;
 
-            // ----- FUNCIÓN PARA CERRAR -----
             function closeOverlay() {
                 if (!isOpen) return;
 
-                // 1. Salir de pantalla completa si estamos en fullscreen
                 if (document.fullscreenElement) {
-                    document.exitFullscreen().catch(function(err) {
-                        // Si falla, ignoramos (puede ser por políticas del navegador)
-                        console.warn('Error al salir de fullscreen:', err);
-                    });
+                    document.exitFullscreen().catch(function() {});
                 }
 
-                // 2. Liberar bloqueo de orientación (si existe)
                 if (screen.orientation && screen.orientation.unlock) {
                     try {
                         screen.orientation.unlock();
-                    } catch (e) {
-                        // algunos navegadores no soportan unlock
-                    }
+                    } catch (e) {}
                 }
 
-                // 3. Ocultar overlay y botón
                 overlay.style.display = 'none';
                 closeBtn.style.display = 'none';
-                iframe.src = ''; // limpiamos el src para que el video se detenga
+                iframe.src = '';
                 isOpen = false;
-
-                // Remover clase de advertencia de orientación si existe
                 overlay.classList.remove('active-portrait-warning');
             }
 
-            // ----- FUNCIÓN PARA ABRIR -----
             function openOverlay(url) {
-                // Si ya está abierto, cerramos primero (para limpiar)
                 if (isOpen) {
                     closeOverlay();
-                    // Pequeño delay para que se cierre bien antes de abrir de nuevo
                     setTimeout(function() {
                         openOverlay(url);
                     }, 300);
                     return;
                 }
 
-                // 1. Asignar URL al iframe
                 iframe.src = url;
 
-                // 2. Mostrar overlay y botón cerrar
                 overlay.style.display = 'flex';
                 closeBtn.style.display = 'block';
                 isOpen = true;
 
-                // 3. Solicitar pantalla completa (fullscreen)
-                //    Esperamos un poco para que el DOM se actualice
                 setTimeout(function() {
                     if (document.documentElement.requestFullscreen) {
                         document.documentElement.requestFullscreen()
-                            .then(function() {
-                                // Fullscreen activado correctamente
-                            })
                             .catch(function(err) {
-                                // Puede fallar si el usuario no hizo clic directo,
-                                // pero como venimos de un clic en el link, debería funcionar.
                                 console.warn('No se pudo activar fullscreen:', err);
                             });
                     }
                 }, 100);
 
-                // 4. Forzar orientación horizontal en celular (landscape)
-                //    Usamos screen.orientation.lock() si está disponible
                 if (screen.orientation && screen.orientation.lock) {
                     screen.orientation.lock('landscape')
                         .then(function() {
-                            // Landscape bloqueado correctamente
                             overlay.classList.remove('active-portrait-warning');
                         })
                         .catch(function(err) {
                             console.warn('No se pudo bloquear orientación landscape:', err);
-                            // Mostrar un aviso visual al usuario (opcional)
                             overlay.classList.add('active-portrait-warning');
-                            // Intentamos de nuevo con un pequeño retraso (a veces funciona al segundo intento)
                             setTimeout(function() {
                                 if (screen.orientation && screen.orientation.lock) {
                                     screen.orientation.lock('landscape').catch(function() {});
@@ -332,81 +475,49 @@
                             }, 500);
                         });
                 } else {
-                    // Si no soporta screen.orientation, mostramos aviso (pero no podemos forzar)
                     overlay.classList.add('active-portrait-warning');
                 }
             }
 
-            // ----- EVENTOS: clic en cada link -----
-            linkItems.forEach(function(item) {
-                item.addEventListener('click', function(e) {
-                    const url = this.getAttribute('data-url');
-                    if (url) {
-                        openOverlay(url);
-                    } else {
-                        console.warn('El link no tiene data-url');
-                    }
-                });
-            });
+            // ======================================================
+            // EVENTOS
+            // ======================================================
 
-            // ----- EVENTO: botón cerrar -----
             closeBtn.addEventListener('click', function(e) {
-                e.stopPropagation(); // Evita que se propague al overlay
+                e.stopPropagation();
                 closeOverlay();
             });
 
-            // ----- EVENTO: tecla ESC para cerrar -----
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && isOpen) {
                     closeOverlay();
                 }
             });
 
-            // ----- EVENTO: cambio de orientación (por si acaso) -----
-            // Si el usuario gira el celular y estamos en overlay, forzamos landscape nuevamente
-            window.addEventListener('orientationchange', function() {
-                if (isOpen && screen.orientation && screen.orientation.lock) {
-                    screen.orientation.lock('landscape').catch(function() {});
-                }
-            });
-
-            // ----- EVENTO: cuando se sale de fullscreen manualmente (Ej: F11 en PC) -----
             document.addEventListener('fullscreenchange', function() {
-                // Si se salió de fullscreen pero el overlay sigue abierto, lo cerramos
                 if (!document.fullscreenElement && isOpen) {
-                    // Pero solo si el overlay está visible
                     if (overlay.style.display === 'flex') {
                         closeOverlay();
                     }
                 }
             });
 
-            // ----- También al salir de fullscreen con ESC (complemento) -----
-            document.addEventListener('webkitfullscreenchange', function() {
-                if (!document.webkitFullscreenElement && isOpen) {
-                    if (overlay.style.display === 'flex') {
-                        closeOverlay();
-                    }
-                }
-            });
+            // ======================================================
+            // INICIALIZAR: generar las tarjetas
+            // ======================================================
 
-            // ----- Prevenir que el overlay se cierre accidentalmente haciendo clic en él -----
-            overlay.addEventListener('click', function(e) {
-                // Si el clic fue directamente en el overlay (no en el iframe ni en el wrapper)
-                // no hacemos nada, solo cerramos si el usuario quiere con la X o ESC.
-                // Pero no cerramos al hacer clic en el overlay para evitar cierres accidentales.
-                // (Opcional: podríamos cerrar si se hace clic en el fondo, pero mejor no)
-                // Lo dejamos así: solo se cierra con X, ESC o fullscreenchange.
-            });
+            generarTarjetas(gridVideos, 'gridContainer', false);
+            generarTarjetas(carruselVideos, 'carruselContainer', true);
 
-            // ========================================================
-            // INICIO: aseguramos que overlay y botón empiecen ocultos
-            // ========================================================
+            // Ocultar overlay al inicio
             overlay.style.display = 'none';
             closeBtn.style.display = 'none';
             iframe.src = '';
 
-            console.log('✅ Reproductor Overlay listo. Haz clic en cualquier link.');
+            console.log('✅ Reproductor con Grid y Carrusel listo.');
+            console.log(`📂 Grid: ${gridVideos.length} videos`);
+            console.log(`📂 Carrusel: ${carruselVideos.length} videos`);
+
         })();
     </script>
 
