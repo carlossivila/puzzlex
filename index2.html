@@ -466,7 +466,6 @@ color: red;
   justify-content: center;
 }
 
-/* El contenedor del iframe ocupa todo el espacio */
 #modalPlayer {
   width: 100%;
   height: 100%;
@@ -476,7 +475,6 @@ color: red;
   background: #000;
 }
 
-/* El iframe ocupa 100% sin márgenes ni padding */
 #modalPlayer iframe {
   width: 100%;
   height: 100%;
@@ -514,7 +512,6 @@ color: red;
   background: rgba(0, 255, 247, 0.15);
   box-shadow: inset 0 0 0 2px var(--neon-cyan);
 }
-/* ===== FIN ESTILOS MODAL ===== */
 
 @media (orientation: landscape) {
   .image-container {
@@ -538,6 +535,71 @@ color: red;
     font-size: 12px;
   }
 }
+
+
+/* ===== REPRODUCTORES A PANTALLA COMPLETA HORIZONTAL EN CELULARES ===== */
+@media (max-width: 768px) {
+  
+  /* === REPRODUCTOR DEL GRID === */
+  .video-cell iframe {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 9999;
+    background: #000;
+    border: none !important;
+  }
+
+  /* Ocultar overlay y botón cerrar en móvil */
+  .video-cell.expanded .video-overlay,
+  .video-cell.expanded .video-close {
+    display: none !important;
+  }
+
+  /* === REPRODUCTOR DEL CARRUSEL (MODAL) === */
+  .modal-content {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  #modalPlayer iframe {
+    width: 100vw !important;
+    height: 100vh !important;
+    border: none !important;
+  }
+
+  .modal-close {
+    display: flex !important;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    font-size: 1.5rem;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid var(--neon-cyan);
+    z-index: 10001;
+  }
+
+  .video-close {
+    display: flex !important;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    font-size: 1.5rem;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid var(--neon-cyan);
+    z-index: 10001;
+  }
+}
+
 </style>
 </head>
 
@@ -891,22 +953,6 @@ refreshBtn.addEventListener("click", () => {
 });
 
 
-
-
-document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-});
-
-const audio = document.getElementById('bgAudio');
-document.addEventListener('click', function(e) {
-    if (e.target.closest('a')) return;
-    if (e.target.closest('#videoGrid')) return;
-    if (audio.paused) {
-        audio.volume = 0.45;
-        audio.play().catch(() => {});
-    }
-});
-
 (function alignSubtitle() {
   const h1 = document.querySelector('h1');
   const subtitle = document.querySelector('.subtitle');
@@ -950,7 +996,6 @@ setInterval(updateClock, 1000);
     if (overlay) {
       collapseAll();
       cell.classList.add('expanded');
-      if (!audio.paused) audio.pause();
     }
   });
 })();
