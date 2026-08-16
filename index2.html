@@ -204,18 +204,7 @@ a:hover {
 }
 
 .video-label {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12px;
-  font-weight: bold;
-  pointer-events: none;
-  z-index: 10;
+  display: none; /* OCULTO: NO QUEREMOS NÚMEROS */
 }
 
 .btn-container {
@@ -805,7 +794,7 @@ a:hover {
 
       if (videoId) {
         img.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-        label.textContent = `Video ${index + 1}`;
+        label.textContent = ''; // SIN NÚMEROS
         span.dataset.videoSrc = videoUrl;
       }
     });
