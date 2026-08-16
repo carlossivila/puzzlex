@@ -387,7 +387,7 @@ a:hover {
   filter: brightness(1.5);
 }
 
-/* REPRODUCTOR FULLSCREEN ÚNICO */
+/* REPRODUCTOR FULLSCREEN ÚNICO - CORREGIDO */
 .fullscreen-player {
   display: none;
   position: fixed;
@@ -412,18 +412,19 @@ a:hover {
   background: #000;
 }
 
-/* En móvil, forzar landscape */
+/* CORRECCIÓN: En móvil NO rotamos, usamos object-fit o ajuste alternativo */
 @media (max-width: 768px) {
   .fullscreen-player.active {
-    width: 100vh;
-    height: 100vw;
-    transform: rotate(90deg);
-    transform-origin: center center;
+    width: 100vw;
+    height: 100vh;
+    transform: none; /* Eliminamos la rotación que causaba desborde */
   }
   
   .fullscreen-player iframe {
-    width: 100vh;
-    height: 100vw;
+    width: 100vw;
+    height: 100vh;
+    /* Opcional: si quieres que el video se ajuste mejor en vertical */
+    object-fit: contain;
   }
 }
 
@@ -557,9 +558,9 @@ a:hover {
 </div>
 
 <div class="btn-container">
-  <button class="btn" id="prev">◀ Prev</button>
-  <button class="btn" id="refresh">🔄 Refresh</button>
-  <button class="btn" id="next">Next ▶</button>
+  <button class="btn" id="prev">◀</button>
+  <button class="btn" id="refresh">🔄</button>
+  <button class="btn" id="next">▶</button>
 </div>
 
 <!-- REPRODUCTOR FULLSCREEN ÚNICO -->
