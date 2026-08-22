@@ -202,21 +202,6 @@ a:hover {
   border-radius: 5px;
 }
 
-.video-label {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12px;
-  font-weight: bold;
-  pointer-events: none;
-  z-index: 10;
-}
-
 @media (orientation: landscape) {
   .image-container {
     width: 120px;
@@ -224,29 +209,29 @@ a:hover {
   }
   
   .image-container span {
-    transform: rotateY(calc(var(--i) * 45deg)) translateZ(180px);
+    transform: rotateY(calc(var(--i) * 45deg)) translateZ(150px);
   }
 }
 
 @media (max-width: 768px) and (orientation: portrait) {
   .image-container {
-    width: 200px;
-    height: 200px;
+    width: 180px;
+    height: 180px;
   }
   
   .image-container span {
-    transform: rotateY(calc(var(--i) * 45deg)) translateZ(280px);
+    transform: rotateY(calc(var(--i) * 45deg)) translateZ(260px);
   }
 }
 
 @media (max-width: 768px) and (orientation: landscape) {
   .image-container {
-    width: 260px;
-    height: 260px;
+    width: 220px;
+    height: 220px;
   }
   
   .image-container span {
-    transform: rotateY(calc(var(--i) * 45deg)) translateZ(340px);
+    transform: rotateY(calc(var(--i) * 45deg)) translateZ(300px);
   }
 }
 
