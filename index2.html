@@ -228,6 +228,28 @@ a:hover {
   }
 }
 
+@media (max-width: 768px) and (orientation: portrait) {
+  .image-container {
+    width: 130px;
+    height: 130px;
+  }
+  
+  .image-container span {
+    transform: rotateY(calc(var(--i) * 45deg)) translateZ(150px);
+  }
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+  .image-container {
+    width: 160px;
+    height: 160px;
+  }
+  
+  .image-container span {
+    transform: rotateY(calc(var(--i) * 45deg)) translateZ(180px);
+  }
+}
+
 .btn-container {
   position: relative;
   width: 80%;
