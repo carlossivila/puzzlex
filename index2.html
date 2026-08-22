@@ -215,25 +215,25 @@ a:hover {
 
 @media (max-width: 768px) and (orientation: portrait) {
   .image-container {
+    width: 100px !important;
+    height: 100px !important;
+    transform: perspective(600px) rotateY(0deg) !important;
+  }
+  
+  .image-container span {
+    transform: rotateY(calc(var(--i) * 45deg)) translateZ(130px) !important;
+  }
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+  .image-container {
     width: 120px !important;
     height: 120px !important;
     transform: perspective(650px) rotateY(0deg) !important;
   }
   
   .image-container span {
-    transform: rotateY(calc(var(--i) * 45deg)) translateZ(170px) !important;
-  }
-}
-
-@media (max-width: 768px) and (orientation: landscape) {
-  .image-container {
-    width: 140px !important;
-    height: 140px !important;
-    transform: perspective(700px) rotateY(0deg) !important;
-  }
-  
-  .image-container span {
-    transform: rotateY(calc(var(--i) * 45deg)) translateZ(190px) !important;
+    transform: rotateY(calc(var(--i) * 45deg)) translateZ(150px) !important;
   }
 }
 
