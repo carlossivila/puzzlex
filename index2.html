@@ -230,23 +230,23 @@ a:hover {
 
 @media (max-width: 768px) and (orientation: portrait) {
   .image-container {
-    width: 160px;
-    height: 160px;
-  }
-  
-  .image-container span {
-    transform: rotateY(calc(var(--i) * 45deg)) translateZ(180px);
-  }
-}
-
-@media (max-width: 768px) and (orientation: landscape) {
-  .image-container {
     width: 200px;
     height: 200px;
   }
   
   .image-container span {
     transform: rotateY(calc(var(--i) * 45deg)) translateZ(220px);
+  }
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+  .image-container {
+    width: 260px;
+    height: 260px;
+  }
+  
+  .image-container span {
+    transform: rotateY(calc(var(--i) * 45deg)) translateZ(280px);
   }
 }
 
