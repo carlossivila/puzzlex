@@ -174,8 +174,8 @@ a:hover {
 
 .image-container {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   transform-style: preserve-3d;
   transform: perspective(600px) rotateY(0deg);
   transition: transform 0.7s;
@@ -188,7 +188,7 @@ a:hover {
   left: 0;
   width: 100%;
   height: 100%;
-  transform: rotateY(calc(var(--i) * 45deg)) translateZ(130px);
+  transform: rotateY(calc(var(--i) * 45deg)) translateZ(165px);
   cursor: pointer;
   border-radius: 8px;
   overflow: hidden;
@@ -204,50 +204,6 @@ a:hover {
   height: 100%;
   object-fit: cover;
   border-radius: 6px;
-}
-
-@media (min-width: 769px) and (orientation: landscape) {
-  .image-container {
-    width: 140px !important;
-    height: 140px !important;
-  }
-  
-  .image-container span {
-    transform: rotateY(calc(var(--i) * 45deg)) translateZ(165px) !important;
-  }
-}
-
-@media (max-width: 768px) and (orientation: portrait) {
-  .image-container {
-    width: 130px !important;
-    height: 130px !important;
-  }
-  
-  .image-container span {
-    transform: rotateY(calc(var(--i) * 45deg)) translateZ(200px) !important;
-  }
-}
-
-@media (max-width: 768px) and (orientation: landscape) {
-  .image-container {
-    width: 150px !important;
-    height: 150px !important;
-  }
-  
-  .image-container span {
-    transform: rotateY(calc(var(--i) * 45deg)) translateZ(280px) !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .image-container {
-    width: 110px !important;
-    height: 110px !important;
-  }
-  
-  .image-container span {
-    transform: rotateY(calc(var(--i) * 45deg)) translateZ(170px) !important;
-  }
 }
 
 .btn-container {
@@ -302,6 +258,13 @@ a:hover {
   background: #ff8c00;
   color: #000;
   border-color: #ffff00;
+}
+
+@media (max-width: 768px) {
+  .btn {
+    padding: 12px 20px;
+    font-size: 16px;
+  }
 }
 
 #overlay {
