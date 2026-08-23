@@ -197,11 +197,6 @@ a:hover {
   transition: border 0.3s, box-shadow 0.3s;
 }
 
-.image-container span:hover {
-  border-color: var(--neon-cyan);
-  box-shadow: 0 0 20px rgba(0, 255, 247, 0.3);
-}
-
 .image-container span img {
   position: absolute;
   left: 0;
@@ -448,6 +443,17 @@ a:hover {
   width: 100%;
   margin: 20px auto;
 }
+
+.image-container span {
+  pointer-events: auto !important;
+  cursor: pointer;
+}
+
+.image-container span:hover {
+  border-color: rgba(0, 255, 255, 0.2) !important;
+  box-shadow: none !important;
+}
+
 </style>
 </head>
 
