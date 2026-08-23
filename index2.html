@@ -172,7 +172,6 @@ a:hover {
   box-shadow: 0 0 14px rgba(0,255,247,0.15);
 }
 
-/* ===== CARRUSEL 3D - VERSIÓN CORREGIDA ===== */
 .image-container {
   position: relative;
   width: 120px;
@@ -220,34 +219,34 @@ a:hover {
 
 @media (max-width: 768px) and (orientation: portrait) {
   .image-container {
-    width: 80px !important;
-    height: 80px !important;
+    width: 150px !important;
+    height: 150px !important;
   }
   
   .image-container span {
-    transform: rotateY(calc(var(--i) * 45deg)) translateZ(90px) !important;
+    transform: rotateY(calc(var(--i) * 45deg)) translateZ(135px) !important;
   }
 }
 
 @media (max-width: 768px) and (orientation: landscape) {
   .image-container {
-    width: 110px !important;
-    height: 110px !important;
+    width: 140px !important;
+    height: 140px !important;
   }
   
   .image-container span {
-    transform: rotateY(calc(var(--i) * 45deg)) translateZ(220px) !important;
+    transform: rotateY(calc(var(--i) * 45deg)) translateZ(250px) !important;
   }
 }
 
 @media (max-width: 480px) {
   .image-container {
-    width: 70px !important;
-    height: 70px !important;
+    width: 100px !important;
+    height: 100px !important;
   }
   
   .image-container span {
-    transform: rotateY(calc(var(--i) * 45deg)) translateZ(80px) !important;
+    transform: rotateY(calc(var(--i) * 45deg)) translateZ(110px) !important;
   }
 }
 
