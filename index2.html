@@ -375,14 +375,16 @@ a:hover {
     width: 200px;
     height: 200px;
   }
-  
+
   .image-container span {
     transform: rotateY(calc(var(--i) * 45deg)) translateZ(200px);
   }
-  
-  .btn-container {
-    max-width: 600px;
-  }
+
+.btn-container {
+  display: flex;
+  gap: 80px;
+  max-width: 600px;
+}
   
   .btn {
     padding: 15px 30px;
