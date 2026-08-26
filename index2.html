@@ -766,9 +766,18 @@ a:hover {
   }
 
   function playFrontVideo() {
-    let currentAngle = angle % 360;
-    if (currentAngle < 0) currentAngle += 360;
-    const frontIndex = Math.round(((360 - currentAngle) % 360) / 45) % 8;  
+    // Normalizar el ángulo a 0-360
+    let normalizedAngle = ((angle % 360) + 360) % 360;
+    
+    // Calcular qué índice está al frente
+    // Cuando angle = 0, el índice 0 está al frente
+    // Cuando angle = -45 (una rotación a la derecha), el índice 1 está al frente
+    // Cuando angle = 45 (una rotación a la izquierda), el índice 7 está al frente
+    let frontIndex = Math.round(normalizedAngle / 45) % 8;
+    // Invertir la lógica: cuando rotamos a la derecha (angle negativo), 
+    // el índice aumenta, cuando rotamos a la izquierda (angle positivo), el índice disminuye
+    frontIndex = (8 - frontIndex) % 8;
+    
     const spans = document.querySelectorAll('.image-container span');
     const frontSpan = spans[frontIndex];
     if (frontSpan) {
@@ -785,6 +794,7 @@ a:hover {
   const refreshBtn = document.getElementById('refresh');
   const playBtn = document.getElementById('play-btn');
   let angle = 0;
+  
   prevBtn.addEventListener('click', () => {
     angle += 45;
     container.style.transform = `perspective(600px) rotateY(${angle}deg)`;
@@ -802,6 +812,7 @@ a:hover {
   });
 
   playBtn.addEventListener('click', playFrontVideo);
+  
   window.addEventListener('load', () => {
     initCarousel();
     setTimeout(() => {
