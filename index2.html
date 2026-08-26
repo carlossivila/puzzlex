@@ -768,7 +768,7 @@ a:hover {
   function playFrontVideo() {
     let currentAngle = angle % 360;
     if (currentAngle < 0) currentAngle += 360;
-    const frontIndex = Math.round(currentAngle / 45) % 8;
+    const frontIndex = Math.round(((360 - currentAngle) % 360) / 45) % 8;  
     const spans = document.querySelectorAll('.image-container span');
     const frontSpan = spans[frontIndex];
     if (frontSpan) {
