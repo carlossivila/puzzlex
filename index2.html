@@ -172,59 +172,6 @@ a:hover {
   box-shadow: 0 0 14px rgba(0,255,247,0.15);
 }
 
-.carousel-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 700px;
-  padding: 1rem 0;
-}
-
-.image-container {
-  position: relative;
-  width: min(140px, 30vw);
-  height: min(140px, 30vw);
-  transform-style: preserve-3d;
-  transform: perspective(600px) rotateY(0deg);
-  transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
-  margin: 10px auto;
-}
-
-.image-container span {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  transform: rotateY(calc(var(--i) * 45deg)) translateZ(calc(min(140px, 30vw) * 1.2));
-  cursor: default;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 2px solid rgba(0, 255, 255, 0.25);
-  background: #0a0a0a;
-  transition: border 0.25s, box-shadow 0.25s;
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.05);
-}
-
-.image-container span:hover {
-  border-color: #00fff7;
-  box-shadow: 0 0 24px rgba(0, 255, 247, 0.25);
-}
-
-.image-container span img {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 10px;
-  display: block;
-  pointer-events: none;
-}
-
 .btn-container {
   display: flex;
   justify-content: center;
@@ -355,14 +302,6 @@ a:hover {
 }
 
 @media (max-width: 500px) {
-  .image-container {
-    width: min(120px, 28vw);
-    height: min(120px, 28vw);
-  }
-  .image-container span {
-    transform: rotateY(calc(var(--i) * 45deg)) translateZ(calc(min(120px, 28vw) * 1.1));
-    border-radius: 8px;
-  }
   .btn {
     padding: 0.6rem 1.2rem;
     font-size: 1.1rem;
@@ -387,13 +326,6 @@ a:hover {
 }
 
 @media (max-width: 380px) {
-  .image-container {
-    width: 100px;
-    height: 100px;
-  }
-  .image-container span {
-    transform: rotateY(calc(var(--i) * 45deg)) translateZ(115px);
-  }
   .btn-container {
     gap: 1rem;
   }
@@ -469,28 +401,6 @@ a:hover {
   <hr>
   <div class="menu"><a href="index.html"> HTML </a> / <a href="index2.html"> VIDEO </a> / <a href="index3.html"> FLASH </a> / <a href="index4.html"> ABOUT </a></div>
   <hr>
-  <br><br>
-
-  <div class="carousel-wrapper">
-    <div class="image-container" id="carouselContainer">
-      <span style="--i: 1"><img src="" alt="thumb" /></span>
-      <span style="--i: 2"><img src="" alt="thumb" /></span>
-      <span style="--i: 3"><img src="" alt="thumb" /></span>
-      <span style="--i: 4"><img src="" alt="thumb" /></span>
-      <span style="--i: 5"><img src="" alt="thumb" /></span>
-      <span style="--i: 6"><img src="" alt="thumb" /></span>
-      <span style="--i: 7"><img src="" alt="thumb" /></span>
-      <span style="--i: 8"><img src="" alt="thumb" /></span>
-    </div>
-
-    <div class="btn-container">
-      <button class="btn" id="prev">◀</button>
-      <button class="btn" id="play-btn">▶ Play</button>
-      <button class="btn" id="refresh">↻</button>
-      <button class="btn" id="next">▶</button>
-    </div>
-  </div>
-
 </div>
 
 <div id="overlay">
@@ -524,175 +434,6 @@ a:hover {
       }
     });
   });
-
-  const videos = [
-    'https://www.youtube.com/watch?v=FMEsoC2SAFc',
-    'https://www.youtube.com/watch?v=CIJgAlNwweI',
-    'https://www.youtube.com/watch?v=Sx3xFYU9cZ0',
-    'https://www.youtube.com/watch?v=qw0D_KN2KN8',
-    'https://www.youtube.com/watch?v=Qy4bgf4kG-I',
-    'https://www.youtube.com/watch?v=zQGiPQjHvek',
-    'https://www.youtube.com/watch?v=lgHGU8gqz9U',
-    'https://www.youtube.com/watch?v=9jK-NcRmVcw',
-    'https://www.youtube.com/watch?v=K0HSD_i2DvA',
-    'https://www.youtube.com/watch?v=ZFj2zhfA4aA',
-    'https://www.youtube.com/watch?v=n4RjJKxsamQ',
-    'https://www.youtube.com/watch?v=kc7X3q27b34',
-    'https://www.youtube.com/watch?v=nqxVMLVe62U',
-    'https://www.youtube.com/watch?v=XAi3VTSdTxU',
-    'https://www.youtube.com/watch?v=BWf-eARnf6U',
-    'https://www.youtube.com/watch?v=Qt2mbGP6vFI',
-    'https://www.youtube.com/watch?v=YcY3FH208l8',
-    'https://www.youtube.com/watch?v=--cxZbnmmoc',
-    'https://www.youtube.com/watch?v=fV4DiAyExN0',
-    'https://www.youtube.com/watch?v=bCa28vA_GsA',
-    'https://www.youtube.com/watch?v=VzALZjoIx0g',
-    'https://www.youtube.com/watch?v=U_609ki-jQk',
-    'https://www.youtube.com/watch?v=69935tfgP5g',
-    'https://www.youtube.com/watch?v=1O_jC0J6zEA',
-    'https://www.youtube.com/watch?v=CcVdjZN0-D4',
-    'https://www.youtube.com/watch?v=wp2lFpg3h8E',
-    'https://www.youtube.com/watch?v=5qm8PH4xAss',
-    'https://www.youtube.com/watch?v=1g229Cp-eUk',
-    'https://www.youtube.com/watch?v=1Ixi68iUDVU',
-    'https://www.youtube.com/watch?v=avjHNHKMvAQ',
-    'https://www.youtube.com/watch?v=ufDOOxEhyTc',
-    'https://www.youtube.com/watch?v=Yn9Q8oTl90g',
-    'https://www.youtube.com/watch?v=4BPVXhEuhvg',
-    'https://www.youtube.com/watch?v=N6skUTYpRoQ',
-    'https://www.youtube.com/watch?v=wckZcVFLU24',
-    'https://www.youtube.com/watch?v=TORJG61tPBc',
-    'https://www.youtube.com/watch?v=ZQzWhddDdMI',
-    'https://www.youtube.com/watch?v=jUfc4kNTqoY',
-    'https://www.youtube.com/watch?v=69VStYa0aBA',
-    'https://www.youtube.com/watch?v=a7Dh5QoXv2c',
-    'https://www.youtube.com/watch?v=kVNPwmFkf-Q',
-    'https://www.youtube.com/watch?v=IG92h1oK-sQ',
-    'https://www.youtube.com/watch?v=uGbl4-vVEwI',
-    'https://www.youtube.com/watch?v=2gxC3hh3PUU',
-    'https://www.youtube.com/watch?v=_Te_tstowh0',
-    'https://www.youtube.com/watch?v=KjgWWjkNbhU',
-    'https://www.youtube.com/watch?v=JDbUEpjhYcg',
-    'https://www.youtube.com/watch?v=CqzOtQhn2sY',
-    'https://www.youtube.com/watch?v=0XdMt-loxiY',
-    'https://www.youtube.com/watch?v=xFHvH9FtACg',
-    'https://www.youtube.com/watch?v=NeHoIjJJ6W0',
-    'https://www.youtube.com/watch?v=6aoTr4N4tg4',
-    'https://www.youtube.com/watch?v=ybrY9JWVBv4',
-    'https://www.youtube.com/watch?v=my85HyqAcjc',
-    'https://www.youtube.com/watch?v=YvXTC7LeIMI',
-    'https://www.youtube.com/watch?v=uwSvH-bsNJ4',
-    'https://www.youtube.com/watch?v=vx2u5uUu3DE',
-    'https://www.youtube.com/watch?v=cXPSDQFRuQ4',
-    'https://www.youtube.com/watch?v=rcThFswcLB0',
-    'https://www.youtube.com/watch?v=KXB6ZhrQgsA',
-    'https://www.youtube.com/watch?v=fg-LfJP3lIw',
-    'https://www.youtube.com/watch?v=0mxI4nDiIIc',
-    'https://www.youtube.com/watch?v=gNTol7swS00',
-    'https://www.youtube.com/watch?v=m2sF8wg5XkQ',
-    'https://www.youtube.com/watch?v=bqICGrdLGIc',
-    'https://www.youtube.com/watch?v=PIb6AZdTr-A',
-    'https://www.youtube.com/watch?v=oGpFcHTxjZs',
-    'https://www.youtube.com/watch?v=Fy6OaUxDxVg',
-    'https://www.youtube.com/watch?v=V9oKwUTPlss',
-    'https://www.youtube.com/watch?v=FzeFyKiPHZ8',
-    'https://www.youtube.com/watch?v=24XyBLPSnNE',
-    'https://www.youtube.com/watch?v=2fIu6WdH_8E',
-    'https://www.youtube.com/watch?v=jcMCEHcgm0g',
-    'https://www.youtube.com/watch?v=QpEfHVFilRc',
-    'https://www.youtube.com/watch?v=W67Iev_vN-s',
-    'https://www.youtube.com/watch?v=2e22adzgtO8',
-    'https://www.youtube.com/watch?v=FDUwls5lbf4',
-    'https://www.youtube.com/watch?v=beTj08uwgkg',
-    'https://www.youtube.com/watch?v=TVDREzBijRI',
-    'https://www.youtube.com/watch?v=Jg1thdQJlRQ',
-    'https://www.youtube.com/watch?v=UPNUp9DwFR0',
-    'https://www.youtube.com/watch?v=vuCCgPqORlY',
-    'https://www.youtube.com/watch?v=P-Gkpy840wU',
-    'https://www.youtube.com/watch?v=eounu-FJZKY',
-    'https://www.youtube.com/watch?v=Lt0iWPPz4DM',
-    'https://www.youtube.com/watch?v=UM8gJFEURqQ',
-    'https://www.youtube.com/watch?v=DvKGvFrkPnI',
-    'https://www.youtube.com/watch?v=IEAKyy2-3-w',
-    'https://www.youtube.com/watch?v=p4QqMKe3rwY',
-    'https://www.youtube.com/watch?v=qvINutiBigg',
-    'https://www.youtube.com/watch?v=HKLnmMacEB4',
-    'https://www.youtube.com/watch?v=qq-yqajCo6k',
-    'https://www.youtube.com/watch?v=bAY9z29nZL4',
-    'https://www.youtube.com/watch?v=lhU6o2U4XVg',
-    'https://www.youtube.com/watch?v=3YxaaGgTQYM',
-    'https://www.youtube.com/watch?v=eVTXPUF4Oz4',
-    'https://www.youtube.com/watch?v=Gd9OhYroLN0',
-    'https://www.youtube.com/watch?v=kXYiU_JCYtU',
-    'https://www.youtube.com/watch?v=GgxcvmkPD-I',
-    'https://www.youtube.com/watch?v=v2H4l9RpkwM',
-    'https://www.youtube.com/watch?v=Jh3IpG5GuzI',
-    'https://www.youtube.com/watch?v=nZaLpZue7us',
-    'https://www.youtube.com/watch?v=Omrp4QR_Rpo',
-    'https://www.youtube.com/watch?v=updcPhOdAig',
-    'https://www.youtube.com/watch?v=n1mDNXEKWw4',
-    'https://www.youtube.com/watch?v=BT5by7iZi7E',
-    'https://www.youtube.com/watch?v=xDDpNaQxn6E',
-    'https://www.youtube.com/watch?v=6PtdpI-D6mM',
-    'https://www.youtube.com/watch?v=A_hLdPRsssE',
-    'https://www.youtube.com/watch?v=Q1L3q9iFfFE',
-    'https://www.youtube.com/watch?v=AurFxbLEK50',
-    'https://www.youtube.com/watch?v=r8o1OGpq0yE',
-    'https://www.youtube.com/watch?v=elBQV2sJVkg',
-    'https://www.youtube.com/watch?v=djV11Xbc914',
-    'https://www.youtube.com/watch?v=X5Q1j3sSwxE',
-    'https://www.youtube.com/watch?v=5iNeJOulkm8',
-    'https://www.youtube.com/watch?v=0WxDrVUrSvI',
-    'https://www.youtube.com/watch?v=fPvfi9Rf1qc',
-    'https://www.youtube.com/watch?v=7rNG3v4bDkI',
-    'https://www.youtube.com/watch?v=0D6AxxSIzRI',
-    'https://www.youtube.com/watch?v=tldsjP8AST8',
-    'https://www.youtube.com/watch?v=5btxwkHGr_A',
-    'https://www.youtube.com/watch?v=ZnZqB5Z75zI',
-    'https://www.youtube.com/watch?v=B2k8EtGl82Y',
-    'https://www.youtube.com/watch?v=TKnE0gFKQWk',
-    'https://www.youtube.com/watch?v=JcVE0xk78vM',
-    'https://www.youtube.com/watch?v=gOMhN-hfMtY',
-    'https://www.youtube.com/watch?v=osNBcqRHNE0',
-    'https://www.youtube.com/watch?v=jRGrNDV2mKc',
-    'https://www.youtube.com/watch?v=xVPvzX-AeSM',
-    'https://www.youtube.com/watch?v=xEHy0QwvAYE',
-    'https://www.youtube.com/watch?v=HVPehOYjHe8',
-    'https://www.youtube.com/watch?v=1sNZznRk9dg',
-    'https://www.youtube.com/watch?v=9STiQ8cCIo0',
-    'https://www.youtube.com/watch?v=MPx9EE-ajZ8',
-    'https://www.youtube.com/watch?v=juB7GI_AAC8',
-    'https://www.youtube.com/watch?v=nd5hXdSEnWA',
-    'https://www.youtube.com/watch?v=u99ivDAqwSM',
-    'https://www.youtube.com/watch?v=X8TOhb_4jU0',
-    'https://www.youtube.com/watch?v=kMrNsFwTXJQ',
-    'https://www.youtube.com/watch?v=CW3nvGfhQ2g',
-    'https://www.youtube.com/watch?v=5rOiW_xY-kc',
-    'https://www.youtube.com/watch?v=hO5HskW2Qpc',
-    'https://www.youtube.com/watch?v=DtKCNJmARF0',
-    'https://www.youtube.com/watch?v=mTrAx2zpap8',
-    'https://www.youtube.com/watch?v=uL4L5RU6YvQ',
-    'https://www.youtube.com/watch?v=VZNrkYe5g48',
-    'https://www.youtube.com/watch?v=NiXPVrRsdzI',
-    'https://www.youtube.com/watch?v=CkdI1F5xxtE'
-  ];
-
-  function getYouTubeID(url) {
-    const m = url.match(/[?&]v=([^&]+)/);
-    if (m && m[1]) return m[1];
-    const em = url.match(/\/embed\/([^?&]+)/);
-    if (em && em[1]) return em[1];
-    return null;
-  }
-
-  function shuffleArray(arr) {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
 
   function convertirAEmbed(url) {
     const match = url.match(/[?&]v=([^&]+)/);
@@ -743,81 +484,6 @@ a:hover {
   closeBtn.addEventListener('click', closeOverlay);
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && isOpen) closeOverlay();
-  });
-
-  let currentVideos = [];
-  function initCarousel() {
-    const shuffled = shuffleArray(videos);
-    const selected = shuffled.slice(0, 8);
-    currentVideos = selected;
-    const spans = document.querySelectorAll('.image-container span');
-
-    spans.forEach((span, idx) => {
-      const videoUrl = selected[idx % selected.length];
-      const videoId = getYouTubeID(videoUrl);
-      const img = span.querySelector('img');
-      if (videoId) {
-        img.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-      } else {
-        img.src = '';
-      }
-      span.dataset.videoSrc = videoUrl;
-    });
-  }
-
-  function playFrontVideo() {
-    // Normalizar el ángulo a 0-360
-    let normalizedAngle = ((angle % 360) + 360) % 360;
-    
-    // Calcular qué índice está al frente
-    // Cuando angle = 0, el índice 0 está al frente
-    // Cuando angle = -45 (una rotación a la derecha), el índice 1 está al frente
-    // Cuando angle = 45 (una rotación a la izquierda), el índice 7 está al frente
-    let frontIndex = Math.round(normalizedAngle / 45) % 8;
-    // Invertir la lógica: cuando rotamos a la derecha (angle negativo), 
-    // el índice aumenta, cuando rotamos a la izquierda (angle positivo), el índice disminuye
-    frontIndex = (8 - frontIndex) % 8;
-    
-    const spans = document.querySelectorAll('.image-container span');
-    const frontSpan = spans[frontIndex];
-    if (frontSpan) {
-      const url = frontSpan.dataset.videoSrc;
-      if (url) {
-        openOverlay(url);
-      }
-    }
-  }
-
-  const container = document.getElementById('carouselContainer');
-  const prevBtn = document.getElementById('prev');
-  const nextBtn = document.getElementById('next');
-  const refreshBtn = document.getElementById('refresh');
-  const playBtn = document.getElementById('play-btn');
-  let angle = 0;
-  
-  prevBtn.addEventListener('click', () => {
-    angle += 45;
-    container.style.transform = `perspective(600px) rotateY(${angle}deg)`;
-  });
-
-  nextBtn.addEventListener('click', () => {
-    angle -= 45;
-    container.style.transform = `perspective(600px) rotateY(${angle}deg)`;
-  });
-
-  refreshBtn.addEventListener('click', () => {
-    initCarousel();
-    angle = 0;
-    container.style.transform = `perspective(600px) rotateY(0deg)`;
-  });
-
-  playBtn.addEventListener('click', playFrontVideo);
-  
-  window.addEventListener('load', () => {
-    initCarousel();
-    setTimeout(() => {
-      container.style.transition = 'transform 0.7s cubic-bezier(0.23, 1, 0.32, 1)';
-    }, 50);
   });
 
 })();
