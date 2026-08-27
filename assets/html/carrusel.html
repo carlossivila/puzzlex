@@ -53,29 +53,13 @@
       box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
       cursor: pointer;
       background: #1a1a1a;
-      position: relative;
     }
 
-    .image-container span iframe {
+    .image-container span img {
       display: block;
       width: 100%;
       height: 100%;
-      border: none;
-      pointer-events: none;
-    }
-
-    .image-container span .video-number {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      background: rgba(0,0,0,0.7);
-      color: #32cd32;
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-weight: bold;
-      z-index: 10;
-      pointer-events: none;
+      object-fit: cover;
     }
 
     .btn-group {
@@ -264,22 +248,12 @@
         border-radius: 12px;
       }
     }
-
-    .front-indicator {
-      color: #32cd32;
-      font-size: 12px;
-      margin-top: 10px;
-      text-align: center;
-      font-family: monospace;
-      opacity: 0.7;
-    }
   </style>
 </head>
 <body>
 
 <div class="carrusel-wrapper">
   <div class="image-container" id="imageContainer"></div>
-  <div class="front-indicator" id="frontIndicator">Cara frontal: #1</div>
 <br>
   <div class="btn-group">
     <button class="btn" id="prevBtn" aria-label="Anterior">
@@ -476,10 +450,8 @@
     const overlay = document.getElementById('videoOverlay');
     const videoFrame = document.getElementById('videoFrame');
     const closeBtn = document.getElementById('closeVideo');
-    const frontIndicator = document.getElementById('frontIndicator');
 
     let rotation = 0;
-    let currentVideos = [];
 
     function shuffleArray(array) {
       const shuffled = [...array];
@@ -500,9 +472,12 @@
       return match ? match[1] : null;
     }
 
+    function getThumbnailUrl(videoId) {
+      return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    }
+
     function buildCarousel(videos) {
       container.innerHTML = '';
-      currentVideos = videos;
       
       videos.forEach((url, index) => {
         const videoId = getVideoId(url);
@@ -510,17 +485,12 @@
         span.style.setProperty('--i', index + 1);
         
         if (videoId) {
-          const iframe = document.createElement('iframe');
-          iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0&controls=0&showinfo=0&modestbranding=1`;
-          iframe.allow = 'encrypted-media';
-          iframe.loading = 'lazy';
-          iframe.setAttribute('data-video-id', videoId);
-          span.appendChild(iframe);
-          
-          const numberBadge = document.createElement('div');
-          numberBadge.className = 'video-number';
-          numberBadge.textContent = `#${index + 1}`;
-          span.appendChild(numberBadge);
+          const img = document.createElement('img');
+          img.src = getThumbnailUrl(videoId);
+          img.alt = `Video ${index + 1}`;
+          img.loading = 'lazy';
+          img.setAttribute('data-video-id', videoId);
+          span.appendChild(img);
         } else {
           const div = document.createElement('div');
           div.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:12px;background:#1a1a1a;';
@@ -530,36 +500,23 @@
         
         container.appendChild(span);
       });
-      
-      updateFrontIndicator();
-    }
-
-    function getFrontFaceIndex() {
-      let norm = ((rotation % 360) + 360) % 360;
-      let index = Math.round(norm / 45) % 8;
-      return index;
     }
 
     function getFrontVideo() {
-      const index = getFrontFaceIndex();
+      let norm = ((rotation % 360) + 360) % 360;
+      let index = Math.round(norm / 45) % 8;
       const spans = container.querySelectorAll('span');
       if (index < spans.length) {
-        const iframe = spans[index].querySelector('iframe');
-        if (iframe) {
-          return iframe.getAttribute('data-video-id');
+        const img = spans[index].querySelector('img');
+        if (img) {
+          return img.getAttribute('data-video-id');
         }
       }
       return null;
     }
 
-    function updateFrontIndicator() {
-      const index = getFrontFaceIndex();
-      frontIndicator.textContent = `Cara frontal: #${index + 1}`;
-    }
-
     function rotateCarrusel(deg) {
       container.style.transform = `perspective(600px) rotateY(${deg}deg)`;
-      updateFrontIndicator();
     }
 
     function forceLandscape() {
@@ -590,13 +547,12 @@
 
     playBtn.addEventListener('click', () => {
       const videoId = getFrontVideo();
-      const index = getFrontFaceIndex();
       if (videoId) {
         videoFrame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&fs=1`;
         overlay.classList.add('active');
         forceLandscape();
       } else {
-        alert(`No hay video disponible en la cara #${index + 1}`);
+        alert('No hay video disponible en esta cara');
       }
     });
 
