@@ -1,619 +1,381 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Retro 80-90 · Video Carousel</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Wonderwall - Pantalla Completa</title>
+    <style>
+        /* Estilos base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    body {
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #0a0a0a;
-      font-family: system-ui, -apple-system, sans-serif;
-      padding: 0.5rem;
-    }
+        body {
+            font-family: Arial, sans-serif;
+            background: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
 
-    .carrusel-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      max-width: 500px;
-    }
+        /* Botón de activación (estilo simple) */
+        .open-overlay-btn {
+            padding: 16px 32px;
+            font-size: 1.2rem;
+            background: #ff0000;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 0, 0, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+            letter-spacing: 1px;
+            z-index: 10;
+            position: relative;
+        }
 
-    .image-container {
-      position: relative;
-      width: 120px;
-      height: 120px;
-      transform-style: preserve-3d;
-      transform: perspective(600px) rotateY(0deg);
-      transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      margin-bottom: 1.8rem;
-    }
+        .open-overlay-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 0, 0, 0.6);
+        }
 
-    .image-container span {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      transform: rotateY(calc(var(--i) * 45deg)) translateZ(150px);
-      backface-visibility: hidden;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
-      cursor: pointer;
-      background: #1a1a1a;
-    }
+        .open-overlay-btn:active {
+            transform: scale(0.95);
+        }
 
-    .image-container span img {
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+        /* OVERLAY: ocupa toda la pantalla */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100); /* Fix para móviles */
+            background: #000;
+            z-index: 9999;
+            display: none; /* Oculto por defecto */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            /* Forzar landscape por defecto (se aplica con JS) */
+            transform: rotate(0deg);
+            transition: none;
+            /* Evita scroll o desbordes */
+            overflow: hidden;
+            touch-action: none;
+        }
 
-    .btn-group {
-      display: flex;
-      gap: 0.6rem;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-    }
+        /* Contenedor del iframe */
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+        }
 
-    .btn {
-      background: #2e7d32;
-      border: none;
-      border-radius: 50%;
-      width: 44px;
-      height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.15s;
-      box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
-      color: white;
-      user-select: none;
-    }
+        .video-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            /* En móviles, el iframe se estira para llenar el contenedor */
+            display: block;
+        }
 
-    .btn:hover {
-      background: #32cd32;
-      transform: scale(1.05);
-    }
+        /* Botón de cierre (X) */
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            font-size: 2rem;
+            font-weight: 300;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10000;
+            backdrop-filter: blur(4px);
+            transition: background 0.2s, transform 0.2s;
+            line-height: 1;
+            padding-bottom: 4px; /* Ajuste visual */
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
 
-    .btn:active {
-      transform: scale(0.92);
-    }
+        .close-btn:hover {
+            background: rgba(255, 0, 0, 0.8);
+            transform: scale(1.1);
+        }
 
-    .btn svg {
-      display: block;
-      width: 22px;
-      height: 22px;
-      fill: none;
-      stroke: white;
-      stroke-width: 2.5;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
+        .close-btn:active {
+            transform: scale(0.9);
+        }
 
-    .btn-play svg {
-      stroke: none;
-      fill: white;
-      width: 20px;
-      height: 20px;
-    }
+        /* Mensaje de orientación (solo se muestra si no está en landscape) */
+        .rotate-message {
+            display: none; /* Oculto por defecto, se muestra con JS si no hay landscape */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            background: rgba(0,0,0,0.8);
+            padding: 20px 30px;
+            border-radius: 16px;
+            text-align: center;
+            font-size: 1.4rem;
+            border: 2px solid #ffcc00;
+            z-index: 10001;
+            pointer-events: none;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 0 40px rgba(0,0,0,0.9);
+        }
 
-    .btn-refresh svg {
-      stroke: white;
-      fill: none;
-    }
+        .rotate-message span {
+            display: block;
+            font-size: 3rem;
+            margin-bottom: 8px;
+        }
 
-    @media (max-width: 480px) {
-      .image-container {
-        width: 100px;
-        height: 100px;
-      }
-      .image-container span {
-        transform: rotateY(calc(var(--i) * 45deg)) translateZ(125px);
-      }
-      .btn {
-        width: 38px;
-        height: 38px;
-      }
-      .btn svg {
-        width: 18px;
-        height: 18px;
-      }
-      .btn-play svg {
-        width: 16px;
-        height: 16px;
-      }
-      .btn-group {
-        gap: 0.5rem;
-      }
-    }
+        /* Ajustes para pantallas muy pequeñas */
+        @media (max-width: 480px) {
+            .close-btn {
+                top: 10px;
+                right: 12px;
+                width: 40px;
+                height: 40px;
+                font-size: 1.8rem;
+            }
+            .rotate-message {
+                font-size: 1rem;
+                padding: 15px 20px;
+                max-width: 80%;
+            }
+        }
 
-    @media (min-width: 768px) {
-      .image-container {
-        width: 140px;
-        height: 140px;
-      }
-      .image-container span {
-        transform: rotateY(calc(var(--i) * 45deg)) translateZ(175px);
-      }
-      .btn {
-        width: 48px;
-        height: 48px;
-      }
-    }
-
-    .video-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.95);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-      padding: 0;
-    }
-
-    .video-overlay.active {
-      display: flex;
-    }
-
-    .video-overlay iframe {
-      width: 90%;
-      max-width: 900px;
-      height: 80vh;
-      max-height: 700px;
-      border-radius: 12px;
-      border: none;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
-    }
-
-    .video-overlay .close-btn {
-      position: absolute;
-      top: 20px;
-      right: 30px;
-      color: white;
-      font-size: 3rem;
-      cursor: pointer;
-      background: none;
-      border: none;
-      transition: transform 0.2s;
-      z-index: 1001;
-      font-weight: 300;
-    }
-
-    .video-overlay .close-btn:hover {
-      transform: scale(1.2);
-    }
-
-    @media (max-width: 768px) {
-      .video-overlay {
-        padding: 0;
-      }
-      
-      .video-overlay.active {
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-      }
-      
-      .video-overlay.active iframe {
-        width: 100vw;
-        height: 56.25vw;
-        max-height: 100vh;
-        max-width: 100vw;
-        border-radius: 0;
-      }
-    }
-
-    @media (max-width: 768px) and (orientation: portrait) {
-      .video-overlay.active iframe {
-        width: 100vw;
-        height: 56.25vw;
-        max-height: 100vh;
-      }
-    }
-
-    @media (max-width: 768px) and (orientation: landscape) {
-      .video-overlay.active iframe {
-        width: 100vw;
-        height: 56.25vw;
-        max-height: 100vh;
-      }
-    }
-
-    @media (min-width: 769px) {
-      .video-overlay.active iframe {
-        width: 80%;
-        height: 80vh;
-        max-width: 900px;
-        max-height: 700px;
-        border-radius: 12px;
-      }
-    }
-  </style>
+        /* Para cuando el overlay está activo, forzamos que no haya scroll en body */
+        .no-scroll {
+            overflow: hidden !important;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
 </head>
 <body>
 
-<div class="carrusel-wrapper">
-  <div class="image-container" id="imageContainer"></div>
-<br>
-  <div class="btn-group">
-    <button class="btn" id="prevBtn" aria-label="Anterior">
-      <svg viewBox="0 0 24 24">
-        <polyline points="15 18 9 12 15 6"></polyline>
-      </svg>
-    </button>
+    <!-- Botón para abrir el overlay -->
+    <button class="open-overlay-btn" id="openOverlayBtn">▶ Ver Wonderwall</button>
 
-    <button class="btn btn-play" id="playBtn" aria-label="Reproducir video">
-      <svg viewBox="0 0 24 24">
-        <polygon points="5,3 19,12 5,21"></polygon>
-      </svg>
-    </button>
+    <!-- OVERLAY -->
+    <div class="overlay" id="videoOverlay">
+        <div class="video-wrapper">
+            <!-- Contenido del iframe de YouTube -->
+            <iframe id="youtubeIframe" src="https://www.youtube.com/embed/bx1Bh8ZvH84?autoplay=1&rel=0&fs=1&showinfo=0&iv_load_policy=3&modestbranding=1" allow="autoplay; encrypted-media; fullscreen; accelerometer; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
 
-    <button class="btn btn-refresh" id="refreshBtn" aria-label="Actualizar videos">
-      <svg viewBox="0 0 24 24">
-        <path d="M1 4v6h6"></path>
-        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-      </svg>
-    </button>
+            <!-- Botón de cerrar -->
+            <button class="close-btn" id="closeOverlayBtn">✕</button>
 
-    <button class="btn" id="nextBtn" aria-label="Siguiente">
-      <svg viewBox="0 0 24 24">
-        <polyline points="9 6 15 12 9 18"></polyline>
-      </svg>
-    </button>
-  </div>
-</div>
+            <!-- Mensaje de orientación (se muestra si no está en landscape) -->
+            <div class="rotate-message" id="rotateMessage">
+                <span>↻</span>
+                Gira tu teléfono<br>a horizontal
+            </div>
+        </div>
+    </div>
 
-<div class="video-overlay" id="videoOverlay">
-  <button class="close-btn" id="closeVideo">&times;</button>
-  <iframe id="videoFrame" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-</div>
+    <script>
+        (function() {
+            "use strict";
 
-<script>
-  (function() {
-    const videoList = [
-      'https://www.youtube.com/watch?v=FMEsoC2SAFc',
-      'https://www.youtube.com/watch?v=CIJgAlNwweI',
-      'https://www.youtube.com/watch?v=Sx3xFYU9cZ0',
-      'https://www.youtube.com/watch?v=qw0D_KN2KN8',
-      'https://www.youtube.com/watch?v=Qy4bgf4kG-I',
-      'https://www.youtube.com/watch?v=zQGiPQjHvek',
-      'https://www.youtube.com/watch?v=lgHGU8gqz9U',
-      'https://www.youtube.com/watch?v=9jK-NcRmVcw',
-      'https://www.youtube.com/watch?v=K0HSD_i2DvA',
-      'https://www.youtube.com/watch?v=ZFj2zhfA4aA',
-      'https://www.youtube.com/watch?v=n4RjJKxsamQ',
-      'https://www.youtube.com/watch?v=kc7X3q27b34',
-      'https://www.youtube.com/watch?v=nqxVMLVe62U',
-      'https://www.youtube.com/watch?v=XAi3VTSdTxU',
-      'https://www.youtube.com/watch?v=BWf-eARnf6U',
-      'https://www.youtube.com/watch?v=Qt2mbGP6vFI',
-      'https://www.youtube.com/watch?v=YcY3FH208l8',
-      'https://www.youtube.com/watch?v=--cxZbnmmoc',
-      'https://www.youtube.com/watch?v=fV4DiAyExN0',
-      'https://www.youtube.com/watch?v=bCa28vA_GsA',
-      'https://www.youtube.com/watch?v=VzALZjoIx0g',
-      'https://www.youtube.com/watch?v=U_609ki-jQk',
-      'https://www.youtube.com/watch?v=69935tfgP5g',
-      'https://www.youtube.com/watch?v=1O_jC0J6zEA',
-      'https://www.youtube.com/watch?v=CcVdjZN0-D4',
-      'https://www.youtube.com/watch?v=wp2lFpg3h8E',
-      'https://www.youtube.com/watch?v=5qm8PH4xAss',
-      'https://www.youtube.com/watch?v=1g229Cp-eUk',
-      'https://www.youtube.com/watch?v=1Ixi68iUDVU',
-      'https://www.youtube.com/watch?v=avjHNHKMvAQ',
-      'https://www.youtube.com/watch?v=ufDOOxEhyTc',
-      'https://www.youtube.com/watch?v=Yn9Q8oTl90g',
-      'https://www.youtube.com/watch?v=4BPVXhEuhvg',
-      'https://www.youtube.com/watch?v=N6skUTYpRoQ',
-      'https://www.youtube.com/watch?v=wckZcVFLU24',
-      'https://www.youtube.com/watch?v=TORJG61tPBc',
-      'https://www.youtube.com/watch?v=ZQzWhddDdMI',
-      'https://www.youtube.com/watch?v=jUfc4kNTqoY',
-      'https://www.youtube.com/watch?v=69VStYa0aBA',
-      'https://www.youtube.com/watch?v=a7Dh5QoXv2c',
-      'https://www.youtube.com/watch?v=kVNPwmFkf-Q',
-      'https://www.youtube.com/watch?v=IG92h1oK-sQ',
-      'https://www.youtube.com/watch?v=uGbl4-vVEwI',
-      'https://www.youtube.com/watch?v=2gxC3hh3PUU',
-      'https://www.youtube.com/watch?v=_Te_tstowh0',
-      'https://www.youtube.com/watch?v=KjgWWjkNbhU',
-      'https://www.youtube.com/watch?v=JDbUEpjhYcg',
-      'https://www.youtube.com/watch?v=CqzOtQhn2sY',
-      'https://www.youtube.com/watch?v=0XdMt-loxiY',
-      'https://www.youtube.com/watch?v=xFHvH9FtACg',
-      'https://www.youtube.com/watch?v=NeHoIjJJ6W0',
-      'https://www.youtube.com/watch?v=6aoTr4N4tg4',
-      'https://www.youtube.com/watch?v=ybrY9JWVBv4',
-      'https://www.youtube.com/watch?v=my85HyqAcjc',
-      'https://www.youtube.com/watch?v=YvXTC7LeIMI',
-      'https://www.youtube.com/watch?v=uwSvH-bsNJ4',
-      'https://www.youtube.com/watch?v=vx2u5uUu3DE',
-      'https://www.youtube.com/watch?v=cXPSDQFRuQ4',
-      'https://www.youtube.com/watch?v=rcThFswcLB0',
-      'https://www.youtube.com/watch?v=KXB6ZhrQgsA',
-      'https://www.youtube.com/watch?v=fg-LfJP3lIw',
-      'https://www.youtube.com/watch?v=0mxI4nDiIIc',
-      'https://www.youtube.com/watch?v=gNTol7swS00',
-      'https://www.youtube.com/watch?v=m2sF8wg5XkQ',
-      'https://www.youtube.com/watch?v=bqICGrdLGIc',
-      'https://www.youtube.com/watch?v=PIb6AZdTr-A',
-      'https://www.youtube.com/watch?v=oGpFcHTxjZs',
-      'https://www.youtube.com/watch?v=Fy6OaUxDxVg',
-      'https://www.youtube.com/watch?v=V9oKwUTPlss',
-      'https://www.youtube.com/watch?v=FzeFyKiPHZ8',
-      'https://www.youtube.com/watch?v=24XyBLPSnNE',
-      'https://www.youtube.com/watch?v=2fIu6WdH_8E',
-      'https://www.youtube.com/watch?v=jcMCEHcgm0g',
-      'https://www.youtube.com/watch?v=QpEfHVFilRc',
-      'https://www.youtube.com/watch?v=W67Iev_vN-s',
-      'https://www.youtube.com/watch?v=2e22adzgtO8',
-      'https://www.youtube.com/watch?v=FDUwls5lbf4',
-      'https://www.youtube.com/watch?v=beTj08uwgkg',
-      'https://www.youtube.com/watch?v=TVDREzBijRI',
-      'https://www.youtube.com/watch?v=Jg1thdQJlRQ',
-      'https://www.youtube.com/watch?v=UPNUp9DwFR0',
-      'https://www.youtube.com/watch?v=vuCCgPqORlY',
-      'https://www.youtube.com/watch?v=P-Gkpy840wU',
-      'https://www.youtube.com/watch?v=eounu-FJZKY',
-      'https://www.youtube.com/watch?v=Lt0iWPPz4DM',
-      'https://www.youtube.com/watch?v=UM8gJFEURqQ',
-      'https://www.youtube.com/watch?v=DvKGvFrkPnI',
-      'https://www.youtube.com/watch?v=IEAKyy2-3-w',
-      'https://www.youtube.com/watch?v=p4QqMKe3rwY',
-      'https://www.youtube.com/watch?v=qvINutiBigg',
-      'https://www.youtube.com/watch?v=HKLnmMacEB4',
-      'https://www.youtube.com/watch?v=qq-yqajCo6k',
-      'https://www.youtube.com/watch?v=bAY9z29nZL4',
-      'https://www.youtube.com/watch?v=lhU6o2U4XVg',
-      'https://www.youtube.com/watch?v=3YxaaGgTQYM',
-      'https://www.youtube.com/watch?v=eVTXPUF4Oz4',
-      'https://www.youtube.com/watch?v=Gd9OhYroLN0',
-      'https://www.youtube.com/watch?v=kXYiU_JCYtU',
-      'https://www.youtube.com/watch?v=GgxcvmkPD-I',
-      'https://www.youtube.com/watch?v=v2H4l9RpkwM',
-      'https://www.youtube.com/watch?v=Jh3IpG5GuzI',
-      'https://www.youtube.com/watch?v=nZaLpZue7us',
-      'https://www.youtube.com/watch?v=Omrp4QR_Rpo',
-      'https://www.youtube.com/watch?v=updcPhOdAig',
-      'https://www.youtube.com/watch?v=n1mDNXEKWw4',
-      'https://www.youtube.com/watch?v=BT5by7iZi7E',
-      'https://www.youtube.com/watch?v=xDDpNaQxn6E',
-      'https://www.youtube.com/watch?v=6PtdpI-D6mM',
-      'https://www.youtube.com/watch?v=A_hLdPRsssE',
-      'https://www.youtube.com/watch?v=Q1L3q9iFfFE',
-      'https://www.youtube.com/watch?v=AurFxbLEK50',
-      'https://www.youtube.com/watch?v=r8o1OGpq0yE',
-      'https://www.youtube.com/watch?v=elBQV2sJVkg',
-      'https://www.youtube.com/watch?v=djV11Xbc914',
-      'https://www.youtube.com/watch?v=X5Q1j3sSwxE',
-      'https://www.youtube.com/watch?v=5iNeJOulkm8',
-      'https://www.youtube.com/watch?v=0WxDrVUrSvI',
-      'https://www.youtube.com/watch?v=fPvfi9Rf1qc',
-      'https://www.youtube.com/watch?v=7rNG3v4bDkI',
-      'https://www.youtube.com/watch?v=0D6AxxSIzRI',
-      'https://www.youtube.com/watch?v=tldsjP8AST8',
-      'https://www.youtube.com/watch?v=5btxwkHGr_A',
-      'https://www.youtube.com/watch?v=ZnZqB5Z75zI',
-      'https://www.youtube.com/watch?v=B2k8EtGl82Y',
-      'https://www.youtube.com/watch?v=TKnE0gFKQWk',
-      'https://www.youtube.com/watch?v=JcVE0xk78vM',
-      'https://www.youtube.com/watch?v=gOMhN-hfMtY',
-      'https://www.youtube.com/watch?v=osNBcqRHNE0',
-      'https://www.youtube.com/watch?v=jRGrNDV2mKc',
-      'https://www.youtube.com/watch?v=xVPvzX-AeSM',
-      'https://www.youtube.com/watch?v=xEHy0QwvAYE',
-      'https://www.youtube.com/watch?v=HVPehOYjHe8',
-      'https://www.youtube.com/watch?v=1sNZznRk9dg',
-      'https://www.youtube.com/watch?v=9STiQ8cCIo0',
-      'https://www.youtube.com/watch?v=MPx9EE-ajZ8',
-      'https://www.youtube.com/watch?v=juB7GI_AAC8',
-      'https://www.youtube.com/watch?v=nd5hXdSEnWA',
-      'https://www.youtube.com/watch?v=u99ivDAqwSM',
-      'https://www.youtube.com/watch?v=X8TOhb_4jU0',
-      'https://www.youtube.com/watch?v=kMrNsFwTXJQ',
-      'https://www.youtube.com/watch?v=CW3nvGfhQ2g',
-      'https://www.youtube.com/watch?v=5rOiW_xY-kc',
-      'https://www.youtube.com/watch?v=hO5HskW2Qpc',
-      'https://www.youtube.com/watch?v=DtKCNJmARF0',
-      'https://www.youtube.com/watch?v=mTrAx2zpap8',
-      'https://www.youtube.com/watch?v=uL4L5RU6YvQ',
-      'https://www.youtube.com/watch?v=VZNrkYe5g48',
-      'https://www.youtube.com/watch?v=NiXPVrRsdzI',
-      'https://www.youtube.com/watch?v=CkdI1F5xxtE'
-    ];
+            // Elementos del DOM
+            const overlay = document.getElementById('videoOverlay');
+            const openBtn = document.getElementById('openOverlayBtn');
+            const closeBtn = document.getElementById('closeOverlayBtn');
+            const iframe = document.getElementById('youtubeIframe');
+            const rotateMsg = document.getElementById('rotateMessage');
 
-    const container = document.getElementById('imageContainer');
-    const prev = document.getElementById('prevBtn');
-    const next = document.getElementById('nextBtn');
-    const playBtn = document.getElementById('playBtn');
-    const refreshBtn = document.getElementById('refreshBtn');
-    const overlay = document.getElementById('videoOverlay');
-    const videoFrame = document.getElementById('videoFrame');
-    const closeBtn = document.getElementById('closeVideo');
+            // Variable para controlar si el overlay está activo
+            let isOverlayOpen = false;
 
-    let rotation = 0;
+            // --- Funciones para forzar landscape ---
 
-    function shuffleArray(array) {
-      const shuffled = [...array];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      return shuffled;
-    }
+            // Solicitar orientación landscape (si la API está disponible)
+            function requestLandscape() {
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(function(err) {
+                        // Si no se puede bloquear, mostramos mensaje
+                        console.warn('No se pudo bloquear la orientación:', err);
+                        showRotateMessage(true);
+                    });
+                } else {
+                    // Si no hay API, mostramos mensaje para que gire manualmente
+                    showRotateMessage(true);
+                }
+            }
 
-    function getRandomVideos(count) {
-      const shuffled = shuffleArray(videoList);
-      return shuffled.slice(0, count);
-    }
+            // Liberar la orientación (volver a automático)
+            function releaseOrientation() {
+                if (screen.orientation && screen.orientation.unlock) {
+                    screen.orientation.unlock();
+                }
+                // Ocultamos mensaje de rotación
+                showRotateMessage(false);
+            }
 
-    function getVideoId(url) {
-      const match = url.match(/[?&]v=([^&]+)/);
-      return match ? match[1] : null;
-    }
+            // Mostrar/ocultar mensaje de rotación
+            function showRotateMessage(show) {
+                if (rotateMsg) {
+                    rotateMsg.style.display = show ? 'block' : 'none';
+                }
+            }
 
-    function getThumbnailUrl(videoId) {
-      return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-    }
+            // Verificar si la pantalla está en landscape (por si no se pudo bloquear)
+            function isLandscape() {
+                return window.innerWidth > window.innerHeight;
+            }
 
-    function buildCarousel(videos) {
-      container.innerHTML = '';
-      
-      videos.forEach((url, index) => {
-        const videoId = getVideoId(url);
-        const span = document.createElement('span');
-        span.style.setProperty('--i', index + 1);
-        
-        if (videoId) {
-          const img = document.createElement('img');
-          img.src = getThumbnailUrl(videoId);
-          img.alt = `Video ${index + 1}`;
-          img.loading = 'lazy';
-          img.setAttribute('data-video-id', videoId);
-          span.appendChild(img);
-        } else {
-          const div = document.createElement('div');
-          div.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:12px;background:#1a1a1a;';
-          div.textContent = 'Video no disponible';
-          span.appendChild(div);
-        }
-        
-        container.appendChild(span);
-      });
-    }
+            // Manejar cambio de orientación para mostrar/ocultar mensaje
+            function handleOrientationChange() {
+                if (!isOverlayOpen) return;
+                if (isLandscape()) {
+                    showRotateMessage(false);
+                } else {
+                    // Si no está en landscape, mostramos mensaje (a menos que esté bloqueado)
+                    // Pero si el bloqueo funcionó, esto no debería pasar.
+                    // Mostramos el mensaje por si acaso.
+                    showRotateMessage(true);
+                    // Intentar bloquear de nuevo (por si acaso)
+                    if (screen.orientation && screen.orientation.lock) {
+                        screen.orientation.lock('landscape').catch(() => {});
+                    }
+                }
+            }
 
-    function getFrontVideo() {
-      // Cada span "i" (1..8) queda de frente cuando (i*45 + rotation) % 360 === 0
-      let norm = ((-rotation % 360) + 360) % 360;
-      let iRaw = Math.round(norm / 45) % 8;
-      let i = iRaw === 0 ? 8 : iRaw;
-      const spans = container.querySelectorAll('span');
-      const span = spans[i - 1];
-      if (span) {
-        const img = span.querySelector('img');
-        if (img) {
-          return img.getAttribute('data-video-id');
-        }
-      }
-      return null;
-    }
+            // --- Funciones de control del overlay ---
 
-    function rotateCarrusel(deg) {
-      container.style.transform = `perspective(600px) rotateY(${deg}deg)`;
-    }
+            function openOverlay() {
+                if (isOverlayOpen) return;
+                isOverlayOpen = true;
 
-    function forceLandscape() {
-      if (window.innerWidth <= 768) {
-        if (screen.orientation && screen.orientation.lock) {
-          screen.orientation.lock('landscape').catch(() => {});
-        }
-        document.body.style.overflow = 'hidden';
-      }
-    }
+                // Mostrar overlay
+                overlay.style.display = 'flex';
 
-    function unlockOrientation() {
-      if (screen.orientation && screen.orientation.unlock) {
-        screen.orientation.unlock();
-      }
-      document.body.style.overflow = '';
-    }
+                // Bloquear scroll del body
+                document.body.classList.add('no-scroll');
 
-    prev.addEventListener('click', () => {
-      rotation += 45;
-      rotateCarrusel(rotation);
-    });
+                // Forzar orientación landscape
+                requestLandscape();
 
-    next.addEventListener('click', () => {
-      rotation -= 45;
-      rotateCarrusel(rotation);
-    });
+                // Recargar el iframe para asegurar reproducción (opcional)
+                // iframe.src = iframe.src; // podría reiniciar el video, mejor no
 
-    playBtn.addEventListener('click', () => {
-      const videoId = getFrontVideo();
-      if (videoId) {
-        videoFrame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&fs=1`;
-        overlay.classList.add('active');
-        forceLandscape();
-      } else {
-        alert('No hay video disponible en esta cara');
-      }
-    });
+                // Ajustar el iframe para que ocupe todo
+                // (Ya está con width/height 100%)
 
-    refreshBtn.addEventListener('click', () => {
-      const newVideos = getRandomVideos(8);
-      buildCarousel(newVideos);
-      rotation = 0;
-      rotateCarrusel(0);
-      
-      refreshBtn.style.transform = 'scale(0.8)';
-      setTimeout(() => {
-        refreshBtn.style.transform = 'scale(1)';
-      }, 200);
-    });
+                // Escuchar cambios de orientación
+                window.addEventListener('resize', handleOrientationChange);
+                window.addEventListener('orientationchange', handleOrientationChange);
 
-    function closeVideo() {
-      overlay.classList.remove('active');
-      videoFrame.src = '';
-      unlockOrientation();
-    }
+                // Verificar orientación después de un breve retraso (para que se aplique el bloqueo)
+                setTimeout(function() {
+                    handleOrientationChange();
+                }, 300);
 
-    closeBtn.addEventListener('click', closeVideo);
+                // Si después de 1 segundo sigue en vertical, mostrar mensaje
+                setTimeout(function() {
+                    if (isOverlayOpen && !isLandscape()) {
+                        showRotateMessage(true);
+                    }
+                }, 1000);
+            }
 
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) {
-        closeVideo();
-      }
-    });
+            function closeOverlay() {
+                if (!isOverlayOpen) return;
+                isOverlayOpen = false;
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && overlay.classList.contains('active')) {
-        closeVideo();
-      }
-    });
+                // Ocultar overlay
+                overlay.style.display = 'none';
 
-    document.addEventListener('keydown', (e) => {
-      if (overlay.classList.contains('active')) return;
-      
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        rotation += 45;
-        rotateCarrusel(rotation);
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        rotation -= 45;
-        rotateCarrusel(rotation);
-      } else if (e.key === ' ' || e.key === 'Space') {
-        e.preventDefault();
-        playBtn.click();
-      }
-    });
+                // Quitar bloqueo de scroll
+                document.body.classList.remove('no-scroll');
 
-    const initialVideos = getRandomVideos(8);
-    buildCarousel(initialVideos);
-    rotateCarrusel(0);
+                // Liberar orientación
+                releaseOrientation();
 
-  })();
-</script>
+                // Ocultar mensaje de rotación
+                showRotateMessage(false);
+
+                // Quitar event listeners
+                window.removeEventListener('resize', handleOrientationChange);
+                window.removeEventListener('orientationchange', handleOrientationChange);
+            }
+
+            // --- Inicialización: escuchar eventos de los botones ---
+
+            openBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                openOverlay();
+            });
+
+            closeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                closeOverlay();
+            });
+
+            // Cerrar al hacer clic fuera del iframe (en el fondo oscuro) - solo si el clic no es en el iframe o botón
+            overlay.addEventListener('click', function(e) {
+                // Si el clic fue directamente en el overlay (fondo) y no en un hijo
+                if (e.target === overlay || e.target === document.querySelector('.video-wrapper')) {
+                    closeOverlay();
+                }
+            });
+
+            // Prevenir que el clic dentro del iframe cierre el overlay
+            iframe.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+
+            // Capturar tecla ESC para cerrar
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && isOverlayOpen) {
+                    closeOverlay();
+                }
+            });
+
+            // --- Ajuste para altura completa en móviles (viewport height fix) ---
+            function setVH() {
+                let vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', vh + 'px');
+            }
+            setVH();
+            window.addEventListener('resize', setVH);
+
+            // --- Manejar cuando se abre el overlay desde el iframe (por si el usuario recarga) ---
+            // Si el overlay queda abierto por error, lo cerramos al recargar
+            window.addEventListener('beforeunload', function() {
+                if (isOverlayOpen) {
+                    // No podemos hacer mucho, pero liberamos orientación
+                    releaseOrientation();
+                }
+            });
+
+            console.log('Overlay listo. Haz clic en "Ver Wonderwall" para abrir en pantalla completa landscape.');
+        })();
+    </script>
 
 </body>
 </html>
