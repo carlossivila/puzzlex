@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Retro 80-90 · Video Carousel</title>
   <style>
     * {
@@ -30,7 +30,6 @@
       max-width: 500px;
     }
 
-    /* --- CARRUSEL OCTOGONAL --- */
     .image-container {
       position: relative;
       width: 120px;
@@ -62,10 +61,8 @@
       height: 100%;
       border: none;
       pointer-events: none;
-      /* Evita que el iframe capture clics */;
     }
 
-    /* --- GRUPO DE 4 BOTONES (verdes) --- */
     .btn-group {
       display: flex;
       gap: 0.6rem;
@@ -122,7 +119,6 @@
       fill: none;
     }
 
-    /* --- RESPONSIVE --- */
     @media (max-width: 480px) {
       .image-container {
         width: 100px;
@@ -162,7 +158,6 @@
       }
     }
 
-    /* --- OVERLAY DE VIDEO (reproducción a pantalla completa) --- */
     .video-overlay {
       display: none;
       position: fixed;
@@ -209,24 +204,51 @@
       transform: scale(1.2);
     }
 
-    /* miniatura de carga */
-    .video-thumb {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      background: #1a1a1a;
+    @media (max-width: 768px) and (orientation: portrait) {
+      .video-overlay.active iframe {
+        width: 90vw;
+        height: 50.625vw;
+        max-height: 90vh;
+        max-width: 160vh;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .video-overlay.active {
+        flex-direction: row;
+      }
+      
+      .video-overlay.active iframe {
+        width: 90vw;
+        height: 50.625vw;
+        max-height: 90vh;
+        max-width: 90vw;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .video-overlay.active iframe {
+        width: 95vw;
+        height: 53.4375vw;
+        max-height: 95vh;
+      }
+    }
+
+    @media (max-width: 768px) and (orientation: landscape) {
+      .video-overlay.active iframe {
+        width: 80vh;
+        height: 45vh;
+        max-width: 95vw;
+        max-height: 90vh;
+      }
     }
   </style>
 </head>
 <body>
 
 <div class="carrusel-wrapper">
-  <!-- CARRUSEL OCTOGONAL -->
-  <div class="image-container" id="imageContainer">
-    <!-- Las 8 caras se generarán con JavaScript -->
-  </div>
+  <div class="image-container" id="imageContainer"></div>
 
-  <!-- 4 BOTONES -->
   <div class="btn-group">
     <button class="btn" id="prevBtn" aria-label="Anterior">
       <svg viewBox="0 0 24 24">
@@ -255,7 +277,6 @@
   </div>
 </div>
 
-<!-- OVERLAY PARA REPRODUCIR VÍDEO -->
 <div class="video-overlay" id="videoOverlay">
   <button class="close-btn" id="closeVideo">&times;</button>
   <iframe id="videoFrame" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
@@ -263,7 +284,6 @@
 
 <script>
   (function() {
-    // --- LISTA DE VIDEOS (de links.txt) ---
     const videos = [
       'https://www.youtube.com/watch?v=FMEsoC2SAFc',
       'https://www.youtube.com/watch?v=CIJgAlNwweI',
@@ -416,7 +436,6 @@
       'https://www.youtube.com/watch?v=CkdI1F5xxtE'
     ];
 
-    // --- ELEMENTOS ---
     const container = document.getElementById('imageContainer');
     const prev = document.getElementById('prevBtn');
     const next = document.getElementById('nextBtn');
@@ -428,24 +447,15 @@
 
     let rotation = 0;
 
-    // --- FUNCIÓN PARA EXTRAER ID DE YOUTUBE ---
     function getVideoId(url) {
       const match = url.match(/[?&]v=([^&]+)/);
       return match ? match[1] : null;
     }
 
-    // --- FUNCIÓN PARA CREAR MINIATURA DE YOUTUBE ---
-    function getThumbnail(videoId) {
-      return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-    }
-
-    // --- CONSTRUIR EL CARRUSEL CON LOS VIDEOS ---
     function buildCarousel(videoList) {
       container.innerHTML = '';
-      // Tomamos solo los primeros 8 videos para el octógono
       const selected = videoList.slice(0, 8);
       
-      // Si hay menos de 8, repetimos
       while (selected.length < 8) {
         selected.push(...videoList.slice(0, 8 - selected.length));
       }
@@ -456,7 +466,6 @@
         span.style.setProperty('--i', index + 1);
         
         if (videoId) {
-          // Creamos un iframe para mostrar el video en miniatura
           const iframe = document.createElement('iframe');
           iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0&controls=0&showinfo=0&modestbranding=1`;
           iframe.allow = 'encrypted-media';
@@ -464,7 +473,6 @@
           iframe.setAttribute('data-video-id', videoId);
           span.appendChild(iframe);
         } else {
-          // Fallback: mostrar un mensaje
           const div = document.createElement('div');
           div.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:12px;background:#1a1a1a;';
           div.textContent = 'Video no disponible';
@@ -475,33 +483,30 @@
       });
     }
 
-    // --- FUNCIÓN PARA OBTENER EL ÍNDICE DE LA CARA FRONTAL ---
-    function getFrontFaceIndex() {
+    function getFrontVideo() {
       let norm = ((rotation % 360) + 360) % 360;
       let index = Math.round(norm / 45) % 8;
-      return index;
-    }
-
-    // --- FUNCIÓN PARA OBTENER EL VIDEO DE LA CARA FRONTAL ---
-    function getFrontVideo() {
-      const index = getFrontFaceIndex();
       const spans = container.querySelectorAll('span');
       if (index < spans.length) {
         const iframe = spans[index].querySelector('iframe');
         if (iframe) {
-          const videoId = iframe.getAttribute('data-video-id');
-          return videoId;
+          return iframe.getAttribute('data-video-id');
         }
       }
       return null;
     }
 
-    // --- ROTAR CARRUSEL ---
     function rotateCarrusel(deg) {
       container.style.transform = `perspective(600px) rotateY(${deg}deg)`;
     }
 
-    // --- EVENTOS ---
+    function forceLandscapeOnMobile() {
+      if (window.innerWidth < 768) {
+        overlay.style.display = 'flex';
+        void overlay.offsetHeight;
+      }
+    }
+
     prev.addEventListener('click', () => {
       rotation += 45;
       rotateCarrusel(rotation);
@@ -512,59 +517,58 @@
       rotateCarrusel(rotation);
     });
 
-    // PLAY: reproducir video de la cara frontal
     playBtn.addEventListener('click', () => {
       const videoId = getFrontVideo();
       if (videoId) {
-        videoFrame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+        videoFrame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&fs=1`;
         overlay.classList.add('active');
+        forceLandscapeOnMobile();
+        
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape').catch(() => {});
+        }
       } else {
         alert('No hay video disponible en esta cara');
       }
     });
 
-    // REFRESH: mezclar videos y reconstruir carrusel
     refreshBtn.addEventListener('click', () => {
-      // Mezclar array
       for (let i = videos.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [videos[i], videos[j]] = [videos[j], videos[i]];
       }
       
-      // Reconstruir carrusel
       buildCarousel(videos);
-      
-      // Mantener la rotación actual
       rotateCarrusel(rotation);
       
-      // Animación de feedback
       refreshBtn.style.transform = 'scale(0.8)';
       setTimeout(() => {
         refreshBtn.style.transform = 'scale(1)';
       }, 200);
     });
 
-    // CERRAR VIDEO
-    closeBtn.addEventListener('click', () => {
+    function closeVideo() {
       overlay.classList.remove('active');
       videoFrame.src = '';
-    });
+      if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+      }
+    }
+
+    closeBtn.addEventListener('click', closeVideo);
 
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) {
-        overlay.classList.remove('active');
-        videoFrame.src = '';
+        closeVideo();
       }
     });
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && overlay.classList.contains('active')) {
-        overlay.classList.remove('active');
-        videoFrame.src = '';
+        closeVideo();
       }
     });
 
-    // TECLADO PARA NAVEGACIÓN
     document.addEventListener('keydown', (e) => {
       if (overlay.classList.contains('active')) return;
       
@@ -582,9 +586,16 @@
       }
     });
 
-    // --- INICIALIZAR ---
     buildCarousel(videos);
     rotateCarrusel(0);
+
+    if (screen.orientation) {
+      screen.orientation.addEventListener('change', () => {
+        if (overlay.classList.contains('active')) {
+          forceLandscapeOnMobile();
+        }
+      });
+    }
 
   })();
 </script>
