@@ -204,20 +204,7 @@
       transform: scale(1.2);
     }
 
-    @media (max-width: 768px) and (orientation: portrait) {
-      .video-overlay.active iframe {
-        width: 90vw;
-        height: 50.625vw;
-        max-height: 90vh;
-        max-width: 160vh;
-      }
-    }
-
     @media (max-width: 768px) {
-      .video-overlay.active {
-        flex-direction: row;
-      }
-      
       .video-overlay.active iframe {
         width: 90vw;
         height: 50.625vw;
@@ -240,6 +227,15 @@
         height: 45vh;
         max-width: 95vw;
         max-height: 90vh;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .video-overlay.active iframe {
+        width: 80%;
+        height: 80vh;
+        max-width: 900px;
+        max-height: 700px;
       }
     }
   </style>
@@ -500,13 +496,6 @@
       container.style.transform = `perspective(600px) rotateY(${deg}deg)`;
     }
 
-    function forceLandscapeOnMobile() {
-      if (window.innerWidth < 768) {
-        overlay.style.display = 'flex';
-        void overlay.offsetHeight;
-      }
-    }
-
     prev.addEventListener('click', () => {
       rotation += 45;
       rotateCarrusel(rotation);
@@ -522,7 +511,6 @@
       if (videoId) {
         videoFrame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&fs=1`;
         overlay.classList.add('active');
-        forceLandscapeOnMobile();
         
         if (screen.orientation && screen.orientation.lock) {
           screen.orientation.lock('landscape').catch(() => {});
@@ -588,14 +576,6 @@
 
     buildCarousel(videos);
     rotateCarrusel(0);
-
-    if (screen.orientation) {
-      screen.orientation.addEventListener('change', () => {
-        if (overlay.classList.contains('active')) {
-          forceLandscapeOnMobile();
-        }
-      });
-    }
 
   })();
 </script>
