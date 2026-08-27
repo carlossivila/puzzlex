@@ -114,32 +114,6 @@
             transform: scale(0.9);
         }
 
-        /* Mensaje de orientación OBLIGATORIO */
-        .rotate-message {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            background: rgba(0,0,0,0.9);
-            padding: 20px 30px;
-            border-radius: 16px;
-            text-align: center;
-            font-size: 1.4rem;
-            border: 2px solid #ffcc00;
-            z-index: 10001;
-            pointer-events: none;
-            backdrop-filter: blur(8px);
-            box-shadow: 0 0 40px rgba(0,0,0,0.9);
-        }
-
-        .rotate-message span {
-            display: block;
-            font-size: 3rem;
-            margin-bottom: 8px;
-        }
-
         @media (max-width: 480px) {
             .close-btn {
                 top: 10px;
@@ -147,11 +121,6 @@
                 width: 40px;
                 height: 40px;
                 font-size: 1.8rem;
-            }
-            .rotate-message {
-                font-size: 1rem;
-                padding: 15px 20px;
-                max-width: 80%;
             }
         }
 
@@ -171,10 +140,6 @@
         <div class="video-wrapper">
             <iframe id="youtubeIframe" src="" allow="autoplay; encrypted-media; fullscreen; accelerometer; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
             <button class="close-btn" id="closeOverlayBtn">✕</button>
-            <div class="rotate-message" id="rotateMessage">
-                <span>↻</span>
-                GIRA TU TELÉFONO<br>EN HORIZONTAL
-            </div>
         </div>
     </div>
 
@@ -186,7 +151,6 @@
             const openBtn = document.getElementById('openOverlayBtn');
             const closeBtn = document.getElementById('closeOverlayBtn');
             const iframe = document.getElementById('youtubeIframe');
-            const rotateMsg = document.getElementById('rotateMessage');
 
             let isOverlayOpen = false;
 
@@ -198,23 +162,18 @@
                 if (screen.orientation && screen.orientation.lock) {
                     screen.orientation.lock('landscape').catch(function(err) {
                         console.warn('Error al bloquear orientación:', err);
-                        showRotateMessage(true);
+                        // Si falla, intentamos de nuevo después de un breve momento
+                        setTimeout(forceLandscape, 500);
                     });
                 } else {
-                    showRotateMessage(true);
+                    // Si no hay API, intentamos con CSS o simplemente continuamos
+                    console.warn('API de orientación no disponible');
                 }
             }
 
             function releaseOrientation() {
                 if (screen.orientation && screen.orientation.unlock) {
                     screen.orientation.unlock();
-                }
-                showRotateMessage(false);
-            }
-
-            function showRotateMessage(show) {
-                if (rotateMsg) {
-                    rotateMsg.style.display = show ? 'block' : 'none';
                 }
             }
 
@@ -224,10 +183,7 @@
 
             // --- FUNCIÓN PARA DETENER EL VIDEO ---
             function stopVideo() {
-                // Método 1: Recargar el iframe con src vacío
                 iframe.src = '';
-                // Método 2: Forzar que el iframe no tenga contenido
-                iframe.contentWindow && iframe.contentWindow.location && iframe.contentWindow.location.replace('about:blank');
             }
 
             // --- FUNCIONES DE CONTROL DEL OVERLAY ---
@@ -252,36 +208,20 @@
                 window.addEventListener('resize', handleOrientationChange);
                 window.addEventListener('orientationchange', handleOrientationChange);
 
-                // Verificar orientación después de 300ms
-                setTimeout(function() {
-                    handleOrientationChange();
-                }, 300);
-
-                // Verificar después de 1 segundo
-                setTimeout(function() {
-                    if (isOverlayOpen && !isLandscape()) {
-                        showRotateMessage(true);
-                        // Volver a forzar
-                        forceLandscape();
-                    }
-                }, 1000);
-
-                // Verificar cada 2 segundos mientras esté abierto
+                // Verificar orientación constantemente mientras esté abierto
                 if (window.orientationInterval) {
                     clearInterval(window.orientationInterval);
                 }
                 window.orientationInterval = setInterval(function() {
                     if (isOverlayOpen) {
                         if (!isLandscape()) {
-                            showRotateMessage(true);
+                            // Si no está en landscape, forzarlo de nuevo
                             forceLandscape();
-                        } else {
-                            showRotateMessage(false);
                         }
                     } else {
                         clearInterval(window.orientationInterval);
                     }
-                }, 2000);
+                }, 1000);
             }
 
             function closeOverlay() {
@@ -313,10 +253,7 @@
 
             function handleOrientationChange() {
                 if (!isOverlayOpen) return;
-                if (isLandscape()) {
-                    showRotateMessage(false);
-                } else {
-                    showRotateMessage(true);
+                if (!isLandscape()) {
                     forceLandscape();
                 }
             }
@@ -368,7 +305,7 @@
                 }
             });
 
-            console.log('Overlay listo. FORZANDO landscape y deteniendo video al cerrar.');
+            console.log('Overlay listo. FORZANDO landscape automáticamente sin mensajes.');
         })();
     </script>
 
