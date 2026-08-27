@@ -503,11 +503,14 @@
     }
 
     function getFrontVideo() {
-      let norm = ((rotation % 360) + 360) % 360;
-      let index = Math.round(norm / 45) % 8;
+      // Cada span "i" (1..8) queda de frente cuando (i*45 + rotation) % 360 === 0
+      let norm = ((-rotation % 360) + 360) % 360;
+      let iRaw = Math.round(norm / 45) % 8;
+      let i = iRaw === 0 ? 8 : iRaw;
       const spans = container.querySelectorAll('span');
-      if (index < spans.length) {
-        const img = spans[index].querySelector('img');
+      const span = spans[i - 1];
+      if (span) {
+        const img = span.querySelector('img');
         if (img) {
           return img.getAttribute('data-video-id');
         }
