@@ -48,6 +48,7 @@
             transform: scale(0.95);
         }
 
+        /* OVERLAY - OCUPA TODA LA PANTALLA */
         .overlay {
             position: fixed;
             top: 0;
@@ -61,22 +62,46 @@
             touch-action: none;
         }
 
-        /* FORZAR LANDSCAPE CON CSS - ROTACIÓN */
-        .overlay.landscape {
+        /* CONTENEDOR PRINCIPAL - SE AJUSTA EXACTAMENTE */
+        .overlay.landscape-mode {
             display: flex !important;
             justify-content: center;
             align-items: center;
         }
 
-        /* Cuando está en landscape, el wrapper ocupa todo */
-        .video-wrapper {
-            position: relative;
+        /* CONTENEDOR QUE SE ROTA - OCUPA EXACTAMENTE LA PANTALLA */
+        .landscape-container {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
             background: #000;
+            transform-origin: center center;
+            transition: none;
+        }
+
+        /* CUANDO ESTÁ EN MODO LANDSCAPE FORZADO (VERTICAL) */
+        .overlay.landscape-mode .landscape-container {
+            /* Rotamos 90 grados y ajustamos el tamaño */
+            transform: rotate(90deg) translateY(-100%);
+            transform-origin: top left;
+            width: 100vh;
+            height: 100vw;
+        }
+
+        /* WRAPPER DEL VIDEO - OCUPA TODO EL CONTENEDOR ROTADO */
+        .video-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            position: relative;
         }
 
         .video-wrapper iframe {
@@ -86,8 +111,9 @@
             display: block;
         }
 
+        /* BOTÓN DE CIERRE - SIEMPRE VISIBLE Y CLICABLE */
         .close-btn {
-            position: absolute;
+            position: fixed;
             top: 15px;
             right: 20px;
             width: 44px;
@@ -135,73 +161,6 @@
             width: 100%;
             height: 100%;
         }
-
-        /* ============================================ */
-        /* FORZAR LANDSCAPE CON TRANSFORMACIÓN CSS       */
-        /* ============================================ */
-        .overlay.landscape-mode {
-            display: flex !important;
-            justify-content: center;
-            align-items: center;
-            background: #000;
-        }
-
-        /* Contenedor que se va a rotar */
-        .landscape-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            transform-origin: center center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #000;
-        }
-
-        /* Cuando está en vertical, rotamos 90 grados */
-        .overlay.landscape-mode .landscape-container {
-            transform: rotate(90deg) scale(1);
-            width: 100vh;
-            height: 100vw;
-        }
-
-        /* El video dentro del contenedor rotado */
-        .landscape-container .video-wrapper {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #000;
-        }
-
-        .landscape-container .video-wrapper iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
-
-        /* Ajustar el botón de cierre cuando está rotado */
-        .overlay.landscape-mode .close-btn {
-            position: fixed;
-            top: 15px;
-            right: 20px;
-            z-index: 10001;
-        }
-
-        /* Para pantallas muy pequeñas */
-        @media (max-width: 480px) {
-            .overlay.landscape-mode .close-btn {
-                top: 10px;
-                right: 12px;
-                width: 40px;
-                height: 40px;
-                font-size: 1.8rem;
-            }
-        }
     </style>
 </head>
 <body>
@@ -212,9 +171,10 @@
         <div class="landscape-container" id="landscapeContainer">
             <div class="video-wrapper">
                 <iframe id="youtubeIframe" src="" allow="autoplay; encrypted-media; fullscreen; accelerometer; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
-                <button class="close-btn" id="closeOverlayBtn">✕</button>
             </div>
         </div>
+        <!-- Botón de cierre fuera del contenedor rotado para que siempre esté en la misma posición -->
+        <button class="close-btn" id="closeOverlayBtn">✕</button>
     </div>
 
     <script>
@@ -225,15 +185,13 @@
             const openBtn = document.getElementById('openOverlayBtn');
             const closeBtn = document.getElementById('closeOverlayBtn');
             const iframe = document.getElementById('youtubeIframe');
-            const container = document.getElementById('landscapeContainer');
 
             let isOverlayOpen = false;
-            let isLandscapeForced = false;
 
             // URL del video con autoplay
             const VIDEO_URL = "https://www.youtube.com/embed/bx1Bh8ZvH84?autoplay=1&rel=0&fs=1&showinfo=0&iv_load_policy=3&modestbranding=1";
 
-            // --- FUNCIONES PARA FORZAR LANDSCAPE CON CSS ---
+            // --- FUNCIÓN PARA FORZAR LANDSCAPE CON CSS ---
             function forceLandscapeCSS() {
                 // Verificar si estamos en vertical
                 const isPortrait = window.innerHeight > window.innerWidth;
@@ -241,12 +199,10 @@
                 if (isPortrait) {
                     // Si está en vertical, añadir la clase que rota el contenedor
                     overlay.classList.add('landscape-mode');
-                    isLandscapeForced = true;
-                    console.log('FORZANDO LANDSCAPE vía CSS');
+                    console.log('FORZANDO LANDSCAPE vía CSS (vertical → horizontal)');
                 } else {
                     // Si ya está en landscape, quitar la rotación
                     overlay.classList.remove('landscape-mode');
-                    isLandscapeForced = false;
                     console.log('Ya está en landscape, sin rotación');
                 }
             }
@@ -264,8 +220,7 @@
 
                 // Mostrar overlay
                 overlay.style.display = 'flex';
-                overlay.classList.add('landscape-mode');
-
+                
                 // Bloquear scroll
                 document.body.classList.add('no-scroll');
 
@@ -336,7 +291,7 @@
 
             // Cerrar al hacer clic en el fondo
             overlay.addEventListener('click', function(e) {
-                if (e.target === overlay || e.target === container || e.target === document.querySelector('.video-wrapper')) {
+                if (e.target === overlay || e.target === document.querySelector('.video-wrapper') || e.target === document.getElementById('landscapeContainer')) {
                     closeOverlay();
                 }
             });
@@ -353,7 +308,7 @@
                 }
             });
 
-            console.log('Overlay listo. FORZANDO LANDSCAPE con CSS (rotación física)');
+            console.log('Overlay listo. FORZANDO LANDSCAPE con CSS (ajuste perfecto)');
         })();
     </script>
 
