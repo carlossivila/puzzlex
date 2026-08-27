@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Wonderwall - Pantalla Completa</title>
+    <title>Wonderwall - Pantalla Completa Landscape</title>
     <style>
-        /* Estilos base */
         * {
             margin: 0;
             padding: 0;
@@ -23,7 +22,6 @@
             padding: 20px;
         }
 
-        /* Botón de activación (estilo simple) */
         .open-overlay-btn {
             padding: 16px 32px;
             font-size: 1.2rem;
@@ -49,29 +47,23 @@
             transform: scale(0.95);
         }
 
-        /* OVERLAY: ocupa toda la pantalla */
         .overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            height: calc(var(--vh, 1vh) * 100); /* Fix para móviles */
+            height: calc(var(--vh, 1vh) * 100);
             background: #000;
             z-index: 9999;
-            display: none; /* Oculto por defecto */
+            display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            /* Forzar landscape por defecto (se aplica con JS) */
-            transform: rotate(0deg);
-            transition: none;
-            /* Evita scroll o desbordes */
             overflow: hidden;
             touch-action: none;
         }
 
-        /* Contenedor del iframe */
         .video-wrapper {
             position: relative;
             width: 100%;
@@ -86,11 +78,9 @@
             width: 100%;
             height: 100%;
             border: none;
-            /* En móviles, el iframe se estira para llenar el contenedor */
             display: block;
         }
 
-        /* Botón de cierre (X) */
         .close-btn {
             position: absolute;
             top: 15px;
@@ -111,7 +101,7 @@
             backdrop-filter: blur(4px);
             transition: background 0.2s, transform 0.2s;
             line-height: 1;
-            padding-bottom: 4px; /* Ajuste visual */
+            padding-bottom: 4px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
 
@@ -124,15 +114,15 @@
             transform: scale(0.9);
         }
 
-        /* Mensaje de orientación (solo se muestra si no está en landscape) */
+        /* Mensaje de orientación OBLIGATORIO */
         .rotate-message {
-            display: none; /* Oculto por defecto, se muestra con JS si no hay landscape */
+            display: none;
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             color: white;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.9);
             padding: 20px 30px;
             border-radius: 16px;
             text-align: center;
@@ -150,7 +140,6 @@
             margin-bottom: 8px;
         }
 
-        /* Ajustes para pantallas muy pequeñas */
         @media (max-width: 480px) {
             .close-btn {
                 top: 10px;
@@ -166,7 +155,6 @@
             }
         }
 
-        /* Para cuando el overlay está activo, forzamos que no haya scroll en body */
         .no-scroll {
             overflow: hidden !important;
             position: fixed;
@@ -177,22 +165,15 @@
 </head>
 <body>
 
-    <!-- Botón para abrir el overlay -->
     <button class="open-overlay-btn" id="openOverlayBtn">▶ Ver Wonderwall</button>
 
-    <!-- OVERLAY -->
     <div class="overlay" id="videoOverlay">
         <div class="video-wrapper">
-            <!-- Contenido del iframe de YouTube -->
-            <iframe id="youtubeIframe" src="https://www.youtube.com/embed/bx1Bh8ZvH84?autoplay=1&rel=0&fs=1&showinfo=0&iv_load_policy=3&modestbranding=1" allow="autoplay; encrypted-media; fullscreen; accelerometer; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
-
-            <!-- Botón de cerrar -->
+            <iframe id="youtubeIframe" src="" allow="autoplay; encrypted-media; fullscreen; accelerometer; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
             <button class="close-btn" id="closeOverlayBtn">✕</button>
-
-            <!-- Mensaje de orientación (se muestra si no está en landscape) -->
             <div class="rotate-message" id="rotateMessage">
                 <span>↻</span>
-                Gira tu teléfono<br>a horizontal
+                GIRA TU TELÉFONO<br>EN HORIZONTAL
             </div>
         </div>
     </div>
@@ -201,71 +182,55 @@
         (function() {
             "use strict";
 
-            // Elementos del DOM
             const overlay = document.getElementById('videoOverlay');
             const openBtn = document.getElementById('openOverlayBtn');
             const closeBtn = document.getElementById('closeOverlayBtn');
             const iframe = document.getElementById('youtubeIframe');
             const rotateMsg = document.getElementById('rotateMessage');
 
-            // Variable para controlar si el overlay está activo
             let isOverlayOpen = false;
 
-            // --- Funciones para forzar landscape ---
+            // URL del video con autoplay
+            const VIDEO_URL = "https://www.youtube.com/embed/bx1Bh8ZvH84?autoplay=1&rel=0&fs=1&showinfo=0&iv_load_policy=3&modestbranding=1";
 
-            // Solicitar orientación landscape (si la API está disponible)
-            function requestLandscape() {
+            // --- FUNCIONES PARA FORZAR LANDSCAPE ---
+            function forceLandscape() {
                 if (screen.orientation && screen.orientation.lock) {
                     screen.orientation.lock('landscape').catch(function(err) {
-                        // Si no se puede bloquear, mostramos mensaje
-                        console.warn('No se pudo bloquear la orientación:', err);
+                        console.warn('Error al bloquear orientación:', err);
                         showRotateMessage(true);
                     });
                 } else {
-                    // Si no hay API, mostramos mensaje para que gire manualmente
                     showRotateMessage(true);
                 }
             }
 
-            // Liberar la orientación (volver a automático)
             function releaseOrientation() {
                 if (screen.orientation && screen.orientation.unlock) {
                     screen.orientation.unlock();
                 }
-                // Ocultamos mensaje de rotación
                 showRotateMessage(false);
             }
 
-            // Mostrar/ocultar mensaje de rotación
             function showRotateMessage(show) {
                 if (rotateMsg) {
                     rotateMsg.style.display = show ? 'block' : 'none';
                 }
             }
 
-            // Verificar si la pantalla está en landscape (por si no se pudo bloquear)
             function isLandscape() {
                 return window.innerWidth > window.innerHeight;
             }
 
-            // Manejar cambio de orientación para mostrar/ocultar mensaje
-            function handleOrientationChange() {
-                if (!isOverlayOpen) return;
-                if (isLandscape()) {
-                    showRotateMessage(false);
-                } else {
-                    // Si no está en landscape, mostramos mensaje (a menos que esté bloqueado)
-                    // Pero si el bloqueo funcionó, esto no debería pasar.
-                    // Mostramos el mensaje por si acaso.
-                    showRotateMessage(true);
-                    // Intentar bloquear de nuevo (por si acaso)
-                    if (screen.orientation && screen.orientation.lock) {
-                        screen.orientation.lock('landscape').catch(() => {});
-                    }
-                }
+            // --- FUNCIÓN PARA DETENER EL VIDEO ---
+            function stopVideo() {
+                // Método 1: Recargar el iframe con src vacío
+                iframe.src = '';
+                // Método 2: Forzar que el iframe no tenga contenido
+                iframe.contentWindow && iframe.contentWindow.location && iframe.contentWindow.location.replace('about:blank');
             }
 
-            // --- Funciones de control del overlay ---
+            // --- FUNCIONES DE CONTROL DEL OVERLAY ---
 
             function openOverlay() {
                 if (isOverlayOpen) return;
@@ -274,57 +239,89 @@
                 // Mostrar overlay
                 overlay.style.display = 'flex';
 
-                // Bloquear scroll del body
+                // Bloquear scroll
                 document.body.classList.add('no-scroll');
 
-                // Forzar orientación landscape
-                requestLandscape();
+                // Cargar el video con autoplay
+                iframe.src = VIDEO_URL;
 
-                // Recargar el iframe para asegurar reproducción (opcional)
-                // iframe.src = iframe.src; // podría reiniciar el video, mejor no
+                // FORZAR landscape
+                forceLandscape();
 
-                // Ajustar el iframe para que ocupe todo
-                // (Ya está con width/height 100%)
-
-                // Escuchar cambios de orientación
+                // Eventos para detectar cambio de orientación
                 window.addEventListener('resize', handleOrientationChange);
                 window.addEventListener('orientationchange', handleOrientationChange);
 
-                // Verificar orientación después de un breve retraso (para que se aplique el bloqueo)
+                // Verificar orientación después de 300ms
                 setTimeout(function() {
                     handleOrientationChange();
                 }, 300);
 
-                // Si después de 1 segundo sigue en vertical, mostrar mensaje
+                // Verificar después de 1 segundo
                 setTimeout(function() {
                     if (isOverlayOpen && !isLandscape()) {
                         showRotateMessage(true);
+                        // Volver a forzar
+                        forceLandscape();
                     }
                 }, 1000);
+
+                // Verificar cada 2 segundos mientras esté abierto
+                if (window.orientationInterval) {
+                    clearInterval(window.orientationInterval);
+                }
+                window.orientationInterval = setInterval(function() {
+                    if (isOverlayOpen) {
+                        if (!isLandscape()) {
+                            showRotateMessage(true);
+                            forceLandscape();
+                        } else {
+                            showRotateMessage(false);
+                        }
+                    } else {
+                        clearInterval(window.orientationInterval);
+                    }
+                }, 2000);
             }
 
             function closeOverlay() {
                 if (!isOverlayOpen) return;
                 isOverlayOpen = false;
 
+                // DETENER EL VIDEO
+                stopVideo();
+
                 // Ocultar overlay
                 overlay.style.display = 'none';
 
-                // Quitar bloqueo de scroll
+                // Quitar bloqueo scroll
                 document.body.classList.remove('no-scroll');
 
                 // Liberar orientación
                 releaseOrientation();
 
-                // Ocultar mensaje de rotación
-                showRotateMessage(false);
+                // Limpiar intervalos
+                if (window.orientationInterval) {
+                    clearInterval(window.orientationInterval);
+                    window.orientationInterval = null;
+                }
 
                 // Quitar event listeners
                 window.removeEventListener('resize', handleOrientationChange);
                 window.removeEventListener('orientationchange', handleOrientationChange);
             }
 
-            // --- Inicialización: escuchar eventos de los botones ---
+            function handleOrientationChange() {
+                if (!isOverlayOpen) return;
+                if (isLandscape()) {
+                    showRotateMessage(false);
+                } else {
+                    showRotateMessage(true);
+                    forceLandscape();
+                }
+            }
+
+            // --- EVENT LISTENERS ---
 
             openBtn.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -336,27 +333,26 @@
                 closeOverlay();
             });
 
-            // Cerrar al hacer clic fuera del iframe (en el fondo oscuro) - solo si el clic no es en el iframe o botón
+            // Cerrar al hacer clic en el fondo
             overlay.addEventListener('click', function(e) {
-                // Si el clic fue directamente en el overlay (fondo) y no en un hijo
                 if (e.target === overlay || e.target === document.querySelector('.video-wrapper')) {
                     closeOverlay();
                 }
             });
 
-            // Prevenir que el clic dentro del iframe cierre el overlay
+            // Prevenir cierre al hacer clic en el iframe
             iframe.addEventListener('click', function(e) {
                 e.stopPropagation();
             });
 
-            // Capturar tecla ESC para cerrar
+            // Tecla ESC
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && isOverlayOpen) {
                     closeOverlay();
                 }
             });
 
-            // --- Ajuste para altura completa en móviles (viewport height fix) ---
+            // Ajuste para altura completa en móviles
             function setVH() {
                 let vh = window.innerHeight * 0.01;
                 document.documentElement.style.setProperty('--vh', vh + 'px');
@@ -364,16 +360,15 @@
             setVH();
             window.addEventListener('resize', setVH);
 
-            // --- Manejar cuando se abre el overlay desde el iframe (por si el usuario recarga) ---
-            // Si el overlay queda abierto por error, lo cerramos al recargar
+            // Limpiar al recargar
             window.addEventListener('beforeunload', function() {
-                if (isOverlayOpen) {
-                    // No podemos hacer mucho, pero liberamos orientación
-                    releaseOrientation();
+                releaseOrientation();
+                if (window.orientationInterval) {
+                    clearInterval(window.orientationInterval);
                 }
             });
 
-            console.log('Overlay listo. Haz clic en "Ver Wonderwall" para abrir en pantalla completa landscape.');
+            console.log('Overlay listo. FORZANDO landscape y deteniendo video al cerrar.');
         })();
     </script>
 
