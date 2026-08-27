@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Retro 80-90 · Video Carousel</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #0a0a0a;
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 0.5rem;
+    }
+
+    .carrusel-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    /* --- CARRUSEL OCTOGONAL --- */
+    .image-container {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      transform-style: preserve-3d;
+      transform: perspective(600px) rotateY(0deg);
+      transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      margin-bottom: 1.8rem;
+    }
+
+    .image-container span {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotateY(calc(var(--i) * 45deg)) translateZ(150px);
+      backface-visibility: hidden;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+      cursor: pointer;
+      background: #1a1a1a;
+    }
+
+    .image-container span iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: none;
+      pointer-events: none;
+      /* Evita que el iframe capture clics */;
+    }
+
+    /* --- GRUPO DE 4 BOTONES (verdes) --- */
+    .btn-group {
+      display: flex;
+      gap: 0.6rem;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+
+    .btn {
+      background: #2e7d32;
+      border: none;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
+      color: white;
+      user-select: none;
+    }
+
+    .btn:hover {
+      background: #32cd32;
+      transform: scale(1.05);
+    }
+
+    .btn:active {
+      transform: scale(0.92);
+    }
+
+    .btn svg {
+      display: block;
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: white;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .btn-play svg {
+      stroke: none;
+      fill: white;
+      width: 20px;
+      height: 20px;
+    }
+
+    .btn-refresh svg {
+      stroke: white;
+      fill: none;
+    }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 480px) {
+      .image-container {
+        width: 100px;
+        height: 100px;
+      }
+      .image-container span {
+        transform: rotateY(calc(var(--i) * 45deg)) translateZ(125px);
+      }
+      .btn {
+        width: 38px;
+        height: 38px;
+      }
+      .btn svg {
+        width: 18px;
+        height: 18px;
+      }
+      .btn-play svg {
+        width: 16px;
+        height: 16px;
+      }
+      .btn-group {
+        gap: 0.5rem;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .image-container {
+        width: 140px;
+        height: 140px;
+      }
+      .image-container span {
+        transform: rotateY(calc(var(--i) * 45deg)) translateZ(175px);
+      }
+      .btn {
+        width: 48px;
+        height: 48px;
+      }
+    }
+
+    /* --- OVERLAY DE VIDEO (reproducción a pantalla completa) --- */
+    .video-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+    }
+
+    .video-overlay.active {
+      display: flex;
+    }
+
+    .video-overlay iframe {
+      width: 90%;
+      max-width: 900px;
+      height: 80vh;
+      max-height: 700px;
+      border-radius: 12px;
+      border: none;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+    }
+
+    .video-overlay .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      color: white;
+      font-size: 3rem;
+      cursor: pointer;
+      background: none;
+      border: none;
+      transition: transform 0.2s;
+      z-index: 1001;
+      font-weight: 300;
+    }
+
+    .video-overlay .close-btn:hover {
+      transform: scale(1.2);
+    }
+
+    /* miniatura de carga */
+    .video-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #1a1a1a;
+    }
+  </style>
+</head>
+<body>
+
+<div class="carrusel-wrapper">
+  <!-- CARRUSEL OCTOGONAL -->
+  <div class="image-container" id="imageContainer">
+    <!-- Las 8 caras se generarán con JavaScript -->
+  </div>
+
+  <!-- 4 BOTONES -->
+  <div class="btn-group">
+    <button class="btn" id="prevBtn" aria-label="Anterior">
+      <svg viewBox="0 0 24 24">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+
+    <button class="btn btn-play" id="playBtn" aria-label="Reproducir video">
+      <svg viewBox="0 0 24 24">
+        <polygon points="5,3 19,12 5,21"></polygon>
+      </svg>
+    </button>
+
+    <button class="btn btn-refresh" id="refreshBtn" aria-label="Actualizar videos">
+      <svg viewBox="0 0 24 24">
+        <path d="M1 4v6h6"></path>
+        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+      </svg>
+    </button>
+
+    <button class="btn" id="nextBtn" aria-label="Siguiente">
+      <svg viewBox="0 0 24 24">
+        <polyline points="9 6 15 12 9 18"></polyline>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- OVERLAY PARA REPRODUCIR VÍDEO -->
+<div class="video-overlay" id="videoOverlay">
+  <button class="close-btn" id="closeVideo">&times;</button>
+  <iframe id="videoFrame" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+</div>
+
+<script>
+  (function() {
+    // --- LISTA DE VIDEOS (de links.txt) ---
+    const videos = [
+      'https://www.youtube.com/watch?v=FMEsoC2SAFc',
+      'https://www.youtube.com/watch?v=CIJgAlNwweI',
+      'https://www.youtube.com/watch?v=Sx3xFYU9cZ0',
+      'https://www.youtube.com/watch?v=qw0D_KN2KN8',
+      'https://www.youtube.com/watch?v=Qy4bgf4kG-I',
+      'https://www.youtube.com/watch?v=zQGiPQjHvek',
+      'https://www.youtube.com/watch?v=lgHGU8gqz9U',
+      'https://www.youtube.com/watch?v=9jK-NcRmVcw',
+      'https://www.youtube.com/watch?v=K0HSD_i2DvA',
+      'https://www.youtube.com/watch?v=ZFj2zhfA4aA',
+      'https://www.youtube.com/watch?v=n4RjJKxsamQ',
+      'https://www.youtube.com/watch?v=kc7X3q27b34',
+      'https://www.youtube.com/watch?v=nqxVMLVe62U',
+      'https://www.youtube.com/watch?v=XAi3VTSdTxU',
+      'https://www.youtube.com/watch?v=BWf-eARnf6U',
+      'https://www.youtube.com/watch?v=Qt2mbGP6vFI',
+      'https://www.youtube.com/watch?v=YcY3FH208l8',
+      'https://www.youtube.com/watch?v=--cxZbnmmoc',
+      'https://www.youtube.com/watch?v=fV4DiAyExN0',
+      'https://www.youtube.com/watch?v=bCa28vA_GsA',
+      'https://www.youtube.com/watch?v=VzALZjoIx0g',
+      'https://www.youtube.com/watch?v=U_609ki-jQk',
+      'https://www.youtube.com/watch?v=69935tfgP5g',
+      'https://www.youtube.com/watch?v=1O_jC0J6zEA',
+      'https://www.youtube.com/watch?v=CcVdjZN0-D4',
+      'https://www.youtube.com/watch?v=wp2lFpg3h8E',
+      'https://www.youtube.com/watch?v=5qm8PH4xAss',
+      'https://www.youtube.com/watch?v=1g229Cp-eUk',
+      'https://www.youtube.com/watch?v=1Ixi68iUDVU',
+      'https://www.youtube.com/watch?v=avjHNHKMvAQ',
+      'https://www.youtube.com/watch?v=ufDOOxEhyTc',
+      'https://www.youtube.com/watch?v=Yn9Q8oTl90g',
+      'https://www.youtube.com/watch?v=4BPVXhEuhvg',
+      'https://www.youtube.com/watch?v=N6skUTYpRoQ',
+      'https://www.youtube.com/watch?v=wckZcVFLU24',
+      'https://www.youtube.com/watch?v=TORJG61tPBc',
+      'https://www.youtube.com/watch?v=ZQzWhddDdMI',
+      'https://www.youtube.com/watch?v=jUfc4kNTqoY',
+      'https://www.youtube.com/watch?v=69VStYa0aBA',
+      'https://www.youtube.com/watch?v=a7Dh5QoXv2c',
+      'https://www.youtube.com/watch?v=kVNPwmFkf-Q',
+      'https://www.youtube.com/watch?v=IG92h1oK-sQ',
+      'https://www.youtube.com/watch?v=uGbl4-vVEwI',
+      'https://www.youtube.com/watch?v=2gxC3hh3PUU',
+      'https://www.youtube.com/watch?v=_Te_tstowh0',
+      'https://www.youtube.com/watch?v=KjgWWjkNbhU',
+      'https://www.youtube.com/watch?v=JDbUEpjhYcg',
+      'https://www.youtube.com/watch?v=CqzOtQhn2sY',
+      'https://www.youtube.com/watch?v=0XdMt-loxiY',
+      'https://www.youtube.com/watch?v=xFHvH9FtACg',
+      'https://www.youtube.com/watch?v=NeHoIjJJ6W0',
+      'https://www.youtube.com/watch?v=6aoTr4N4tg4',
+      'https://www.youtube.com/watch?v=ybrY9JWVBv4',
+      'https://www.youtube.com/watch?v=my85HyqAcjc',
+      'https://www.youtube.com/watch?v=YvXTC7LeIMI',
+      'https://www.youtube.com/watch?v=uwSvH-bsNJ4',
+      'https://www.youtube.com/watch?v=vx2u5uUu3DE',
+      'https://www.youtube.com/watch?v=cXPSDQFRuQ4',
+      'https://www.youtube.com/watch?v=rcThFswcLB0',
+      'https://www.youtube.com/watch?v=KXB6ZhrQgsA',
+      'https://www.youtube.com/watch?v=fg-LfJP3lIw',
+      'https://www.youtube.com/watch?v=0mxI4nDiIIc',
+      'https://www.youtube.com/watch?v=gNTol7swS00',
+      'https://www.youtube.com/watch?v=m2sF8wg5XkQ',
+      'https://www.youtube.com/watch?v=bqICGrdLGIc',
+      'https://www.youtube.com/watch?v=PIb6AZdTr-A',
+      'https://www.youtube.com/watch?v=oGpFcHTxjZs',
+      'https://www.youtube.com/watch?v=Fy6OaUxDxVg',
+      'https://www.youtube.com/watch?v=V9oKwUTPlss',
+      'https://www.youtube.com/watch?v=FzeFyKiPHZ8',
+      'https://www.youtube.com/watch?v=24XyBLPSnNE',
+      'https://www.youtube.com/watch?v=2fIu6WdH_8E',
+      'https://www.youtube.com/watch?v=jcMCEHcgm0g',
+      'https://www.youtube.com/watch?v=QpEfHVFilRc',
+      'https://www.youtube.com/watch?v=W67Iev_vN-s',
+      'https://www.youtube.com/watch?v=2e22adzgtO8',
+      'https://www.youtube.com/watch?v=FDUwls5lbf4',
+      'https://www.youtube.com/watch?v=beTj08uwgkg',
+      'https://www.youtube.com/watch?v=TVDREzBijRI',
+      'https://www.youtube.com/watch?v=Jg1thdQJlRQ',
+      'https://www.youtube.com/watch?v=UPNUp9DwFR0',
+      'https://www.youtube.com/watch?v=vuCCgPqORlY',
+      'https://www.youtube.com/watch?v=P-Gkpy840wU',
+      'https://www.youtube.com/watch?v=eounu-FJZKY',
+      'https://www.youtube.com/watch?v=Lt0iWPPz4DM',
+      'https://www.youtube.com/watch?v=UM8gJFEURqQ',
+      'https://www.youtube.com/watch?v=DvKGvFrkPnI',
+      'https://www.youtube.com/watch?v=IEAKyy2-3-w',
+      'https://www.youtube.com/watch?v=p4QqMKe3rwY',
+      'https://www.youtube.com/watch?v=qvINutiBigg',
+      'https://www.youtube.com/watch?v=HKLnmMacEB4',
+      'https://www.youtube.com/watch?v=qq-yqajCo6k',
+      'https://www.youtube.com/watch?v=bAY9z29nZL4',
+      'https://www.youtube.com/watch?v=lhU6o2U4XVg',
+      'https://www.youtube.com/watch?v=3YxaaGgTQYM',
+      'https://www.youtube.com/watch?v=eVTXPUF4Oz4',
+      'https://www.youtube.com/watch?v=Gd9OhYroLN0',
+      'https://www.youtube.com/watch?v=kXYiU_JCYtU',
+      'https://www.youtube.com/watch?v=GgxcvmkPD-I',
+      'https://www.youtube.com/watch?v=v2H4l9RpkwM',
+      'https://www.youtube.com/watch?v=Jh3IpG5GuzI',
+      'https://www.youtube.com/watch?v=nZaLpZue7us',
+      'https://www.youtube.com/watch?v=Omrp4QR_Rpo',
+      'https://www.youtube.com/watch?v=updcPhOdAig',
+      'https://www.youtube.com/watch?v=n1mDNXEKWw4',
+      'https://www.youtube.com/watch?v=BT5by7iZi7E',
+      'https://www.youtube.com/watch?v=xDDpNaQxn6E',
+      'https://www.youtube.com/watch?v=6PtdpI-D6mM',
+      'https://www.youtube.com/watch?v=A_hLdPRsssE',
+      'https://www.youtube.com/watch?v=Q1L3q9iFfFE',
+      'https://www.youtube.com/watch?v=AurFxbLEK50',
+      'https://www.youtube.com/watch?v=r8o1OGpq0yE',
+      'https://www.youtube.com/watch?v=elBQV2sJVkg',
+      'https://www.youtube.com/watch?v=djV11Xbc914',
+      'https://www.youtube.com/watch?v=X5Q1j3sSwxE',
+      'https://www.youtube.com/watch?v=5iNeJOulkm8',
+      'https://www.youtube.com/watch?v=0WxDrVUrSvI',
+      'https://www.youtube.com/watch?v=fPvfi9Rf1qc',
+      'https://www.youtube.com/watch?v=7rNG3v4bDkI',
+      'https://www.youtube.com/watch?v=0D6AxxSIzRI',
+      'https://www.youtube.com/watch?v=tldsjP8AST8',
+      'https://www.youtube.com/watch?v=5btxwkHGr_A',
+      'https://www.youtube.com/watch?v=ZnZqB5Z75zI',
+      'https://www.youtube.com/watch?v=B2k8EtGl82Y',
+      'https://www.youtube.com/watch?v=TKnE0gFKQWk',
+      'https://www.youtube.com/watch?v=JcVE0xk78vM',
+      'https://www.youtube.com/watch?v=gOMhN-hfMtY',
+      'https://www.youtube.com/watch?v=osNBcqRHNE0',
+      'https://www.youtube.com/watch?v=jRGrNDV2mKc',
+      'https://www.youtube.com/watch?v=xVPvzX-AeSM',
+      'https://www.youtube.com/watch?v=xEHy0QwvAYE',
+      'https://www.youtube.com/watch?v=HVPehOYjHe8',
+      'https://www.youtube.com/watch?v=1sNZznRk9dg',
+      'https://www.youtube.com/watch?v=9STiQ8cCIo0',
+      'https://www.youtube.com/watch?v=MPx9EE-ajZ8',
+      'https://www.youtube.com/watch?v=juB7GI_AAC8',
+      'https://www.youtube.com/watch?v=nd5hXdSEnWA',
+      'https://www.youtube.com/watch?v=u99ivDAqwSM',
+      'https://www.youtube.com/watch?v=X8TOhb_4jU0',
+      'https://www.youtube.com/watch?v=kMrNsFwTXJQ',
+      'https://www.youtube.com/watch?v=CW3nvGfhQ2g',
+      'https://www.youtube.com/watch?v=5rOiW_xY-kc',
+      'https://www.youtube.com/watch?v=hO5HskW2Qpc',
+      'https://www.youtube.com/watch?v=DtKCNJmARF0',
+      'https://www.youtube.com/watch?v=mTrAx2zpap8',
+      'https://www.youtube.com/watch?v=uL4L5RU6YvQ',
+      'https://www.youtube.com/watch?v=VZNrkYe5g48',
+      'https://www.youtube.com/watch?v=NiXPVrRsdzI',
+      'https://www.youtube.com/watch?v=CkdI1F5xxtE'
+    ];
+
+    // --- ELEMENTOS ---
+    const container = document.getElementById('imageContainer');
+    const prev = document.getElementById('prevBtn');
+    const next = document.getElementById('nextBtn');
+    const playBtn = document.getElementById('playBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const overlay = document.getElementById('videoOverlay');
+    const videoFrame = document.getElementById('videoFrame');
+    const closeBtn = document.getElementById('closeVideo');
+
+    let rotation = 0;
+
+    // --- FUNCIÓN PARA EXTRAER ID DE YOUTUBE ---
+    function getVideoId(url) {
+      const match = url.match(/[?&]v=([^&]+)/);
+      return match ? match[1] : null;
+    }
+
+    // --- FUNCIÓN PARA CREAR MINIATURA DE YOUTUBE ---
+    function getThumbnail(videoId) {
+      return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+    }
+
+    // --- CONSTRUIR EL CARRUSEL CON LOS VIDEOS ---
+    function buildCarousel(videoList) {
+      container.innerHTML = '';
+      // Tomamos solo los primeros 8 videos para el octógono
+      const selected = videoList.slice(0, 8);
+      
+      // Si hay menos de 8, repetimos
+      while (selected.length < 8) {
+        selected.push(...videoList.slice(0, 8 - selected.length));
+      }
+
+      selected.forEach((url, index) => {
+        const videoId = getVideoId(url);
+        const span = document.createElement('span');
+        span.style.setProperty('--i', index + 1);
+        
+        if (videoId) {
+          // Creamos un iframe para mostrar el video en miniatura
+          const iframe = document.createElement('iframe');
+          iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0&controls=0&showinfo=0&modestbranding=1`;
+          iframe.allow = 'encrypted-media';
+          iframe.loading = 'lazy';
+          iframe.setAttribute('data-video-id', videoId);
+          span.appendChild(iframe);
+        } else {
+          // Fallback: mostrar un mensaje
+          const div = document.createElement('div');
+          div.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:12px;background:#1a1a1a;';
+          div.textContent = 'Video no disponible';
+          span.appendChild(div);
+        }
+        
+        container.appendChild(span);
+      });
+    }
+
+    // --- FUNCIÓN PARA OBTENER EL ÍNDICE DE LA CARA FRONTAL ---
+    function getFrontFaceIndex() {
+      let norm = ((rotation % 360) + 360) % 360;
+      let index = Math.round(norm / 45) % 8;
+      return index;
+    }
+
+    // --- FUNCIÓN PARA OBTENER EL VIDEO DE LA CARA FRONTAL ---
+    function getFrontVideo() {
+      const index = getFrontFaceIndex();
+      const spans = container.querySelectorAll('span');
+      if (index < spans.length) {
+        const iframe = spans[index].querySelector('iframe');
+        if (iframe) {
+          const videoId = iframe.getAttribute('data-video-id');
+          return videoId;
+        }
+      }
+      return null;
+    }
+
+    // --- ROTAR CARRUSEL ---
+    function rotateCarrusel(deg) {
+      container.style.transform = `perspective(600px) rotateY(${deg}deg)`;
+    }
+
+    // --- EVENTOS ---
+    prev.addEventListener('click', () => {
+      rotation += 45;
+      rotateCarrusel(rotation);
+    });
+
+    next.addEventListener('click', () => {
+      rotation -= 45;
+      rotateCarrusel(rotation);
+    });
+
+    // PLAY: reproducir video de la cara frontal
+    playBtn.addEventListener('click', () => {
+      const videoId = getFrontVideo();
+      if (videoId) {
+        videoFrame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+        overlay.classList.add('active');
+      } else {
+        alert('No hay video disponible en esta cara');
+      }
+    });
+
+    // REFRESH: mezclar videos y reconstruir carrusel
+    refreshBtn.addEventListener('click', () => {
+      // Mezclar array
+      for (let i = videos.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [videos[i], videos[j]] = [videos[j], videos[i]];
+      }
+      
+      // Reconstruir carrusel
+      buildCarousel(videos);
+      
+      // Mantener la rotación actual
+      rotateCarrusel(rotation);
+      
+      // Animación de feedback
+      refreshBtn.style.transform = 'scale(0.8)';
+      setTimeout(() => {
+        refreshBtn.style.transform = 'scale(1)';
+      }, 200);
+    });
+
+    // CERRAR VIDEO
+    closeBtn.addEventListener('click', () => {
+      overlay.classList.remove('active');
+      videoFrame.src = '';
+    });
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.classList.remove('active');
+        videoFrame.src = '';
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && overlay.classList.contains('active')) {
+        overlay.classList.remove('active');
+        videoFrame.src = '';
+      }
+    });
+
+    // TECLADO PARA NAVEGACIÓN
+    document.addEventListener('keydown', (e) => {
+      if (overlay.classList.contains('active')) return;
+      
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        rotation += 45;
+        rotateCarrusel(rotation);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        rotation -= 45;
+        rotateCarrusel(rotation);
+      } else if (e.key === ' ' || e.key === 'Space') {
+        e.preventDefault();
+        playBtn.click();
+      }
+    });
+
+    // --- INICIALIZAR ---
+    buildCarousel(videos);
+    rotateCarrusel(0);
+
+  })();
+</script>
+
+</body>
+</html>
