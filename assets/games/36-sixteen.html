@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PuzzleX - sixteen</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            background-color: #111;
+            font-size: 18px;
+            color: white;
+            padding: 10px;
+            margin: 0;
+        }
+
+        .game-container {
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .arrows-top {
+            display: flex;
+            margin-bottom: 2px;
+        }
+
+        .arrows-top-3x3 {
+            margin-left: 31px;
+        }
+
+        .arrows-top-4x4 {
+            margin-left: 31px;
+        }
+
+        .main-grid {
+            display: flex;
+        }
+
+        .arrows-left, .arrows-right {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .arrows-left {
+            margin-right: 2px;
+        }
+
+        .arrows-right {
+            margin-left: 2px;
+        }
+
+        #puzzle {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .piece {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: black;
+            color: lime;
+            font-size: 24px;
+            font-weight: bold;
+            border: 1px solid cyan;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        .arrows-bottom {
+            display: flex;
+            margin-top: 2px;
+        }
+
+        .arrows-bottom-3x3 {
+            margin-left: 31px;
+        }
+
+        .arrows-bottom-4x4 {
+            margin-left: 31px;
+        }
+
+        .arrow-btn {
+            background-color: black;
+            color: lime;
+            border: 1px solid cyan;
+            cursor: pointer;
+            font-size: 18px;
+            transition: color 0.3s, box-shadow 0.3s;
+            box-shadow: 0 0 8px cyan;
+        }
+
+        .arrow-btn:hover {
+            color: red;
+            box-shadow: 0 0 15px red;
+        }
+
+        .arrow-btn:active {
+            color: red;
+            box-shadow: 0 0 15px red;
+        }
+
+        .arrow-btn:disabled {
+            color: #555;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .arrow-top, .arrow-bottom {
+            width: 60px;
+            height: 30px;
+            margin: 0 1px;
+        }
+
+        .arrow-left, .arrow-right {
+            width: 30px;
+            height: 60px;
+            margin: 1px 0;
+        }
+
+        #info {
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .highlight {
+            color: red;
+            font-weight: bold;
+        }
+
+        #buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        #shuffle, #toggle {
+            background-color: black;
+            color: lime;
+            border: 1px solid cyan;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        #shuffle:hover, #toggle:hover {
+            background-color: #050505;
+            color: red;
+            border: 1px solid gray;
+        }
+
+        #shuffle:active, #toggle:active {
+            background-color: #33F033;
+            color: red;
+            border: 1px solid black;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                font-size: 20px;
+                transform: scale(1.0);
+                transform-origin: top left;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<h4 style="color: lime;">PuzzleX by Carlos Sivila</h4>
+
+<div class="game-container">
+    <div class="arrows-top arrows-top-3x3" id="arrowsTop"></div>
+    
+    <div class="main-grid">
+        <div class="arrows-left" id="arrowsLeft"></div>
+        <div id="puzzle"></div>
+        <div class="arrows-right" id="arrowsRight"></div>
+    </div>
+    
+    <div class="arrows-bottom arrows-bottom-3x3" id="arrowsBottom"></div>
+</div>
+
+<div id="buttons">
+    <button id="shuffle">Mezclar</button>
+    <button id="toggle">3X3 / 4X4</button>
+</div>
+
+<div id="info">
+  <div id="moves">
+    Hiciste <span class="highlight">0</span> movimientos de <span class="highlight">999</span>.
+    Te quedan <span class="highlight">999</span> movimientos posibles.
+  </div>
+  <div id="timer">
+    Han transcurrido <span class="highlight">00:00</span> de <span class="highlight">19:59</span>.
+    Te quedan <span class="highlight">19:59</span>.
+  </div>
+</div>
+
+<script>
+    const TILE = 60;
+    const GAP = 2;
+    const ANIM_MS = 250;
+
+    const puzzle = document.getElementById('puzzle');
+    const shuffleButton = document.getElementById('shuffle');
+    const toggleButton = document.getElementById('toggle');
+    const movesDisplay = document.getElementById('moves');
+    const timerDisplay = document.getElementById('timer');
+    const arrowsTop = document.getElementById('arrowsTop');
+    const arrowsBottom = document.getElementById('arrowsBottom');
+    const arrowsLeft = document.getElementById('arrowsLeft');
+    const arrowsRight = document.getElementById('arrowsRight');
+
+    let is4x4 = false;
+    let gridSize = 3;
+    let tiles = [];
+    let elements = new Map();
+    let moveCount = 0;
+    let timer;
+    let secondsLeft = 1199;
+    let animBusy = false;
+
+    function stepSize() { return TILE + GAP; }
+    function containerSize() { return gridSize * TILE + (gridSize - 1) * GAP; }
+
+    function initializeTiles() {
+        const totalTiles = gridSize * gridSize;
+        tiles = [...Array(totalTiles).keys()].map(i => i + 1);
+    }
+
+    function setPos(el, col, row, animate) {
+        el.style.transition = animate ? `left ${ANIM_MS}ms ease, top ${ANIM_MS}ms ease` : 'none';
+        el.style.left = (col * stepSize()) + 'px';
+        el.style.top = (row * stepSize()) + 'px';
+    }
+
+    function buildElements() {
+        puzzle.innerHTML = '';
+        puzzle.style.width = containerSize() + 'px';
+        puzzle.style.height = containerSize() + 'px';
+        elements.clear();
+
+        tiles.forEach((value, i) => {
+            const col = i % gridSize;
+            const row = Math.floor(i / gridSize);
+            const el = document.createElement('div');
+            el.className = 'piece';
+            el.style.width = TILE + 'px';
+            el.style.height = TILE + 'px';
+            el.textContent = value;
+            setPos(el, col, row, false);
+            puzzle.appendChild(el);
+            elements.set(value, el);
+        });
+    }
+
+    function createArrows() {
+        arrowsTop.innerHTML = '';
+        arrowsBottom.innerHTML = '';
+        arrowsLeft.innerHTML = '';
+        arrowsRight.innerHTML = '';
+
+        for (let i = 0; i < gridSize; i++) {
+            const btnTop = document.createElement('button');
+            btnTop.className = 'arrow-btn arrow-top';
+            btnTop.innerHTML = '▲';
+            btnTop.onclick = () => slideColumn(i, -1);
+            arrowsTop.appendChild(btnTop);
+
+            const btnBottom = document.createElement('button');
+            btnBottom.className = 'arrow-btn arrow-bottom';
+            btnBottom.innerHTML = '▼';
+            btnBottom.onclick = () => slideColumn(i, 1);
+            arrowsBottom.appendChild(btnBottom);
+
+            const btnLeft = document.createElement('button');
+            btnLeft.className = 'arrow-btn arrow-left';
+            btnLeft.innerHTML = '◀';
+            btnLeft.onclick = () => slideRow(i, -1);
+            arrowsLeft.appendChild(btnLeft);
+
+            const btnRight = document.createElement('button');
+            btnRight.className = 'arrow-btn arrow-right';
+            btnRight.innerHTML = '▶';
+            btnRight.onclick = () => slideRow(i, 1);
+            arrowsRight.appendChild(btnRight);
+        }
+    }
+
+    function setArrowsEnabled(enabled) {
+        document.querySelectorAll('.arrow-btn').forEach(btn => btn.disabled = !enabled);
+    }
+
+    function animateWrapHorizontal(el, fromCol, row, toCol, toRow, direction) {
+        const exitCol = fromCol + direction;
+        setPos(el, exitCol, row, true);
+        setTimeout(() => {
+            const enterCol = toCol - direction;
+            setPos(el, enterCol, toRow, false);
+            void el.offsetWidth;
+            setPos(el, toCol, toRow, true);
+        }, ANIM_MS);
+    }
+
+    function animateWrapVertical(el, col, fromRow, toCol, toRow, direction) {
+        const exitRow = fromRow + direction;
+        setPos(el, col, exitRow, true);
+        setTimeout(() => {
+            const enterRow = toRow - direction;
+            setPos(el, toCol, enterRow, false);
+            void el.offsetWidth;
+            setPos(el, toCol, toRow, true);
+        }, ANIM_MS);
+    }
+
+    function slideRow(rowIndex, direction) {
+        if (animBusy) return;
+
+        const oldRow = [];
+        for (let i = 0; i < gridSize; i++) oldRow.push(tiles[rowIndex * gridSize + i]);
+
+        const newRow = oldRow.slice();
+        let wrappedValue;
+        if (direction > 0) {
+            wrappedValue = newRow.pop();
+            newRow.unshift(wrappedValue);
+        } else {
+            wrappedValue = newRow.shift();
+            newRow.push(wrappedValue);
+        }
+
+        for (let i = 0; i < gridSize; i++) tiles[rowIndex * gridSize + i] = newRow[i];
+
+        animBusy = true;
+        setArrowsEnabled(false);
+
+        for (let oldCol = 0; oldCol < gridSize; oldCol++) {
+            const value = oldRow[oldCol];
+            const newCol = newRow.indexOf(value);
+            const el = elements.get(value);
+            if (value === wrappedValue) {
+                animateWrapHorizontal(el, oldCol, rowIndex, newCol, rowIndex, direction);
+            } else {
+                setPos(el, newCol, rowIndex, true);
+            }
+        }
+
+        moveCount++;
+
+        setTimeout(() => {
+            animBusy = false;
+            setArrowsEnabled(true);
+            updateInfo();
+            checkWinCondition();
+            checkLoseConditions();
+        }, ANIM_MS * 2 + 20);
+    }
+
+    function slideColumn(colIndex, direction) {
+        if (animBusy) return;
+
+        const oldCol = [];
+        for (let j = 0; j < gridSize; j++) oldCol.push(tiles[j * gridSize + colIndex]);
+
+        const newCol = oldCol.slice();
+        let wrappedValue;
+        if (direction > 0) {
+            wrappedValue = newCol.pop();
+            newCol.unshift(wrappedValue);
+        } else {
+            wrappedValue = newCol.shift();
+            newCol.push(wrappedValue);
+        }
+
+        for (let j = 0; j < gridSize; j++) tiles[j * gridSize + colIndex] = newCol[j];
+
+        animBusy = true;
+        setArrowsEnabled(false);
+
+        for (let oldRow = 0; oldRow < gridSize; oldRow++) {
+            const value = oldCol[oldRow];
+            const newRow = newCol.indexOf(value);
+            const el = elements.get(value);
+            if (value === wrappedValue) {
+                animateWrapVertical(el, colIndex, oldRow, colIndex, newRow, direction);
+            } else {
+                setPos(el, colIndex, newRow, true);
+            }
+        }
+
+        moveCount++;
+
+        setTimeout(() => {
+            animBusy = false;
+            setArrowsEnabled(true);
+            updateInfo();
+            checkWinCondition();
+            checkLoseConditions();
+        }, ANIM_MS * 2 + 20);
+    }
+
+    function updateInfo() {
+        const remainingMoves = 999 - moveCount;
+        const elapsedMinutes = Math.floor((1199 - secondsLeft) / 60);
+        const elapsedSeconds = (1199 - secondsLeft) % 60;
+        const remainingMinutes = Math.floor(secondsLeft / 60);
+        const remainingSeconds = secondsLeft % 60;
+
+        movesDisplay.innerHTML = `Hiciste <span class="highlight">${moveCount}</span> movimientos de <span class="highlight">999</span>.<br>Te quedan <span class="highlight">${remainingMoves}</span> movimientos posibles.`;
+        timerDisplay.innerHTML = `Han transcurrido <span class="highlight">${String(elapsedMinutes).padStart(2, '0')}:${String(elapsedSeconds).padStart(2, '0')}</span> de <span class="highlight">19:59</span>.<br>Te quedan <span class="highlight">${String(remainingMinutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}</span>.`;
+    }
+
+    function shuffle() {
+        for (let i = 0; i < 100; i++) {
+            const isRow = Math.random() > 0.5;
+            const index = Math.floor(Math.random() * gridSize);
+            const direction = Math.random() > 0.5 ? 1 : -1;
+
+            if (isRow) {
+                const row = [];
+                for (let j = 0; j < gridSize; j++) {
+                    row.push(tiles[index * gridSize + j]);
+                }
+                if (direction > 0) {
+                    row.unshift(row.pop());
+                } else {
+                    row.push(row.shift());
+                }
+                for (let j = 0; j < gridSize; j++) {
+                    tiles[index * gridSize + j] = row[j];
+                }
+            } else {
+                const col = [];
+                for (let j = 0; j < gridSize; j++) {
+                    col.push(tiles[j * gridSize + index]);
+                }
+                if (direction > 0) {
+                    col.unshift(col.pop());
+                } else {
+                    col.push(col.shift());
+                }
+                for (let j = 0; j < gridSize; j++) {
+                    tiles[j * gridSize + index] = col[j];
+                }
+            }
+        }
+
+        moveCount = 0;
+        secondsLeft = 1199;
+        clearInterval(timer);
+        startTimer();
+        buildElements();
+        updateInfo();
+    }
+
+    function startTimer() {
+        clearInterval(timer);
+        timer = setInterval(() => {
+            if (secondsLeft <= 0) {
+                clearInterval(timer);
+                setTimeout(() => {
+                    alert("Perdiste, se te acabó el tiempo");
+                    moveCount = 0;
+                    secondsLeft = 1199;
+                    initializeTiles();
+                    buildElements();
+                    updateInfo();
+                    startTimer();
+                }, 2000);
+            } else {
+                secondsLeft--;
+                updateInfo();
+            }
+        }, 1000);
+    }
+
+    function checkLoseConditions() {
+        if (moveCount >= 999) {
+            clearInterval(timer);
+            setTimeout(() => {
+                alert("Perdiste, demasiados movimientos");
+                moveCount = 0;
+                secondsLeft = 1199;
+                initializeTiles();
+                buildElements();
+                updateInfo();
+                startTimer();
+            }, 2000);
+        }
+    }
+
+    function checkWinCondition() {
+        const totalTiles = gridSize * gridSize;
+        const winningArrangement = [...Array(totalTiles).keys()].map(i => i + 1);
+
+        if (JSON.stringify(tiles) === JSON.stringify(winningArrangement)) {
+            clearInterval(timer);
+            setTimeout(() => {
+                alert("Ganaste 🏆");
+                moveCount = 0;
+                secondsLeft = 1199;
+                initializeTiles();
+                buildElements();
+                updateInfo();
+                startTimer();
+            }, 2000);
+        }
+    }
+
+    function togglePuzzleSize() {
+        is4x4 = !is4x4;
+        gridSize = is4x4 ? 4 : 3;
+
+        arrowsTop.className = is4x4 ? 'arrows-top arrows-top-4x4' : 'arrows-top arrows-top-3x3';
+        arrowsBottom.className = is4x4 ? 'arrows-bottom arrows-bottom-4x4' : 'arrows-bottom arrows-bottom-3x3';
+        toggleButton.textContent = is4x4 ? '4X4 / 3X3' : '3X3 / 4X4';
+
+        clearInterval(timer);
+        moveCount = 0;
+        secondsLeft = 1199;
+        initializeTiles();
+        createArrows();
+        buildElements();
+        updateInfo();
+        startTimer();
+    }
+
+    shuffleButton.addEventListener('click', shuffle);
+    toggleButton.addEventListener('click', togglePuzzleSize);
+
+    initializeTiles();
+    createArrows();
+    buildElements();
+    updateInfo();
+    startTimer();
+</script>
+
+<script>
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+});
+</script>
+
+</body>
+</html>

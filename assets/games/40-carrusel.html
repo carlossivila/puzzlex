@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>PuzzleX - carrusel</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #0a0a0a;
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 0.5rem;
+      overflow: hidden;
+    }
+
+    h3 {
+      position: absolute;
+      top: 20px;
+      left: center;
+       }
+
+    .carrusel-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .image-container {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      transform-style: preserve-3d;
+      transform: perspective(900px) rotateY(0deg);
+      transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      margin-bottom: 2.8rem;
+    }
+
+    .image-container span {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotateY(calc(var(--i) * 45deg)) translateZ(220px);
+      backface-visibility: hidden;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+      cursor: pointer;
+      background: #1a1a1a;
+    }
+
+    .image-container span img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 1.8rem;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+
+    .btn {
+      background: #2e7d32;
+      border: none;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
+      color: white;
+      user-select: none;
+    }
+
+    .btn:hover {
+      background: #32cd32;
+      transform: scale(1.05);
+    }
+
+    .btn:active {
+      transform: scale(0.92);
+    }
+
+    .btn svg {
+      display: block;
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: white;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .btn-play svg {
+      stroke: none;
+      fill: white;
+      width: 22px;
+      height: 22px;
+    }
+
+    .btn-refresh svg {
+      stroke: white;
+      fill: none;
+    }
+
+    @media (max-width: 480px) {
+      .image-container {
+        width: 140px;
+        height: 140px;
+      }
+      .image-container span {
+        transform: rotateY(calc(var(--i) * 45deg)) translateZ(170px);
+      }
+      .btn-group {
+        gap: 1.5rem;
+      }
+      .btn {
+        width: 44px;
+        height: 44px;
+      }
+      .btn svg {
+        width: 20px;
+        height: 20px;
+      }
+      .btn-play svg {
+        width: 18px;
+        height: 18px;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .image-container {
+        width: 200px;
+        height: 200px;
+      }
+      .image-container span {
+        transform: rotateY(calc(var(--i) * 45deg)) translateZ(245px);
+      }
+      .btn {
+        width: 52px;
+        height: 52px;
+      }
+      .btn-group {
+        gap: 2rem;
+      }
+    }
+
+    .video-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      z-index: 1000;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .video-overlay.active {
+      display: flex !important;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .landscape-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+      transform-origin: center center;
+      transition: none;
+    }
+
+    .video-overlay.landscape-mode .landscape-container {
+      transform: rotate(90deg) translateY(-100%);
+      transform-origin: top left;
+      width: 100vh;
+      height: 100vw;
+    }
+
+    .video-wrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+      position: relative;
+    }
+
+    .video-wrapper iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    .video-overlay .close-btn {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      width: 44px;
+      height: 44px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      font-size: 2rem;
+      font-weight: 300;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      z-index: 10000;
+      backdrop-filter: blur(4px);
+      transition: background 0.2s, transform 0.2s;
+      line-height: 1;
+      padding-bottom: 4px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .video-overlay .close-btn:hover {
+      background: rgba(255, 0, 0, 0.8);
+      transform: scale(1.1);
+    }
+
+    .video-overlay .close-btn:active {
+      transform: scale(0.9);
+    }
+
+    @media (max-width: 480px) {
+      .video-overlay .close-btn {
+        bottom: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 1.8rem;
+      }
+    }
+
+    .no-scroll {
+      overflow: hidden !important;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+<h3 style="color: lime;">PuzzleX by Carlos Sivila</h3>
+<div class="carrusel-wrapper">
+  <div class="image-container" id="imageContainer"></div>
+<br>
+  <div class="btn-group">
+    <button class="btn" id="prevBtn" aria-label="Anterior">
+      <svg viewBox="0 0 24 24">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+
+    <button class="btn btn-play" id="playBtn" aria-label="Reproducir video">
+      <svg viewBox="0 0 24 24">
+        <polygon points="5,3 19,12 5,21"></polygon>
+      </svg>
+    </button>
+
+    <button class="btn btn-refresh" id="refreshBtn" aria-label="Actualizar videos">
+      <svg viewBox="0 0 24 24">
+        <path d="M1 4v6h6"></path>
+        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+      </svg>
+    </button>
+
+    <button class="btn" id="nextBtn" aria-label="Siguiente">
+      <svg viewBox="0 0 24 24">
+        <polyline points="9 6 15 12 9 18"></polyline>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<div class="video-overlay" id="videoOverlay">
+  <div class="landscape-container" id="landscapeContainer">
+    <div class="video-wrapper">
+      <iframe id="videoFrame" src="" allow="autoplay; encrypted-media; fullscreen; accelerometer; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+    </div>
+  </div>
+  <button class="close-btn" id="closeVideo">&times;</button>
+</div>
+
+<script>
+  (function() {
+    const videoList = [
+      'https://www.youtube.com/watch?v=FMEsoC2SAFc',
+      'https://www.youtube.com/watch?v=CIJgAlNwweI',
+      'https://www.youtube.com/watch?v=Sx3xFYU9cZ0',
+      'https://www.youtube.com/watch?v=qw0D_KN2KN8',
+      'https://www.youtube.com/watch?v=Qy4bgf4kG-I',
+      'https://www.youtube.com/watch?v=zQGiPQjHvek',
+      'https://www.youtube.com/watch?v=lgHGU8gqz9U',
+      'https://www.youtube.com/watch?v=9jK-NcRmVcw',
+      'https://www.youtube.com/watch?v=K0HSD_i2DvA',
+      'https://www.youtube.com/watch?v=ZFj2zhfA4aA',
+      'https://www.youtube.com/watch?v=n4RjJKxsamQ',
+      'https://www.youtube.com/watch?v=kc7X3q27b34',
+      'https://www.youtube.com/watch?v=nqxVMLVe62U',
+      'https://www.youtube.com/watch?v=XAi3VTSdTxU',
+      'https://www.youtube.com/watch?v=BWf-eARnf6U',
+      'https://www.youtube.com/watch?v=Qt2mbGP6vFI',
+      'https://www.youtube.com/watch?v=YcY3FH208l8',
+      'https://www.youtube.com/watch?v=--cxZbnmmoc',
+      'https://www.youtube.com/watch?v=fV4DiAyExN0',
+      'https://www.youtube.com/watch?v=bCa28vA_GsA',
+      'https://www.youtube.com/watch?v=VzALZjoIx0g',
+      'https://www.youtube.com/watch?v=U_609ki-jQk',
+      'https://www.youtube.com/watch?v=69935tfgP5g',
+      'https://www.youtube.com/watch?v=1O_jC0J6zEA',
+      'https://www.youtube.com/watch?v=CcVdjZN0-D4',
+      'https://www.youtube.com/watch?v=wp2lFpg3h8E',
+      'https://www.youtube.com/watch?v=5qm8PH4xAss',
+      'https://www.youtube.com/watch?v=1g229Cp-eUk',
+      'https://www.youtube.com/watch?v=1Ixi68iUDVU',
+      'https://www.youtube.com/watch?v=avjHNHKMvAQ',
+      'https://www.youtube.com/watch?v=ufDOOxEhyTc',
+      'https://www.youtube.com/watch?v=Yn9Q8oTl90g',
+      'https://www.youtube.com/watch?v=4BPVXhEuhvg',
+      'https://www.youtube.com/watch?v=N6skUTYpRoQ',
+      'https://www.youtube.com/watch?v=wckZcVFLU24',
+      'https://www.youtube.com/watch?v=TORJG61tPBc',
+      'https://www.youtube.com/watch?v=ZQzWhddDdMI',
+      'https://www.youtube.com/watch?v=jUfc4kNTqoY',
+      'https://www.youtube.com/watch?v=69VStYa0aBA',
+      'https://www.youtube.com/watch?v=a7Dh5QoXv2c',
+      'https://www.youtube.com/watch?v=kVNPwmFkf-Q',
+      'https://www.youtube.com/watch?v=IG92h1oK-sQ',
+      'https://www.youtube.com/watch?v=uGbl4-vVEwI',
+      'https://www.youtube.com/watch?v=2gxC3hh3PUU',
+      'https://www.youtube.com/watch?v=_Te_tstowh0',
+      'https://www.youtube.com/watch?v=KjgWWjkNbhU',
+      'https://www.youtube.com/watch?v=JDbUEpjhYcg',
+      'https://www.youtube.com/watch?v=CqzOtQhn2sY',
+      'https://www.youtube.com/watch?v=0XdMt-loxiY',
+      'https://www.youtube.com/watch?v=xFHvH9FtACg',
+      'https://www.youtube.com/watch?v=NeHoIjJJ6W0',
+      'https://www.youtube.com/watch?v=6aoTr4N4tg4',
+      'https://www.youtube.com/watch?v=ybrY9JWVBv4',
+      'https://www.youtube.com/watch?v=my85HyqAcjc',
+      'https://www.youtube.com/watch?v=YvXTC7LeIMI',
+      'https://www.youtube.com/watch?v=uwSvH-bsNJ4',
+      'https://www.youtube.com/watch?v=vx2u5uUu3DE',
+      'https://www.youtube.com/watch?v=cXPSDQFRuQ4',
+      'https://www.youtube.com/watch?v=rcThFswcLB0',
+      'https://www.youtube.com/watch?v=KXB6ZhrQgsA',
+      'https://www.youtube.com/watch?v=fg-LfJP3lIw',
+      'https://www.youtube.com/watch?v=0mxI4nDiIIc',
+      'https://www.youtube.com/watch?v=gNTol7swS00',
+      'https://www.youtube.com/watch?v=m2sF8wg5XkQ',
+      'https://www.youtube.com/watch?v=bqICGrdLGIc',
+      'https://www.youtube.com/watch?v=PIb6AZdTr-A',
+      'https://www.youtube.com/watch?v=oGpFcHTxjZs',
+      'https://www.youtube.com/watch?v=Fy6OaUxDxVg',
+      'https://www.youtube.com/watch?v=V9oKwUTPlss',
+      'https://www.youtube.com/watch?v=FzeFyKiPHZ8',
+      'https://www.youtube.com/watch?v=24XyBLPSnNE',
+      'https://www.youtube.com/watch?v=2fIu6WdH_8E',
+      'https://www.youtube.com/watch?v=jcMCEHcgm0g',
+      'https://www.youtube.com/watch?v=QpEfHVFilRc',
+      'https://www.youtube.com/watch?v=W67Iev_vN-s',
+      'https://www.youtube.com/watch?v=2e22adzgtO8',
+      'https://www.youtube.com/watch?v=FDUwls5lbf4',
+      'https://www.youtube.com/watch?v=beTj08uwgkg',
+      'https://www.youtube.com/watch?v=TVDREzBijRI',
+      'https://www.youtube.com/watch?v=Jg1thdQJlRQ',
+      'https://www.youtube.com/watch?v=UPNUp9DwFR0',
+      'https://www.youtube.com/watch?v=vuCCgPqORlY',
+      'https://www.youtube.com/watch?v=P-Gkpy840wU',
+      'https://www.youtube.com/watch?v=eounu-FJZKY',
+      'https://www.youtube.com/watch?v=Lt0iWPPz4DM',
+      'https://www.youtube.com/watch?v=UM8gJFEURqQ',
+      'https://www.youtube.com/watch?v=DvKGvFrkPnI',
+      'https://www.youtube.com/watch?v=IEAKyy2-3-w',
+      'https://www.youtube.com/watch?v=p4QqMKe3rwY',
+      'https://www.youtube.com/watch?v=qvINutiBigg',
+      'https://www.youtube.com/watch?v=HKLnmMacEB4',
+      'https://www.youtube.com/watch?v=qq-yqajCo6k',
+      'https://www.youtube.com/watch?v=bAY9z29nZL4',
+      'https://www.youtube.com/watch?v=lhU6o2U4XVg',
+      'https://www.youtube.com/watch?v=3YxaaGgTQYM',
+      'https://www.youtube.com/watch?v=eVTXPUF4Oz4',
+      'https://www.youtube.com/watch?v=Gd9OhYroLN0',
+      'https://www.youtube.com/watch?v=kXYiU_JCYtU',
+      'https://www.youtube.com/watch?v=GgxcvmkPD-I',
+      'https://www.youtube.com/watch?v=v2H4l9RpkwM',
+      'https://www.youtube.com/watch?v=Jh3IpG5GuzI',
+      'https://www.youtube.com/watch?v=nZaLpZue7us',
+      'https://www.youtube.com/watch?v=Omrp4QR_Rpo',
+      'https://www.youtube.com/watch?v=updcPhOdAig',
+      'https://www.youtube.com/watch?v=n1mDNXEKWw4',
+      'https://www.youtube.com/watch?v=BT5by7iZi7E',
+      'https://www.youtube.com/watch?v=xDDpNaQxn6E',
+      'https://www.youtube.com/watch?v=6PtdpI-D6mM',
+      'https://www.youtube.com/watch?v=A_hLdPRsssE',
+      'https://www.youtube.com/watch?v=Q1L3q9iFfFE',
+      'https://www.youtube.com/watch?v=AurFxbLEK50',
+      'https://www.youtube.com/watch?v=r8o1OGpq0yE',
+      'https://www.youtube.com/watch?v=elBQV2sJVkg',
+      'https://www.youtube.com/watch?v=djV11Xbc914',
+      'https://www.youtube.com/watch?v=X5Q1j3sSwxE',
+      'https://www.youtube.com/watch?v=5iNeJOulkm8',
+      'https://www.youtube.com/watch?v=0WxDrVUrSvI',
+      'https://www.youtube.com/watch?v=fPvfi9Rf1qc',
+      'https://www.youtube.com/watch?v=7rNG3v4bDkI',
+      'https://www.youtube.com/watch?v=0D6AxxSIzRI',
+      'https://www.youtube.com/watch?v=tldsjP8AST8',
+      'https://www.youtube.com/watch?v=5btxwkHGr_A',
+      'https://www.youtube.com/watch?v=ZnZqB5Z75zI',
+      'https://www.youtube.com/watch?v=B2k8EtGl82Y',
+      'https://www.youtube.com/watch?v=TKnE0gFKQWk',
+      'https://www.youtube.com/watch?v=JcVE0xk78vM',
+      'https://www.youtube.com/watch?v=gOMhN-hfMtY',
+      'https://www.youtube.com/watch?v=osNBcqRHNE0',
+      'https://www.youtube.com/watch?v=jRGrNDV2mKc',
+      'https://www.youtube.com/watch?v=xVPvzX-AeSM',
+      'https://www.youtube.com/watch?v=xEHy0QwvAYE',
+      'https://www.youtube.com/watch?v=HVPehOYjHe8',
+      'https://www.youtube.com/watch?v=1sNZznRk9dg',
+      'https://www.youtube.com/watch?v=9STiQ8cCIo0',
+      'https://www.youtube.com/watch?v=MPx9EE-ajZ8',
+      'https://www.youtube.com/watch?v=juB7GI_AAC8',
+      'https://www.youtube.com/watch?v=nd5hXdSEnWA',
+      'https://www.youtube.com/watch?v=u99ivDAqwSM',
+      'https://www.youtube.com/watch?v=X8TOhb_4jU0',
+      'https://www.youtube.com/watch?v=kMrNsFwTXJQ',
+      'https://www.youtube.com/watch?v=CW3nvGfhQ2g',
+      'https://www.youtube.com/watch?v=5rOiW_xY-kc',
+      'https://www.youtube.com/watch?v=hO5HskW2Qpc',
+      'https://www.youtube.com/watch?v=DtKCNJmARF0',
+      'https://www.youtube.com/watch?v=mTrAx2zpap8',
+      'https://www.youtube.com/watch?v=uL4L5RU6YvQ',
+      'https://www.youtube.com/watch?v=VZNrkYe5g48',
+      'https://www.youtube.com/watch?v=NiXPVrRsdzI',
+      'https://www.youtube.com/watch?v=CkdI1F5xxtE'
+    ];
+
+    const container = document.getElementById('imageContainer');
+    const prev = document.getElementById('prevBtn');
+    const next = document.getElementById('nextBtn');
+    const playBtn = document.getElementById('playBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const overlay = document.getElementById('videoOverlay');
+    const videoFrame = document.getElementById('videoFrame');
+    const closeBtn = document.getElementById('closeVideo');
+
+    let rotation = 0;
+    let isOverlayOpen = false;
+
+    function forceLandscapeCSS() {
+      const isPortrait = window.innerHeight > window.innerWidth;
+      if (isPortrait) {
+        overlay.classList.add('landscape-mode');
+      } else {
+        overlay.classList.remove('landscape-mode');
+      }
+    }
+
+    function stopVideo() {
+      videoFrame.src = '';
+    }
+
+    function openVideo(videoId) {
+      if (isOverlayOpen) return;
+      isOverlayOpen = true;
+
+      videoFrame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&fs=1&showinfo=0&iv_load_policy=3&modestbranding=1`;
+      overlay.classList.add('active');
+      document.body.classList.add('no-scroll');
+
+      setTimeout(forceLandscapeCSS, 50);
+
+      window.addEventListener('resize', handleOrientationChange);
+      window.addEventListener('orientationchange', handleOrientationChange);
+
+      if (window.orientationInterval) {
+        clearInterval(window.orientationInterval);
+      }
+      window.orientationInterval = setInterval(function() {
+        if (isOverlayOpen) {
+          forceLandscapeCSS();
+        } else {
+          clearInterval(window.orientationInterval);
+        }
+      }, 500);
+    }
+
+    function closeVideo() {
+      if (!isOverlayOpen) return;
+      isOverlayOpen = false;
+
+      stopVideo();
+      overlay.classList.remove('landscape-mode');
+      overlay.classList.remove('active');
+      document.body.classList.remove('no-scroll');
+
+      if (window.orientationInterval) {
+        clearInterval(window.orientationInterval);
+        window.orientationInterval = null;
+      }
+
+      window.removeEventListener('resize', handleOrientationChange);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+    }
+
+    function handleOrientationChange() {
+      if (!isOverlayOpen) return;
+      forceLandscapeCSS();
+    }
+
+    function shuffleArray(array) {
+      const shuffled = [...array];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    }
+
+    function getRandomVideos(count) {
+      const shuffled = shuffleArray(videoList);
+      return shuffled.slice(0, count);
+    }
+
+    function getVideoId(url) {
+      const match = url.match(/[?&]v=([^&]+)/);
+      return match ? match[1] : null;
+    }
+
+    function getThumbnailUrl(videoId) {
+      return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    }
+
+    function buildCarousel(videos) {
+      container.innerHTML = '';
+      videos.forEach((url, index) => {
+        const videoId = getVideoId(url);
+        const span = document.createElement('span');
+        span.style.setProperty('--i', index + 1);
+        if (videoId) {
+          const img = document.createElement('img');
+          img.src = getThumbnailUrl(videoId);
+          img.alt = `Video ${index + 1}`;
+          img.loading = 'lazy';
+          img.setAttribute('data-video-id', videoId);
+          span.appendChild(img);
+        } else {
+          const div = document.createElement('div');
+          div.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:12px;background:#1a1a1a;';
+          div.textContent = 'Video no disponible';
+          span.appendChild(div);
+        }
+        container.appendChild(span);
+      });
+    }
+
+    function getFrontVideo() {
+      let norm = ((-rotation % 360) + 360) % 360;
+      let iRaw = Math.round(norm / 45) % 8;
+      let i = iRaw === 0 ? 8 : iRaw;
+      const spans = container.querySelectorAll('span');
+      const span = spans[i - 1];
+      if (span) {
+        const img = span.querySelector('img');
+        if (img) {
+          return img.getAttribute('data-video-id');
+        }
+      }
+      return null;
+    }
+
+    function rotateCarrusel(deg) {
+      container.style.transform = `perspective(900px) rotateY(${deg}deg)`;
+    }
+
+    prev.addEventListener('click', () => {
+      rotation += 45;
+      rotateCarrusel(rotation);
+    });
+
+    next.addEventListener('click', () => {
+      rotation -= 45;
+      rotateCarrusel(rotation);
+    });
+
+    playBtn.addEventListener('click', () => {
+      const videoId = getFrontVideo();
+      if (videoId) {
+        openVideo(videoId);
+      } else {
+        alert('No hay video disponible en esta cara');
+      }
+    });
+
+    refreshBtn.addEventListener('click', () => {
+      const newVideos = getRandomVideos(8);
+      buildCarousel(newVideos);
+      rotation = 0;
+      rotateCarrusel(0);
+      refreshBtn.style.transform = 'scale(0.8)';
+      setTimeout(() => {
+        refreshBtn.style.transform = 'scale(1)';
+      }, 200);
+    });
+
+    closeBtn.addEventListener('click', closeVideo);
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay || e.target === document.getElementById('landscapeContainer') || e.target === document.querySelector('.video-wrapper')) {
+        closeVideo();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOverlayOpen) {
+        closeVideo();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (isOverlayOpen) return;
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        rotation += 45;
+        rotateCarrusel(rotation);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        rotation -= 45;
+        rotateCarrusel(rotation);
+      } else if (e.key === ' ' || e.key === 'Space') {
+        e.preventDefault();
+        playBtn.click();
+      }
+    });
+
+    const initialVideos = getRandomVideos(8);
+    buildCarousel(initialVideos);
+    rotateCarrusel(0);
+  })();
+</script>
+
+</body>
+</html>

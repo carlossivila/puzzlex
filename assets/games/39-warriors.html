@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PuzzleX</title>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    align-items:flex-start;
+    margin: 15px;
+    background:#111;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+h2{
+    color:lime;
+    margin-top:2px;
+    margin-bottom:2px;
+}
+
+#grid{
+    display:grid;
+    grid-template-columns:repeat(16,16px);
+    grid-template-rows:repeat(16,16px);
+    gap:2px;
+    background:#333;
+    padding:2px;
+}
+
+.cell{
+    position:relative;
+    width:16px;
+    height:16px;
+    background:#1a1a1a;
+    border:1px solid #444;
+    cursor:pointer;
+}
+
+.cell.tipo-1{
+    background:red;
+    border:2px solid orange;
+    border-radius:50%;
+}
+
+.cell.tipo-2{
+    background:white;
+    border:none;
+}
+.cell.tipo-2 .inner{
+    position:absolute;
+    inset:2px;
+    background:#2b2b2b;
+}
+
+.cell.tipo-3{
+    background:yellow;
+    border:none;
+}
+.cell.tipo-3 .inner{
+    position:absolute;
+    inset:2px;
+    background:#bbbbbb;
+}
+
+.cell.tipo-4{
+    border:none;
+}
+.cell.tipo-4 .inner{
+    position:absolute;
+    inset:0;
+    background:cyan;
+    clip-path:polygon(50% 0%, 0% 100%, 100% 100%);
+}
+.cell.tipo-4 .inner::after{
+    content:"";
+    position:absolute;
+    inset:2px;
+    background:blue;
+    clip-path:polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.cell.tipo-5{
+    border:none;
+}
+.cell.tipo-5 .inner{
+    position:absolute;
+    inset:0;
+    background:lime;
+    clip-path:polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+.cell.tipo-5 .inner::after{
+    content:"";
+    position:absolute;
+    inset:2px;
+    background:green;
+    clip-path:polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+button{
+    background-color: lime;
+    color: #111;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    margin: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+button:hover{
+    border: solid cyan 1px;
+    background-color: darkgreen;
+}
+
+#dpad{
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    margin-left: 50px;
+    margin-top: 10px;
+}
+#dpad .dpad-row{
+    display: flex;
+    flex-direction: row;
+}
+#dpad button{
+    width: 60px;
+    height: 60px;
+    font-size: 22px;
+    margin: 3px;
+    padding: 0;
+}
+@media (max-width: 768px){
+    #dpad{
+        display: flex;
+    }
+}
+</style>
+
+</head>
+<body>
+
+<h2>PuzzleX by Carlos Sivila</h2>
+
+<p style="color:lime; font-size: 20px; font-family:Arial, Helvetica, sans-serif;">
+    Nivel: <span id="contadorNivel"></span> / <span id="totalNiveles"></span>
+    &nbsp;|&nbsp;
+    Llaves: <span id="contadorLlaves"></span>
+</p>
+
+<div id="grid"></div>
+
+<!-- D-pad para celular -->
+<div id="dpad">
+  <div class="dpad-row">
+    <button id="btn-up">▲</button>
+  </div>
+  <div class="dpad-row">
+    <button id="btn-left">◀</button>
+    <button id="btn-down">▼</button>
+    <button id="btn-right">▶</button>
+  </div>
+</div>
+
+<script>
+const FILAS = 16;
+const COLUMNAS = 16;
+
+const TIPOS = {
+    VACIO: 0,
+    JUGADOR: 1,
+    PARED: 2,
+    SEMIPARED: 3,
+    LLAVE: 4,
+    TESORO: 5
+};
+
+const niveles = [
+[
+[1, 2, 5, 3, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2],
+[0, 0, 2, 0, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 0, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 0, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 0, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 0, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 0],
+[0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 2, 2, 4]
+],
+
+[
+[1, 4, 3, 2, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 5, 2],
+[0, 2, 0, 0, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 3, 0],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 0],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 0],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 4, 2, 0, 2, 4, 2, 0, 2, 0, 2, 0, 2],
+[0, 2, 0, 2, 3, 2, 0, 2, 3, 2, 0, 2, 0, 2, 0, 2],
+[0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2]
+],
+
+[
+[1, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4, 3],
+[4, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 4],
+[3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 3, 5, 3, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 3, 5, 3, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3],
+[4, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 4],
+[3, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4, 3]
+]
+
+];
+
+const grid = document.getElementById("grid");
+const contadorLlavesEl = document.getElementById("contadorLlaves");
+const contadorNivelEl = document.getElementById("contadorNivel");
+const totalNivelesEl = document.getElementById("totalNiveles");
+
+let nivelActual = 0;
+let matriz = null;
+let posJugador = null;
+let llaves = 0;
+let tesorosRestantes = 0;
+
+function clonarNivel(indice){
+    return niveles[indice].map(fila => fila.slice());
+}
+
+function contarTesoros(matrizNivel){
+    let total = 0;
+    for(let fila = 0; fila < FILAS; fila++){
+        for(let columna = 0; columna < COLUMNAS; columna++){
+            if(matrizNivel[fila][columna] === TIPOS.TESORO){
+                total++;
+            }
+        }
+    }
+    return total;
+}
+
+function buscarJugador(){
+    for(let fila = 0; fila < FILAS; fila++){
+        for(let columna = 0; columna < COLUMNAS; columna++){
+            if(matriz[fila][columna] === TIPOS.JUGADOR){
+                return {fila, columna};
+            }
+        }
+    }
+    return null;
+}
+
+function crearCelda(fila, columna){
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.dataset.row = fila;
+    cell.dataset.col = columna;
+
+    const inner = document.createElement("div");
+    inner.className = "inner";
+    cell.appendChild(inner);
+
+    return cell;
+}
+
+function renderizar(){
+    const celdas = grid.children;
+
+    for(let fila = 0; fila < FILAS; fila++){
+        for(let columna = 0; columna < COLUMNAS; columna++){
+            const index = fila * COLUMNAS + columna;
+            const cell = celdas[index];
+            const tipo = matriz[fila][columna];
+
+            cell.className = "cell tipo-" + tipo;
+        }
+    }
+
+    contadorLlavesEl.textContent = llaves;
+    contadorNivelEl.textContent = nivelActual + 1;
+    totalNivelesEl.textContent = niveles.length;
+}
+
+function inicializarGrid(){
+    for(let fila = 0; fila < FILAS; fila++){
+        for(let columna = 0; columna < COLUMNAS; columna++){
+            grid.appendChild(crearCelda(fila, columna));
+        }
+    }
+}
+
+function cargarNivel(indice){
+    nivelActual = indice;
+    matriz = clonarNivel(indice);
+    posJugador = buscarJugador();
+    llaves = 0;
+    tesorosRestantes = contarTesoros(matriz);
+    renderizar();
+}
+
+function moverJugador(deltaFila, deltaColumna){
+    if(!posJugador) return;
+
+    const nuevaFila = posJugador.fila + deltaFila;
+    const nuevaColumna = posJugador.columna + deltaColumna;
+
+    if(nuevaFila < 0 || nuevaFila >= FILAS || nuevaColumna < 0 || nuevaColumna >= COLUMNAS){
+        return;
+    }
+
+    const destino = matriz[nuevaFila][nuevaColumna];
+
+    if(destino === TIPOS.PARED){
+        return;
+    }
+
+    if(destino === TIPOS.SEMIPARED){
+        if(llaves <= 0){
+            return;
+        }
+        llaves -= 1;
+    }
+
+    if(destino === TIPOS.LLAVE){
+        llaves += 1;
+    }
+
+    const eraTesoro = destino === TIPOS.TESORO;
+
+    matriz[posJugador.fila][posJugador.columna] = TIPOS.VACIO;
+    matriz[nuevaFila][nuevaColumna] = TIPOS.JUGADOR;
+    posJugador = {fila: nuevaFila, columna: nuevaColumna};
+
+    renderizar();
+
+    if(eraTesoro){
+        tesorosRestantes -= 1;
+        if(tesorosRestantes <= 0){
+            manejarVictoriaDeNivel();
+        }
+    }
+}
+
+function manejarVictoriaDeNivel(){
+    const esUltimoNivel = nivelActual === niveles.length - 1;
+
+    if(esUltimoNivel){
+        setTimeout(() => {
+            alert("tú ganas el juego");
+            cargarNivel(0);
+        }, 10);
+    } else {
+        setTimeout(() => {
+            alert("tú ganas, siguiente nivel");
+            cargarNivel(nivelActual + 1);
+        }, 10);
+    }
+}
+
+document.addEventListener("keydown", (evento) => {
+    switch(evento.key){
+        case "ArrowUp":    moverJugador(-1, 0); break;
+        case "ArrowDown":  moverJugador(1, 0);  break;
+        case "ArrowLeft":  moverJugador(0, -1); break;
+        case "ArrowRight": moverJugador(0, 1);  break;
+    }
+});
+
+inicializarGrid();
+cargarNivel(0);
+
+// D-pad controls para celular (click + touchstart)
+function addDpadListener(id, deltaFila, deltaColumna){
+    ['click', 'touchstart'].forEach(evt => {
+        document.getElementById(id).addEventListener(evt, (e) => {
+            e.preventDefault();
+            moverJugador(deltaFila, deltaColumna);
+        });
+    });
+}
+addDpadListener('btn-up',    -1, 0);
+addDpadListener('btn-down',   1, 0);
+addDpadListener('btn-left',   0, -1);
+addDpadListener('btn-right',  0, 1);
+</script>
+
+</body>
+</html>
