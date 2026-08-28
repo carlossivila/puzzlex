@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Ranitas</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: clamp(8px, 3vw, 10px);
+      font-family: Arial, sans-serif;
+      touch-action: manipulation;
+    }
+
+    h4{
+        color: lime;
+      }
+
+    .tablero {
+      display: flex;
+      gap: clamp(6px, 3vw, 14px);
+      background: transparent;
+      padding: 4px;
+      border-radius: 10px;
+      flex-wrap: wrap;
+      max-width: 100%;
+    }
+    .casilla {
+      width: clamp(32px, 11vw, 40px);
+      height: clamp(32px, 11vw, 40px);
+      background: #b2dfdb;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: clamp(20px, 7vw, 28px);
+      cursor: pointer;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+      border: 1px solid #80cbc4;
+    }
+    .casilla.vacia {
+      background: #e0f2f1;
+      border-color: #b2dfdb;
+    }
+    .casilla.rana-marron {
+      filter: brightness(0.3) sepia(1) hue-rotate(10deg) saturate(3);
+    }
+    .casilla:active {
+      transform: scale(0.92);
+    }
+    .mensaje {
+      font-size: clamp(12px, 3.5vw, 14px);
+      color: #eee;
+      margin-top: 8px;
+      font-weight: bold;
+      min-height: 20px;
+    }
+    .boton-reinicio {
+      align-self: flex-start;
+      margin-top: 0;
+      font-size: clamp(18px, 5.5vw, 22px);
+      padding: clamp(8px, 2.5vw, 10px) clamp(18px, 6vw, 26px);
+      background: #ccc;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+        a:link,a:visited {
+            text-decoration: none;
+            color: lime;
+            font-size: clamp(18px, 5.5vw, 22px);
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: none;
+            color: red;
+        }
+
+  </style>
+</head>
+<body>
+<h4>PuzzleX by Carlos Sivila</h4>
+<div style="display:flex; flex-direction:column; align-items:flex-start;">
+<div class="tablero" id="tablero"></div>
+<div class="mensaje" id="mensaje"></div>
+<div style="display:flex; align-items:center; gap:10px;">
+<button class="boton-reinicio" id="btnReiniciar">🔄 Reiniciar</button>
+<a href="https://www.youtube.com/watch?v=pL_sMCL6e1M">solución</a>
+</div>
+</div>
+
+<script>
+  let casillas = [];
+  let seleccionada = null;
+  let juegoTerminado = false;
+
+  function iniciarJuego() {
+    casillas = [
+      { tipo: 'verde' },
+      { tipo: 'verde' },
+      { tipo: 'verde' },
+      { tipo: 'vacia' },
+      { tipo: 'marron' },
+      { tipo: 'marron' },
+      { tipo: 'marron' }
+    ];
+    seleccionada = null;
+    juegoTerminado = false;
+    document.getElementById('mensaje').textContent = '';
+    renderizar();
+  }
+
+  function renderizar() {
+    const tablero = document.getElementById('tablero');
+    tablero.innerHTML = '';
+    casillas.forEach((casilla, index) => {
+      const div = document.createElement('div');
+      div.className = 'casilla';
+      if (casilla.tipo === 'vacia') {
+        div.classList.add('vacia');
+        div.textContent = '';
+      } else if (casilla.tipo === 'verde') {
+        div.textContent = '🐸';
+      } else if (casilla.tipo === 'marron') {
+        div.textContent = '🐸';
+        div.classList.add('rana-marron');
+      }
+      div.addEventListener('click', () => clickCasilla(index));
+      tablero.appendChild(div);
+    });
+  }
+
+  function clickCasilla(index) {
+    if (juegoTerminado) return;
+
+    if (seleccionada === null) {
+      if (casillas[index].tipo !== 'vacia') {
+        seleccionada = index;
+      }
+      return;
+    }
+
+    const origen = seleccionada;
+    const destino = index;
+    const movido = moverRana(origen, destino);
+    if (movido) {
+      seleccionada = null;
+      renderizar();
+      verificarVictoria();
+    } else {
+      if (casillas[index].tipo !== 'vacia') {
+        seleccionada = index;
+      } else {
+        seleccionada = null;
+      }
+    }
+    renderizar();
+  }
+
+  function moverRana(origen, destino) {
+    const casillaOrigen = casillas[origen];
+    const casillaDestino = casillas[destino];
+    if (casillaDestino.tipo !== 'vacia') return false;
+    const diff = destino - origen;
+    if (Math.abs(diff) === 1) {
+      if (casillaOrigen.tipo === 'verde' && diff > 0) {
+        // ok
+      } else if (casillaOrigen.tipo === 'marron' && diff < 0) {
+        // ok
+      } else {
+        return false;
+      }
+    } else if (Math.abs(diff) === 2) {
+      const medio = (origen + destino) / 2;
+      const casillaMedia = casillas[medio];
+      if (casillaOrigen.tipo === 'verde' && casillaMedia.tipo === 'marron' && diff > 0) {
+        // ok
+      } else if (casillaOrigen.tipo === 'marron' && casillaMedia.tipo === 'verde' && diff < 0) {
+        // ok
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    casillas[destino] = { tipo: casillaOrigen.tipo };
+    casillas[origen] = { tipo: 'vacia' };
+    return true;
+  }
+
+  function verificarVictoria() {
+    const verdes = casillas.map((c, i) => c.tipo === 'verde' ? i : -1).filter(i => i >= 0);
+    const marrones = casillas.map((c, i) => c.tipo === 'marron' ? i : -1).filter(i => i >= 0);
+    const ganado = verdes.every(i => i >= 4) && marrones.every(i => i <= 2);
+    if (ganado) {
+      juegoTerminado = true;
+      setTimeout(() => {
+        alert('Ganaste');
+      }, 1000);
+      return;
+    }
+    if (sinMovimientos()) {
+      juegoTerminado = true;
+      setTimeout(() => {
+        alert('Perdiste, no hay más movimientos posibles');
+      }, 100);
+    }
+  }
+
+  function sinMovimientos() {
+    for (let i = 0; i < casillas.length; i++) {
+      if (casillas[i].tipo === 'vacia') continue;
+      const dirs = casillas[i].tipo === 'verde' ? [1, 2] : [-1, -2];
+      for (const d of dirs) {
+        const dest = i + d;
+        if (dest >= 0 && dest < 7 && casillas[dest].tipo === 'vacia') {
+          if (Math.abs(d) === 2) {
+            const medio = i + d/2;
+            if (casillas[medio].tipo !== 'vacia' && casillas[medio].tipo !== casillas[i].tipo) {
+              return false;
+            }
+          } else {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  document.getElementById('btnReiniciar').addEventListener('click', iniciarJuego);
+
+  iniciarJuego();
+</script>
+
+</body>
+</html>
