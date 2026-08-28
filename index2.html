@@ -632,19 +632,41 @@ a:hover {
     videoFrame.src = '';
   }
 
-  function openVideo(videoId) {
+  // ===== FUNCIÓN PRINCIPAL: RECIBE URL COMPLETA =====
+  function openVideo(url) {
     if (isOverlayOpen) return;
     isOverlayOpen = true;
 
-    videoFrame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&fs=1&showinfo=0&iv_load_policy=3&modestbranding=1`;
+    let finalUrl = url;
+    
+    // Si es YouTube, convertir a embed con autoplay
+    if (url.includes('youtube.com/watch') || url.includes('youtu.be/')) {
+      const match = url.match(/[?&]v=([^&]+)/);
+      if (match && match[1]) {
+        finalUrl = `https://www.youtube.com/embed/${match[1]}?autoplay=1&rel=0&fs=1&showinfo=0&iv_load_policy=3&modestbranding=1`;
+      }
+    } else {
+      // Para ok.ru y otros, añadir autoplay
+      if (!url.includes('autoplay')) {
+        finalUrl = url + (url.includes('?') ? '&' : '?') + 'autoplay=1';
+      }
+    }
+
+    // ASIGNAR LA URL CON AUTOPLAY
+    videoFrame.src = finalUrl;
+    
+    // MOSTRAR OVERLAY
     overlay.classList.add('active');
     document.body.classList.add('no-scroll');
 
+    // FORZAR LANDSCAPE
     setTimeout(forceLandscapeCSS, 50);
 
+    // MANTENER LANDSCAPE AL CAMBIAR ORIENTACIÓN
     window.addEventListener('resize', handleOrientationChange);
     window.addEventListener('orientationchange', handleOrientationChange);
 
+    // VERIFICACIÓN CONTINUA DE LANDSCAPE
     if (window.orientationInterval) {
       clearInterval(window.orientationInterval);
     }
@@ -699,10 +721,7 @@ a:hover {
     cell.addEventListener('click', function() {
       const iframeEl = this.querySelector('iframe');
       if (iframeEl && iframeEl.src) {
-        const match = iframeEl.src.match(/[?&]v=([^&]+)/);
-        if (match && match[1]) {
-          openVideo(match[1]);
-        }
+        openVideo(iframeEl.src);  // PASAR URL COMPLETA
       }
     });
   });
@@ -949,8 +968,8 @@ a:hover {
 
   playBtn.addEventListener('click', () => {
     const video = getFrontVideo();
-    if (video && video.videoId) {
-      openVideo(video.videoId);
+    if (video && video.videoUrl) {  // USAR videoUrl
+      openVideo(video.videoUrl);    // UN SOLO CLICK, REPRODUCCIÓN AUTOMÁTICA
     } else {
       alert('No hay video disponible en esta cara');
     }
