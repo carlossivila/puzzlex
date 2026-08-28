@@ -239,114 +239,114 @@ a:hover {
   border-color: #00ffff;
 }
 
-#overlay {
+/* ===== OVERLAY CON LANDSCAPE FORZADO ===== */
+.video-overlay {
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
   background: #000;
-  z-index: 9999;
-  display: none;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
+  z-index: 1000;
+  overflow: hidden;
+  touch-action: none;
 }
 
-#video-wrapper {
+.video-overlay.active {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+}
+
+.landscape-container {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   background: #000;
+  transform-origin: center center;
+  transition: none;
 }
 
-#video-wrapper iframe {
+.video-overlay.landscape-mode .landscape-container {
+  transform: rotate(90deg) translateY(-100%);
+  transform-origin: top left;
+  width: 100vh;
+  height: 100vw;
+}
+
+.video-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  position: relative;
+}
+
+.video-wrapper iframe {
   width: 100%;
   height: 100%;
   border: none;
   display: block;
 }
 
-#close-btn {
+.video-overlay .close-btn {
   position: fixed;
-  top: 20px;
-  right: 25px;
-  z-index: 10000;
+  bottom: 10px;
+  right: 10px;
+  width: 44px;
+  height: 44px;
   background: rgba(0, 0, 0, 0.7);
   color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.6);
+  font-size: 2rem;
+  font-weight: 300;
+  border: 2px solid rgba(255, 255, 255, 0.5);
   border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 48px;
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-  user-select: none;
-  font-family: Arial, sans-serif;
-  display: none;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s, transform 0.2s;
+  line-height: 1;
+  padding-bottom: 4px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
 
-#close-btn:hover {
-  background: rgba(200, 30, 30, 0.9);
+.video-overlay .close-btn:hover {
+  background: rgba(255, 0, 0, 0.8);
   transform: scale(1.1);
 }
 
-#close-btn:active {
+.video-overlay .close-btn:active {
   transform: scale(0.9);
 }
 
-@media (max-width: 500px) {
-  .btn {
-    padding: 0.6rem 1.2rem;
-    font-size: 1.1rem;
-    min-width: 60px;
-    min-height: 50px;
-  }
-  #close-btn {
+@media (max-width: 480px) {
+  .video-overlay .close-btn {
+    bottom: 10px;
+    right: 10px;
     width: 40px;
     height: 40px;
-    font-size: 22px;
-    line-height: 40px;
-    top: 12px;
-    right: 14px;
-  }
-  #play-btn {
-    min-width: 70px;
-  }
-  .video-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
+    font-size: 1.8rem;
   }
 }
 
-@media (max-width: 380px) {
-  .btn-container {
-    gap: 1rem;
-  }
+.no-scroll {
+  overflow: hidden !important;
+  position: fixed;
+  width: 100%;
+  height: 100%;
 }
-
-@keyframes spin3d {
-  0%   { transform: rotateY(0deg); }
-  100% { transform: rotateY(360deg); }
-}
-
-@keyframes flicker {
-  0%, 95%, 100% { opacity: 1; }
-  96%           { opacity: 0.85; }
-  97%           { opacity: 1; }
-  98%           { opacity: 0.7; }
-  99%           { opacity: 1; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; }
-}
+/* ===== FIN OVERLAY ===== */
 
 /* ===== CARRUSEL ===== */
 .carrusel-wrapper {
@@ -585,13 +585,16 @@ a:hover {
   <hr>
 </div>
 
-<div id="overlay">
-  <div id="video-wrapper">
-    <iframe id="player-iframe" src="" allowfullscreen></iframe>
+<!-- ===== OVERLAY CON LANDSCAPE FORZADO ===== -->
+<div class="video-overlay" id="videoOverlay">
+  <div class="landscape-container" id="landscapeContainer">
+    <div class="video-wrapper">
+      <iframe id="videoFrame" src="" allow="autoplay; encrypted-media; fullscreen; accelerometer; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+    </div>
   </div>
+  <button class="close-btn" id="closeVideo">&times;</button>
 </div>
-
-<div id="close-btn">✕</div>
+<!-- ===== FIN OVERLAY ===== -->
 
 <br><br>
 
@@ -610,64 +613,98 @@ a:hover {
   updateClock();
   setInterval(updateClock, 1000);
 
+  // ===== OVERLAY CON LANDSCAPE =====
+  const overlay = document.getElementById('videoOverlay');
+  const videoFrame = document.getElementById('videoFrame');
+  const closeBtn = document.getElementById('closeVideo');
+  let isOverlayOpen = false;
+
+  function forceLandscapeCSS() {
+    const isPortrait = window.innerHeight > window.innerWidth;
+    if (isPortrait) {
+      overlay.classList.add('landscape-mode');
+    } else {
+      overlay.classList.remove('landscape-mode');
+    }
+  }
+
+  function stopVideo() {
+    videoFrame.src = '';
+  }
+
+  function openVideo(videoId) {
+    if (isOverlayOpen) return;
+    isOverlayOpen = true;
+
+    videoFrame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&fs=1&showinfo=0&iv_load_policy=3&modestbranding=1`;
+    overlay.classList.add('active');
+    document.body.classList.add('no-scroll');
+
+    setTimeout(forceLandscapeCSS, 50);
+
+    window.addEventListener('resize', handleOrientationChange);
+    window.addEventListener('orientationchange', handleOrientationChange);
+
+    if (window.orientationInterval) {
+      clearInterval(window.orientationInterval);
+    }
+    window.orientationInterval = setInterval(function() {
+      if (isOverlayOpen) {
+        forceLandscapeCSS();
+      } else {
+        clearInterval(window.orientationInterval);
+      }
+    }, 500);
+  }
+
+  function closeVideo() {
+    if (!isOverlayOpen) return;
+    isOverlayOpen = false;
+
+    stopVideo();
+    overlay.classList.remove('landscape-mode');
+    overlay.classList.remove('active');
+    document.body.classList.remove('no-scroll');
+
+    if (window.orientationInterval) {
+      clearInterval(window.orientationInterval);
+      window.orientationInterval = null;
+    }
+
+    window.removeEventListener('resize', handleOrientationChange);
+    window.removeEventListener('orientationchange', handleOrientationChange);
+  }
+
+  function handleOrientationChange() {
+    if (!isOverlayOpen) return;
+    forceLandscapeCSS();
+  }
+
+  closeBtn.addEventListener('click', closeVideo);
+  
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay || e.target === document.getElementById('landscapeContainer') || e.target === document.querySelector('.video-wrapper')) {
+      closeVideo();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isOverlayOpen) {
+      closeVideo();
+    }
+  });
+
+  // ===== CLICK EN VIDEO GRID =====
   document.querySelectorAll('.video-cell').forEach(function(cell) {
     cell.addEventListener('click', function() {
       const iframeEl = this.querySelector('iframe');
       if (iframeEl && iframeEl.src) {
-        openOverlay(iframeEl.src);
+        const match = iframeEl.src.match(/[?&]v=([^&]+)/);
+        if (match && match[1]) {
+          openVideo(match[1]);
+        }
       }
     });
-  });
-
-  function convertirAEmbed(url) {
-    const match = url.match(/[?&]v=([^&]+)/);
-    if (match && match[1]) {
-      return 'https://www.youtube.com/embed/' + match[1];
-    }
-    return url;
-  }
-
-  const overlay = document.getElementById('overlay');
-  const closeBtn = document.getElementById('close-btn');
-  const iframe = document.getElementById('player-iframe');
-  let isOpen = false;
-
-  function closeOverlay() {
-    if (!isOpen) return;
-    overlay.style.display = 'none';
-    closeBtn.style.display = 'none';
-    iframe.src = '';
-    isOpen = false;
-  }
-
-  function openOverlay(url) {
-    if (isOpen) {
-      closeOverlay();
-      setTimeout(() => openOverlay(url), 300);
-      return;
-    }
-
-    let finalUrl = url;
-    if (url.includes('youtube.com/watch')) {
-      finalUrl = convertirAEmbed(url);
-      if (!finalUrl.includes('autoplay')) {
-        finalUrl += (finalUrl.includes('?') ? '&' : '?') + 'autoplay=1';
-      }
-    } else if (url.includes('/embed/') && url.includes('youtube')) {
-      if (!url.includes('autoplay')) {
-        finalUrl = url + (url.includes('?') ? '&' : '?') + 'autoplay=1';
-      }
-    }
-
-    iframe.src = finalUrl;
-    overlay.style.display = 'flex';
-    closeBtn.style.display = 'block';
-    isOpen = true;
-  }
-
-  closeBtn.addEventListener('click', closeOverlay);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && isOpen) closeOverlay();
   });
 
   // ===== CARRUSEL =====
@@ -912,8 +949,8 @@ a:hover {
 
   playBtn.addEventListener('click', () => {
     const video = getFrontVideo();
-    if (video && video.videoUrl) {
-      openOverlay(video.videoUrl);
+    if (video && video.videoId) {
+      openVideo(video.videoId);
     } else {
       alert('No hay video disponible en esta cara');
     }
@@ -931,7 +968,7 @@ a:hover {
   });
 
   document.addEventListener('keydown', (e) => {
-    if (isOpen) return;
+    if (isOverlayOpen) return;
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
       rotation += 45;
