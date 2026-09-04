@@ -20,14 +20,25 @@
 
     h4 { color: lime; margin: 0 0 10px 0; }
 
-    .game-container {
+    /* Wrapper: ocupa en el documento el tamaño YA escalado (se fija por JS).
+       game-container: tamaño natural fijo, se escala entero con transform. */
+    .game-wrapper {
         position: relative;
         margin-bottom: 10px;
     }
 
+    .game-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform-origin: top left;
+    }
+
     .arrows-top, .arrows-bottom {
         display: flex;
-        margin-left: 31px;
+        /* offset = ancho de .arrows-left (26px) + su margin-right (2px)
+                    - margin-left propio del primer botón (1px) = 27px */
+        margin-left: 27px;
     }
 
     .arrows-top { margin-bottom: 2px; }
@@ -91,9 +102,8 @@
 
     @media (max-width: 600px) {
         body { font-size: 16px; }
-        .star { font-size: 20px; }
-        .arrow-top, .arrow-bottom { width: 38px; height: 22px; }
-        .arrow-left, .arrow-right { width: 22px; height: 38px; }
+        /* El tamaño del juego (flechas + grilla) ya no se ajusta acá:
+           se escala como un solo bloque proporcional vía JS (updateGameScale). */
     }
 </style>
 </head>
@@ -101,14 +111,16 @@
 
 <h4>PuzzleX by Carlos Sivila</h4>
 
-<div class="game-container">
-    <div class="arrows-top" id="arrowsTop"></div>
-    <div class="main-grid">
-        <div class="arrows-left" id="arrowsLeft"></div>
-        <div id="grid"></div>
-        <div class="arrows-right" id="arrowsRight"></div>
+<div class="game-wrapper" id="gameWrapper">
+    <div class="game-container" id="gameContainer">
+        <div class="arrows-top" id="arrowsTop"></div>
+        <div class="main-grid">
+            <div class="arrows-left" id="arrowsLeft"></div>
+            <div id="grid"></div>
+            <div class="arrows-right" id="arrowsRight"></div>
+        </div>
+        <div class="arrows-bottom" id="arrowsBottom"></div>
     </div>
-    <div class="arrows-bottom" id="arrowsBottom"></div>
 </div>
 <br>
 <div id="info">
@@ -533,10 +545,31 @@
         scoreInfo.innerHTML = `Puntaje: <span class="highlight">${score}</span>`;
     }
 
+    function updateGameScale() {
+        const wrapper = document.getElementById('gameWrapper');
+        const container = document.getElementById('gameContainer');
+
+        // Medir el tamaño natural (sin escalar) del bloque completo.
+        container.style.transform = 'none';
+        const naturalWidth = container.offsetWidth;
+        const naturalHeight = container.offsetHeight;
+
+        // Ancho disponible restando el padding del body (10px a cada lado)
+        // más un pequeño margen de seguridad.
+        const available = document.body.clientWidth - 24;
+        const scale = Math.min(1, available / naturalWidth);
+
+        container.style.transform = `scale(${scale})`;
+        wrapper.style.width = (naturalWidth * scale) + 'px';
+        wrapper.style.height = (naturalHeight * scale) + 'px';
+    }
+
     createArrows();
     initTiles();
     buildElements();
     updateInfo();
+    updateGameScale();
+    window.addEventListener('resize', updateGameScale);
 </script>
 
 <script>
