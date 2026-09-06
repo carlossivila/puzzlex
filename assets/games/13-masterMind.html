@@ -24,7 +24,7 @@
             text-align: left;
             margin-left: 10px;
             color: lime;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
         }
 
         .game-container {
@@ -139,9 +139,9 @@
             color: lime;
             border: 2px solid lime;
             padding: 7.5px 5px;
-            font-size: 20px;
+            font-size: 22px;
             width: 40%;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
         }
 
         .enter-btn:hover:not(:disabled) {
@@ -158,12 +158,12 @@
         .counters {
             text-align: center;
             width: 100%;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
         }
 
         .counter {
             margin: 5px 0;
-            font-size: 18.75px;
+            font-size: 20px;
             letter-spacing: 0.625px;
             white-space: nowrap;
         }
@@ -178,7 +178,7 @@
 
         @media (max-width: 600px) {
             body {
-                font-size: 20px;
+                font-size: 22px;
                 transform: scale(1.0);
                 transform-origin: top left;
             }
@@ -454,7 +454,7 @@
                     if (wins >= 16) {
                         playVictoria();
                         setTimeout(() => {
-                            alert('Ganaste');
+                            alert('Ganaste 🏆');
                             resetCounters();
                             newGame();
                         }, 2500);
