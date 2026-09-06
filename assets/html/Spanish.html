@@ -28,54 +28,173 @@
     }
 
     #buttons button {
+        position: relative;
         display: block;
         width: auto;
         padding: 6px 10px;
         font-size: 25px;
-        background: linear-gradient(180deg, #f0f0f0 0%, #d8d8d8 40%, #c0c0c0 60%, #b0b0b0 100%);
-        color: #222;
-        border: 1px solid #888;
-        border-top-color: #ddd;
-        border-left-color: #ccc;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background 0.15s, box-shadow 0.15s;
-        margin: 15px 5px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.6);
-        text-shadow: 0 1px 0 rgba(255,255,255,0.5);
         font-weight: 500;
+        color: #202020;
+        cursor: pointer;
+        margin: 15px 5px;
+        border-radius: 6px;
+        border: 1px solid #666;
+        border-top-color: #ffffff;
+        border-left-color: #eeeeee;
+        border-right-color: #666666;
+        border-bottom-color: #555555;
+
+        background:
+            linear-gradient(
+                to bottom,
+                #ffffff 0%,
+                #eeeeee 12%,
+                #b8b8b8 30%,
+                #f8f8f8 47%,
+                #a5a5a5 63%,
+                #dedede 82%,
+                #858585 100%
+            );
+
+        box-shadow:
+            0 3px 0 #555555,
+            0 5px 8px rgba(0,0,0,0.65),
+            inset 0 2px 2px rgba(255,255,255,0.95),
+            inset 0 -2px 3px rgba(0,0,0,0.55),
+            inset 2px 0 2px rgba(255,255,255,0.55),
+            inset -2px 0 2px rgba(0,0,0,0.30);
+        text-shadow:
+            0 1px 0 rgba(255,255,255,0.85);
+        transition:
+            transform 0.08s ease,
+            box-shadow 0.08s ease,
+            filter 0.15s ease;
+    }
+
+    #buttons button::before {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 7px;
+        right: 7px;
+        height: 35%;
+        border-radius: 5px;
+        background:
+            linear-gradient(
+                to bottom,
+                rgba(255,255,255,0.85),
+                rgba(255,255,255,0)
+            );
+        pointer-events: none;
     }
 
     #buttons button:hover {
-        background: linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 40%, #cccccc 60%, #bcbcbc 100%);
-        box-shadow: 0 3px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.7);
+        filter: brightness(1.08);
+        background:
+            linear-gradient(
+                to bottom,
+                #ffffff 0%,
+                #f5f5f5 12%,
+                #c5c5c5 30%,
+                #ffffff 47%,
+                #b2b2b2 63%,
+                #e8e8e8 82%,
+                #909090 100%
+            );
+
+        box-shadow:
+            0 4px 0 #555555,
+            0 7px 12px rgba(0,0,0,0.72),
+            inset 0 2px 3px rgba(255,255,255,1),
+            inset 0 -2px 3px rgba(0,0,0,0.5),
+            inset 2px 0 2px rgba(255,255,255,0.65),
+            inset -2px 0 2px rgba(0,0,0,0.25);
     }
 
+
     #buttons button:active {
-        transform: scale(0.98);
-        background: linear-gradient(180deg, #b8b8b8 0%, #c8c8c8 40%, #d8d8d8 100%);
-        box-shadow: 0 1px 2px rgba(0,0,0,0.4), inset 0 2px 3px rgba(0,0,0,0.15);
+        transform: translateY(3px);
+        background:
+            linear-gradient(
+                to bottom,
+                #888888 0%,
+                #aaaaaa 20%,
+                #dddddd 48%,
+                #aaaaaa 75%,
+                #777777 100%
+            );
+
+        box-shadow:
+            0 1px 0 #444444,
+            0 2px 4px rgba(0,0,0,0.55),
+            inset 0 3px 4px rgba(0,0,0,0.55),
+            inset 0 -1px 2px rgba(255,255,255,0.75),
+            inset 2px 0 2px rgba(0,0,0,0.25),
+            inset -2px 0 2px rgba(255,255,255,0.35);
     }
 
     #buttons button.correct {
-        background: linear-gradient(180deg, #6ed46e 0%, #4CAF50 40%, #3a9e3a 60%, #2e8b2e 100%) !important;
+        background:
+            linear-gradient(
+                to bottom,
+                #d8ffd8 0%,
+                #8bea8b 12%,
+                #48bd48 32%,
+                #82e982 48%,
+                #3fae3f 65%,
+                #66cf66 82%,
+                #257c25 100%
+            ) !important;
+
         color: white !important;
-        border-color: #2e7d2e !important;
-        text-shadow: 0 1px 1px rgba(0,0,0,0.3) !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3) !important;
+        border-top-color: #eaffea !important;
+        border-left-color: #c8ffc8 !important;
+        border-right-color: #247124 !important;
+        border-bottom-color: #185918 !important;
+        text-shadow:
+            0 1px 1px rgba(0,0,0,0.55) !important;
+        box-shadow:
+            0 3px 0 #276b27,
+            0 5px 8px rgba(0,0,0,0.6),
+            inset 0 2px 2px rgba(255,255,255,0.7),
+            inset 0 -2px 3px rgba(0,0,0,0.45) !important;
     }
 
     #buttons button.incorrect {
-        background: linear-gradient(180deg, #f77 0%, #f44336 40%, #d32f2f 60%, #b71c1c 100%) !important;
+        background:
+            linear-gradient(
+                to bottom,
+                #ffd5d5 0%,
+                #ff8585 12%,
+                #e63d3d 32%,
+                #ff7777 48%,
+                #d93232 65%,
+                #e85a5a 82%,
+                #8f1717 100%
+            ) !important;
+
         color: white !important;
-        border-color: #a01010 !important;
-        text-shadow: 0 1px 1px rgba(0,0,0,0.3) !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2) !important;
+        border-top-color: #ffeaea !important;
+        border-left-color: #ffcaca !important;
+        border-right-color: #8a1010 !important;
+        border-bottom-color: #680909 !important;
+        text-shadow:
+            0 1px 1px rgba(0,0,0,0.55) !important;
+        box-shadow:
+            0 3px 0 #741313,
+            0 5px 8px rgba(0,0,0,0.6),
+            inset 0 2px 2px rgba(255,255,255,0.65),
+            inset 0 -2px 3px rgba(0,0,0,0.5) !important;
     }
 
     #buttons button.disabled {
         cursor: not-allowed;
         opacity: 0.8;
+    }
+
+    #buttons button:focus-visible {
+        outline: 2px solid lime;
+        outline-offset: 3px;
     }
 
     #counters p {
@@ -84,7 +203,9 @@
         color: white;
     }
 
-    #timer, #wrong-count, #correct-count {
+    #timer,
+    #wrong-count,
+    #correct-count {
         font-weight: bold;
         color: red;
     }
@@ -99,28 +220,43 @@
         border: 1px solid gray;
         border-radius: 5px;
         cursor: pointer;
-        transition: background 0.3s;
+        transition:
+            background 0.3s,
+            box-shadow 0.15s,
+            transform 0.08s;
         margin: 10px;
     }
 
-    #difficulty-toggle:hover {
-        background: #005500;
-    }
+#difficulty-toggle:hover {
+    background: #005500;
 
-    a:link, a:visited {
-        text-decoration: none;
-        color: lime;
-    }
-    a:hover {
-        text-decoration: none;
-        color: red;
-    }
+box-shadow:
+    0 3px 6px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+ }
 
-    @media (max-width: 600px) {
-        body {
-            font-size: 25px;
-        }
-    }
+#difficulty-toggle:active {
+   transform: translateY(2px);
+box-shadow:
+   inset 0 2px 3px rgba(0,0,0,0.5);
+ }
+
+a:link,
+a:visited {
+  text-decoration: none;
+  color: lime;
+ }
+
+a:hover {
+  text-decoration: none;
+  color: red;
+ }
+
+@media (max-width: 600px) {
+  body {
+    font-size: 25px;
+       }
+   }
 </style>
 </head>
 <body>
