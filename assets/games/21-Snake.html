@@ -15,8 +15,8 @@
         }
         #game-board {
             display: grid;
-            grid-template-columns: repeat(20, clamp(14px, 4.5vw, 20px));
-            grid-template-rows: repeat(20, clamp(14px, 4.5vw, 20px));
+            grid-template-columns: repeat(20, clamp(12px, 4.5vw, 18px));
+            grid-template-rows: repeat(20, clamp(12px, 4.5vw, 18px));
             gap: 1px;
             background-color: black;
             width: min(400px, 96vw);
@@ -261,7 +261,7 @@ class SnakeGame {
                 this.activateObstacles2();
             }
             if (this.score === 60) {
-                alert('¡Ganaste!');
+                alert('Ganaste 🏆');
                 this.resetGame();
                 return;
             }
