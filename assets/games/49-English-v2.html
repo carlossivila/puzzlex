@@ -19,7 +19,7 @@
         }
 
         .box {
-            font-size: 18px;
+            font-size: 22px;
             font-weight: bold;
             padding: 6px 4px;
             margin-bottom: 0;
@@ -36,7 +36,7 @@
         .button {
             margin: 0;
             padding: 6px 4px;
-            font-size: 18px;
+            font-size: 22px;
             background-color: #eee;
             color: #333;
             border: 1px solid gray;
@@ -67,21 +67,21 @@
         }
 
         .counters {
-            font-size: 18px;
+            font-size: 22px;
             margin-bottom: 5px;
         }
 
         .timer {
-            font-size: 18px;
+            font-size: 22px;
             font-weight: bold;
             margin-left: 5px;
             color: red;
         }
 
         #speak-btn {
-            font-size: 24px;
-            padding: 10px 20px;
-            margin-top: 10px;
+            font-size: 22px;
+            padding: 8px 16px;
+            margin-top: 20px;
             cursor: pointer;
             border: none;
             border-radius: 5px;
@@ -116,7 +116,7 @@
 
         @media (max-width: 600px) {
             body {
-                font-size: 20px;
+                font-size: 22px;
                 transform: scale(1.0);
                 transform-origin: top left;
             }
@@ -144,8 +144,7 @@
 <div class="counters">
 <span style="color: white;">Aciertos: </span><span style="color: red;" id="correctCount">0</span><span style="color: red;"> de 99</span><br>
 <span style="color: white;">Fallos: </span><span style="color: red;" id="incorrectCount">0</span><br>
-<span style="color: white;">Tiempo restante: </span>
-<div class="timer" id="timer">00:59</div><br>
+<span style="color: white;">Tiempo restante: <span class="timer" id="timer">00:59</span></span><br>
 <button id="speak-btn" class="button">🔊</button>
 </div>
 
