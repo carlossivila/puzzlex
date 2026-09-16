@@ -14,6 +14,13 @@
       font-style: normal;
     }
 
+    @font-face {
+      font-family: 'fonts';
+      src: url('fonts.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
     :root {
       --neon-lime:   #00ff00;
       --neon-cyan:   #00fff7;
@@ -76,6 +83,14 @@
       animation: flicker 5s infinite;
       line-height: 1.1;
     }
+
+    h2 {
+      font-family: 'fonts', Arial, monospace;
+      color: #aaa;
+      font-size: 4rem;
+      letter-spacing: 0.1em;
+      min-width: 22px;
+       }
 
     .title-group {
       display: inline-block;
