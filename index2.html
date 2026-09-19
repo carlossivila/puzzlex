@@ -574,8 +574,54 @@ con videos random
 <div class="video-cell"><iframe src="https://www.youtube.com/embed/6XojB2tyWIM?si=XYHRdTvoVEwNZE5x" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
 <div class="video-cell"><iframe src="https://www.youtube.com/embed/CIJgAlNwweI?si=ejRKgIexdDQk0At9" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
 </div>
-
 <br>
+
+<hr>
+<div class="menu"><a href="index.html"> HTML </a> / <a href="index2.html"> VIDEO </a> / <a href="index3.html"> FLASH </a> / </div>
+<hr>
+<br>
+
+  <div class="carrusel-wrapper">
+    <div class="image-container" id="imageContainer"></div>
+    <br>
+    <div class="carrusel-btn-group">
+      <button class="carrusel-btn" id="prevBtn" aria-label="Anterior">
+        <svg viewBox="0 0 24 24">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+
+      <button class="carrusel-btn carrusel-btn-play" id="playBtn" aria-label="Reproducir video">
+        <svg viewBox="0 0 24 24">
+          <polygon points="5,3 19,12 5,21"></polygon>
+        </svg>
+      </button>
+
+      <button class="carrusel-btn carrusel-btn-refresh" id="refreshBtn" aria-label="Actualizar videos">
+        <svg viewBox="0 0 24 24">
+          <path d="M1 4v6h6"></path>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+        </svg>
+      </button>
+
+      <button class="carrusel-btn" id="nextBtn" aria-label="Siguiente">
+        <svg viewBox="0 0 24 24">
+          <polyline points="9 6 15 12 9 18"></polyline>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+<div class="video-overlay" id="videoOverlay">
+  <div class="landscape-container" id="landscapeContainer">
+    <div class="video-wrapper">
+      <iframe id="videoFrame" src="" allow="autoplay; encrypted-media; fullscreen; accelerometer; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+    </div>
+  </div>
+  <button class="close-btn" id="closeVideo">&times;</button>
+</div>
+<br>
+
 <hr>
 <div class="menu"><a href="index.html"> HTML </a> / <a href="index2.html"> VIDEO </a> / <a href="index3.html"> FLASH </a> / </div>
 <hr>
@@ -584,7 +630,7 @@ con videos random
 <h2>PUZZLEX</h2>
 <br>
 <div class="box">
-<p><span style="font-size: 18px; color: yellow;">Catálogo (disc2) 2TB : </span><br>
+<p><span style="font-size: 18px; color: yellow;">Catálogo (disc2) 2TB : </span><br><br>
 JUEGOS: clásicos para<br>
 win7 x64 y win 10 x64,<br>
 frontEnd Maximus Arcade,<br>
@@ -808,50 +854,6 @@ etc<br>
 <div class="menu"><a href="index.html"> HTML </a> / <a href="index2.html"> VIDEO </a> / <a href="index3.html"> FLASH </a> / </div>
 <hr>
 </div>
-
-  <div class="carrusel-wrapper">
-    <div class="image-container" id="imageContainer"></div>
-    <br>
-    <div class="carrusel-btn-group">
-      <button class="carrusel-btn" id="prevBtn" aria-label="Anterior">
-        <svg viewBox="0 0 24 24">
-          <polyline points="15 18 9 12 15 6"></polyline>
-        </svg>
-      </button>
-
-      <button class="carrusel-btn carrusel-btn-play" id="playBtn" aria-label="Reproducir video">
-        <svg viewBox="0 0 24 24">
-          <polygon points="5,3 19,12 5,21"></polygon>
-        </svg>
-      </button>
-
-      <button class="carrusel-btn carrusel-btn-refresh" id="refreshBtn" aria-label="Actualizar videos">
-        <svg viewBox="0 0 24 24">
-          <path d="M1 4v6h6"></path>
-          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-        </svg>
-      </button>
-
-      <button class="carrusel-btn" id="nextBtn" aria-label="Siguiente">
-        <svg viewBox="0 0 24 24">
-          <polyline points="9 6 15 12 9 18"></polyline>
-        </svg>
-      </button>
-    </div>
-  </div>
-
-<div class="video-overlay" id="videoOverlay">
-  <div class="landscape-container" id="landscapeContainer">
-    <div class="video-wrapper">
-      <iframe id="videoFrame" src="" allow="autoplay; encrypted-media; fullscreen; accelerometer; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
-    </div>
-  </div>
-  <button class="close-btn" id="closeVideo">&times;</button>
-</div>
-
-<hr>
-<div class="menu"><a href="index.html"> HTML </a> / <a href="index2.html"> VIDEO </a> / <a href="index3.html"> FLASH </a> / </div>
-<hr>
 
 <script>
     (function alignSubtitle() {
