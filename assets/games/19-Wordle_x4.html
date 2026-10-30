@@ -124,7 +124,7 @@
 </head>
 <body>
 
-<h1 style="color: lime; text-align: left;">PuzzleX by Carlos Sivila</h1>
+<h1 style="color: lime; text-align: left;">PuzzleX - Wordle x4</h1>
 <div id="grid" class="grid"></div>
 <div id="touchArea"></div>
 <input type="text" id="hiddenInput" maxlength="4" autocomplete="off">
@@ -355,7 +355,7 @@ function checkGuess(input) {
         if (wins >= 15) {
             setTimeout(() => {
                 playwin();
-                alert('¡Ganaste!');
+                alert('Ganaste 🏆');
                 wins = 0;
                 updateCounter();
             }, 1000);

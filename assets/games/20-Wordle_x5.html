@@ -124,7 +124,7 @@
 </head>
 <body>
 
-<h1 style="color: lime; text-align: left;">PuzzleX by Carlos Sivila</h1>
+<h1 style="color: lime; text-align: left;">PuzzleX - Wordle x5</h1>
 <div id="grid" class="grid"></div>
 <div id="touchArea"></div>
 <input type="text" id="hiddenInput" maxlength="5" autocomplete="off">
@@ -350,13 +350,13 @@ function checkGuess(input) {
 
     attempts++;
     if (input.toLowerCase() === correctWord) {
-        playgood();                          // ✅ nombre correcto
+        playgood();
         wins++;
         updateCounter();
         if (wins >= 15) {
             setTimeout(() => {
-                playwin();                   // ✅ nombre correcto
-                alert('¡Ganaste!');
+                playwin();
+                alert('Ganaste 🏆');
                 wins = 0;
                 updateCounter();
             }, 1000);
@@ -364,12 +364,12 @@ function checkGuess(input) {
         }
         setTimeout(() => reiniciarJuego(), 500);
     } else if (attempts === 6) {
-        playfail();                          // ✅ nombre correcto
+        playfail();
         fails++;
         updateCounter();
         if (fails >= maxFallos) {
             setTimeout(() => {
-                playlose();                  // ✅ nombre correcto
+                playlose();
                 alert('¡Perdiste!');
                 wins = 0;
                 fails = 0;

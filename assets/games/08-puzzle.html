@@ -105,7 +105,7 @@
 </head>
 <body>
 
-<h3>PuzzleX by Carlos Sivila</h3>
+<h3>PuzzleX - Puzzle</h3>
 
 <div class="container">
   <div class="puzzle-board" id="board"></div>
@@ -272,7 +272,7 @@ function moveTile(index) {
         
         if(checkWin()) {
             setTimeout(() => {
-                alert("¡Ganaste!");
+                alert("Ganaste 🏆");
                 initGame();
             }, 1000);
         } else if(moves >= 999) {
