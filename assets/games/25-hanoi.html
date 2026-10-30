@@ -107,7 +107,7 @@
 </head>
 <body>
 
-<header>PuzzleX by Carlos Sivila</header>
+<header>PuzzleX - Hanoi</header>
 
 <div id="controls">
   <label for="diskno">Cantidad de discos:</label>
@@ -361,7 +361,7 @@ ENCIMA DE UN DISCO PEQUEÑO</p>
       // Check win
       if (towers[2].length === diskCount) {
         gameOver = true;
-        setTimeout(() => alert('Ganaste'), 1000);
+        setTimeout(() => alert('Ganaste 🏆'), 1000);
       }
     } else {
       returnDisk();
