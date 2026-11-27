@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Ruleta - Paso 1</title>
 <style>
   * {
@@ -16,9 +16,7 @@
 
   html, body {
     width: 100%;
-    height: 100%;
-    /* Quitamos overflow:hidden, position:fixed, inset:0 y overscroll-behavior:none
-       para permitir el gesto nativo de pull-to-refresh */
+    min-height: 100%;   /* antes: height: 100% */
     margin: 0;
   }
 
@@ -28,18 +26,16 @@
     flex-direction: column;
     align-items: center;
     font-family: 'DM Sans', sans-serif;
-    /* Quitamos touch-action:none para que el navegador detecte el gesto */
   }
 
   #app {
     width: 100%;
-    height: 100%;
+    min-height: 100vh;  /* antes: height: 100% */
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 0.5rem;
     gap: 0.6rem;
-    /* Quitamos touch-action:none y overflow:hidden */
   }
 
   #header {
@@ -71,7 +67,6 @@
     align-items: center;
     justify-content: center;
     gap: 1rem;
-    /* Quitamos touch-action:none */
   }
 
   #result {
@@ -86,7 +81,6 @@
     height: min(320px, 82vw);
     border-radius: 50%;
     background: conic-gradient(#F4D03F, #E67E22, #A1887F, #3498DB, #52BE80, #E84393, #E74C3C, #8E44AD, #F4D03F);
-    /* Quitamos touch-action:none del círculo para no bloquear gestos sobre él */
     box-shadow: 0 0 30px rgba(0,0,0,0.5);
   }
 </style>
@@ -102,5 +96,9 @@
       <div id="circle-placeholder"></div>
     </div>
   </div>
+
+  <script>
+    console.log('Cargada:', new Date().toLocaleTimeString());
+  </script>
 </body>
 </html>
