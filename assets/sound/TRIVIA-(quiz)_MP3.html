@@ -15,21 +15,28 @@
   --bg: #0a0a0f;
 }
 
-html, body {
+/* ===== FIX: html sin overflow:hidden para permitir pull-to-refresh ===== */
+html {
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
   overscroll-behavior-y: auto;
 }
 
+/* ===== FIX: min-height 100dvh (altura real en móvil) en lugar de height:100% ===== */
 body {
+  width: 100%;
+  min-height: 100vh;   /* fallback */
+  min-height: 100dvh;  /* altura dinámica real en móvil */
+  margin: 0;
+  padding: 0;
   background: radial-gradient(circle at 20% 30%, #0a0a0f, #030305);
   display: flex;
   flex-direction: column;
   align-items: center;
   font-family: 'DM Sans', sans-serif;
+  overscroll-behavior-y: auto;
 }
 
 #header {
@@ -53,6 +60,7 @@ body {
   margin-top: 4px;
 }
 
+/* ===== FIX: scroll interno controlado, sin propagar overscroll al documento ===== */
 #screen-ruleta {
   flex: 1;
   min-height: 0;
@@ -63,9 +71,19 @@ body {
   gap: 1rem;
   width: 100%;
   padding: 0.5rem;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
 }
 
-#screen-trivia { display: none; width: 100%; flex: 1; min-height: 0; overflow-y: auto; padding: 0.5rem; }
+#screen-trivia {
+  display: none;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.5rem;
+  overscroll-behavior-y: contain;
+}
 
 #ruleta-result {
   font-family: 'DM Sans', sans-serif;
@@ -89,6 +107,7 @@ body {
   width: min(360px, 84vw);
   height: min(360px, 84vw);
   margin-top: 1.8rem;
+  flex-shrink: 0;
 }
 
 #ruleta-container::before {
@@ -160,9 +179,7 @@ body {
 }
 
 #ruleta-btn:active  { transform: translate(-50%,-50%) scale(0.93); box-shadow: 0 2px 0 #b45f1b; }
-
 #ruleta-btn:hover   { background: radial-gradient(circle at 30% 25%,#fff2bb,#ffc46b); transform: translate(-50%,-50%) scale(1.03); }
-
 #ruleta-btn:disabled{ background: #3e3e52; box-shadow: 0 4px 0 #1e1e2c; color: #b0b0c0; cursor: not-allowed; transform: translate(-50%,-50%) scale(0.97); }
 
 #trivia-wrap {
@@ -196,9 +213,7 @@ body {
   justify-content: center;
 }
 
-#question audio {
-  width: none;
-}
+#question audio { width: none; }
 
 #answers button {
   display: block;
@@ -217,7 +232,6 @@ body {
 #answers button:hover { background: #ddd; }
 
 .correct   { background: #4CAF50 !important; color: white !important; }
-
 .incorrect { background: #f44336 !important; color: white !important; }
 
 #progress-container { background: black; border-radius: 5px; height: 10px; }
@@ -243,10 +257,7 @@ body {
   box-shadow: 0 0 15px cyan, 0 0 30px aqua;
 }
 
-#trivia-footer {
-  margin-top: 4px;
-}
-
+#trivia-footer { margin-top: 4px; }
 #trivia-footer hr { border-color: #333; margin: 4px 0; }
 
 #trivia-footer p {
@@ -257,15 +268,12 @@ body {
 #trivia-footer .fire-row { display: flex; flex-wrap: wrap; gap: 2px; align-items: flex-end; }
 
 a:link, a:visited { text-decoration: none; color: lime; }
-
 a:hover { color: red; }
 
 .fade-out { animation: fadeOut 0.35s forwards; }
-
 .fade-in  { animation: fadeIn  0.35s forwards; }
 
 @keyframes fadeOut { to { opacity: 0; transform: scale(0.97); } }
-
 @keyframes fadeIn  { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
 
 .neon{
@@ -283,7 +291,6 @@ a:hover { color: red; }
             0 0 12px lime,
             0 0 24px lime;
     }
-
     50%{
         color:cyan;
         text-shadow:
